@@ -383,7 +383,7 @@ footer {
   max-width: 1200px;
   margin: 0 auto;
   border-top: 1px solid var(--border);
-  padding: 48px 0;
+  padding: 24px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -392,7 +392,7 @@ footer {
 
 .footer-copy {
   font-size: 13px;
-  color: var(--light);
+  color: var(--gray);
 }
 
 .footer-links {
@@ -405,6 +405,8 @@ footer {
   color: var(--gray);
   text-decoration: none;
   transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
 }
 .footer-links a:hover { color: var(--black); }
 
@@ -426,7 +428,7 @@ footer {
   .detail-title { font-size: 20px; }
   .detail-price { font-size: 16px; }
   footer { padding: 0 16px; }
-  .footer-inner { padding: 36px 0; }
+  .footer-inner { padding: 18px 0; }
   .footer-inner { gap: 16px; }
   .footer-copy { font-size: 11px; }
   .footer-links a { font-size: 11px; }
