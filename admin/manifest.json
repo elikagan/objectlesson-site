@@ -1,0 +1,11 @@
+{
+  "name": "Object Lesson Admin",
+  "short_name": "OL Admin",
+  "start_url": "/admin/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    { "src": "/OL_logo.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

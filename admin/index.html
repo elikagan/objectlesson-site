@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="OL Admin">
+  <title>OL Admin</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="/OL_logo.svg">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+</head>
+<body>
+
+  <!-- Setup Screen -->
+  <div id="view-setup" class="view">
+    <div class="setup">
+      <img src="/OL_logo.svg" alt="Object Lesson" class="setup-logo">
+      <p class="setup-text">Enter your API keys to get started.</p>
+      <label class="field-label">GitHub Token</label>
+      <input type="password" id="input-gh-token" class="field" placeholder="ghp_...">
+      <label class="field-label">Gemini API Key</label>
+      <input type="password" id="input-gemini-key" class="field" placeholder="AIza...">
+      <label class="field-label">Default Dealer Code</label>
+      <input type="text" id="input-dealer-code" class="field" placeholder="14EK" value="14EK">
+      <button class="btn-primary" id="btn-save-setup">Save</button>
+    </div>
+  </div>
+
+  <!-- List Screen -->
+  <div id="view-list" class="view hidden">
+    <header class="topbar">
+      <img src="/OL_logo.svg" alt="Object Lesson" class="topbar-logo">
+      <div class="topbar-actions">
+        <button class="icon-btn" id="btn-settings" aria-label="Settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </header>
+    <div id="item-list" class="item-list"></div>
+    <button class="fab" id="btn-add" aria-label="Add item">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+  </div>
+
+  <!-- Editor Screen -->
+  <div id="view-editor" class="view hidden">
+    <header class="topbar">
+      <button class="icon-btn" id="btn-back" aria-label="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      </button>
+      <span class="topbar-title" id="editor-title">New Item</span>
+      <button class="icon-btn" id="btn-delete-item" aria-label="Delete" style="display:none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
+    </header>
+
+    <div class="editor-body">
+      <!-- Photos -->
+      <section class="editor-section">
+        <p class="section-label">Photos</p>
+        <div class="photo-grid" id="photo-grid"></div>
+        <label class="add-photo-btn" id="add-photo-label">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Add Photos</span>
+          <input type="file" accept="image/*" multiple capture="environment" id="photo-input" hidden>
+        </label>
+      </section>
+
+      <!-- AI Processing -->
+      <section class="editor-section">
+        <button class="btn-secondary" id="btn-process">Process with AI</button>
+        <div class="processing-status" id="processing-status"></div>
+      </section>
+
+      <!-- Fields -->
+      <section class="editor-section">
+        <label class="field-label">Title</label>
+        <input type="text" class="field" id="field-title" placeholder="Item title">
+
+        <label class="field-label">Description</label>
+        <textarea class="field field-textarea" id="field-desc" placeholder="Describe the item" rows="3"></textarea>
+
+        <label class="field-label">Price</label>
+        <input type="number" class="field" id="field-price" placeholder="0" min="0" step="1">
+
+        <label class="field-label">Category</label>
+        <select class="field" id="field-category">
+          <option value="">Select...</option>
+          <option value="wall-art">Wall Art</option>
+          <option value="object">Object</option>
+          <option value="ceramic">Ceramic</option>
+          <option value="furniture">Furniture</option>
+          <option value="light">Light</option>
+          <option value="sculpture">Sculpture</option>
+          <option value="misc">Misc</option>
+        </select>
+
+        <label class="field-label">Dealer Code</label>
+        <input type="text" class="field" id="field-dealer" placeholder="14EK">
+      </section>
+
+      <section class="editor-section">
+        <button class="btn-primary" id="btn-save">Save</button>
+      </section>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

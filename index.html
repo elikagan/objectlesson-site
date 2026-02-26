@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Object Lesson</title>
+  <meta name="description" content="Curated objects, art, and antiques in Pasadena.">
+  <link rel="icon" type="image/svg+xml" href="OL_logo.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <a href="/">
+      <img src="OL_logo.svg" alt="Object Lesson" class="logo">
+    </a>
+  </header>
+
+  <nav class="filters" id="filters">
+    <button class="filter active" data-category="all">All</button>
+    <button class="filter" data-category="wall-art">Wall Art</button>
+    <button class="filter" data-category="object">Object</button>
+    <button class="filter" data-category="ceramic">Ceramic</button>
+    <button class="filter" data-category="furniture">Furniture</button>
+    <button class="filter" data-category="light">Light</button>
+    <button class="filter" data-category="sculpture">Sculpture</button>
+    <button class="filter" data-category="misc">Misc</button>
+  </nav>
+
+  <main>
+    <div class="grid" id="product-grid"></div>
+    <p class="empty" id="empty">Nothing here yet.</p>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <img src="OL_logo.svg" alt="Object Lesson" class="footer-logo">
+      <div class="footer-contact">
+        <a href="mailto:eli@objectlesson.la">eli@objectlesson.la</a>
+        <a href="https://instagram.com/objectlesson_la" target="_blank" rel="noopener">@objectlesson_la</a>
+        <p>Pasadena Antique Center<br>480 S. Fair Oaks Ave, Pasadena</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

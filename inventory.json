@@ -1,0 +1,74 @@
+[
+  {
+    "id": "demo1",
+    "title": "Mid-Century Brass Desk Lamp",
+    "description": "Adjustable brass desk lamp with original green glass shade, circa 1950s. Beautiful aged patina.",
+    "price": 385,
+    "category": "light",
+    "dealerCode": "14EK",
+    "images": [],
+    "heroImage": "",
+    "order": 0,
+    "createdAt": "2026-02-25T00:00:00Z"
+  },
+  {
+    "id": "demo2",
+    "title": "Hand-Thrown Stoneware Vase",
+    "description": "Minimalist stoneware vase with matte glaze finish. Earth-toned with subtle texture. Unsigned, likely studio pottery, 1970s.",
+    "price": 145,
+    "category": "ceramic",
+    "dealerCode": "14EK",
+    "images": [],
+    "heroImage": "",
+    "order": 1,
+    "createdAt": "2026-02-25T00:00:00Z"
+  },
+  {
+    "id": "demo3",
+    "title": "Abstract Oil on Canvas",
+    "description": "Original abstract painting in warm earth tones. Signed lower right. Unframed, gallery-wrapped canvas.",
+    "price": 650,
+    "category": "wall-art",
+    "dealerCode": "14EK",
+    "images": [],
+    "heroImage": "",
+    "order": 2,
+    "createdAt": "2026-02-25T00:00:00Z"
+  },
+  {
+    "id": "demo4",
+    "title": "Danish Teak Side Table",
+    "description": "Classic Danish modern side table in solid teak. Tapered legs, clean lines. Minor surface wear consistent with age.",
+    "price": 475,
+    "category": "furniture",
+    "dealerCode": "14EK",
+    "images": [],
+    "heroImage": "",
+    "order": 3,
+    "createdAt": "2026-02-25T00:00:00Z"
+  },
+  {
+    "id": "demo5",
+    "title": "Bronze Bird Figure",
+    "description": "Small cast bronze bird sculpture on marble base. Lovely detail and weight. Mid-century decorative piece.",
+    "price": 220,
+    "category": "sculpture",
+    "dealerCode": "14EK",
+    "images": [],
+    "heroImage": "",
+    "order": 4,
+    "createdAt": "2026-02-25T00:00:00Z"
+  },
+  {
+    "id": "demo6",
+    "title": "Vintage French Brass Compass",
+    "description": "Working brass compass in original fitted case. Beautifully aged with clear markings. A conversation piece.",
+    "price": 95,
+    "category": "object",
+    "dealerCode": "14EK",
+    "images": [],
+    "heroImage": "",
+    "order": 5,
+    "createdAt": "2026-02-25T00:00:00Z"
+  }
+]
