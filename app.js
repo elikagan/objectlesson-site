@@ -25,7 +25,10 @@
 
   async function load() {
     try {
-      const res = await fetch('inventory.json?t=' + Date.now());
+      // Fetch from GitHub raw (updates instantly) with Pages fallback
+      const raw = `https://raw.githubusercontent.com/elikagan/objectlesson-site/main/inventory.json?t=${Date.now()}`;
+      let res = await fetch(raw);
+      if (!res.ok) res = await fetch('inventory.json?t=' + Date.now());
       items = await res.json();
       items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     } catch (e) {
@@ -57,7 +60,7 @@
       card.href = '#' + item.id;
       card.style.animationDelay = (i * 0.04) + 's';
 
-      const imgSrc = item.heroImage || (item.images && item.images[0]) || '';
+      const imgSrc = imgUrl(item.heroImage || (item.images && item.images[0]) || '');
       const imgHtml = imgSrc
         ? `<img src="${imgSrc}" alt="${esc(item.title)}" loading="lazy">`
         : '';
@@ -90,8 +93,8 @@
     const item = items.find(i => i.id === id);
     if (!item) return;
 
-    detailImages = item.images || [];
-    const hero = item.heroImage || detailImages[0] || '';
+    detailImages = (item.images || []).map(imgUrl);
+    const hero = imgUrl(item.heroImage) || detailImages[0] || '';
     detailIndex = detailImages.indexOf(hero);
     if (detailIndex < 0) detailIndex = 0;
 
@@ -231,6 +234,12 @@
   })();
 
   // --- Helpers ---
+
+  const RAW = 'https://raw.githubusercontent.com/elikagan/objectlesson-site/main/';
+  function imgUrl(path) {
+    if (!path || path.startsWith('http')) return path;
+    return RAW + path;
+  }
 
   function formatId(id) {
     const n = parseInt(id, 10);
