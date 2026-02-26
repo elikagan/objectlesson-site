@@ -70,5 +70,24 @@
     "heroImage": "",
     "order": 5,
     "createdAt": "2026-02-25T00:00:00Z"
+  },
+  {
+    "id": "mm32vp50",
+    "title": "Vibrant Textured Abstract Swirl Wall Art",
+    "description": "This striking contemporary mixed media artwork features a vibrant, organic swirl design in yellow, green, red, and earthy tones. Created with thickly applied pigments, likely acrylics or a similar textural compound, it boasts a unique impasto surface that evokes natural, biomorphic forms. The piece is in excellent condition, ready to bring abstract artistry and tactile interest to any modern interior.",
+    "price": 550,
+    "category": "wall-art",
+    "dealerCode": "14EK",
+    "images": [
+      "images/products/mm32vp50/0.jpg",
+      "images/products/mm32vp50/1.jpg",
+      "images/products/mm32vp50/2.jpg",
+      "images/products/mm32vp50/3.jpg",
+      "images/products/mm32vp50/4.jpg",
+      "images/products/mm32vp50/5.jpg"
+    ],
+    "heroImage": "images/products/mm32vp50/0.jpg",
+    "order": 6,
+    "createdAt": "2026-02-26T06:25:03.056Z"
   }
 ]
