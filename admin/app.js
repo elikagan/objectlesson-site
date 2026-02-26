@@ -247,16 +247,23 @@
       const thumb = item.heroImage || (item.images && item.images[0]) || '';
       const imgHtml = thumb ? `<img src="https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${thumb}" alt="">` : '';
       return `
-        <div class="item-row" data-id="${item.id}">
-          <div class="item-drag">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg>
+        <div class="swipe-wrap" data-id="${item.id}">
+          <div class="swipe-behind">
+            <button class="swipe-delete" data-id="${item.id}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            </button>
           </div>
-          <div class="item-thumb">${imgHtml}</div>
-          <div class="item-info">
-            <div class="item-name">${esc(item.title || 'Untitled')}</div>
-            <div class="item-meta">$${Number(item.price || 0).toLocaleString()}</div>
+          <div class="item-row" data-id="${item.id}">
+            <div class="item-drag">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg>
+            </div>
+            <div class="item-thumb">${imgHtml}</div>
+            <div class="item-info">
+              <div class="item-name">${esc(item.title || 'Untitled')}</div>
+              <div class="item-meta">$${Number(item.price || 0).toLocaleString()}</div>
+            </div>
+            <span class="item-category">${esc(item.category || '')}</span>
           </div>
-          <span class="item-category">${esc(item.category || '')}</span>
         </div>
       `;
     }).join('');
@@ -270,6 +277,9 @@
       onEnd: handleReorder
     });
 
+    // Swipe-to-reveal delete
+    initSwipeRows();
+
     // Click to edit
     itemList.querySelectorAll('.item-row').forEach(row => {
       row.addEventListener('click', e => {
@@ -277,7 +287,88 @@
         openEditor(row.dataset.id);
       });
     });
+
+    // Delete from list (swipe-revealed button)
+    itemList.querySelectorAll('.swipe-delete').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        const item = items.find(i => i.id === id);
+        if (!item) return;
+        confirm('Delete ' + (item.title || 'this item') + '?', async () => {
+          for (const img of (item.images || [])) {
+            try {
+              const f = await getFile(img);
+              await deleteFile(img, f.sha, 'Delete image');
+            } catch (e) { /* ignore */ }
+          }
+          items = items.filter(i => i.id !== id);
+          await saveInventory('Delete ' + (item.title || 'item'));
+          toast('Deleted');
+          renderList();
+        });
+      });
+    });
   }
+
+  // --- Swipe-to-reveal ---
+  const SWIPE_THRESHOLD = 70;
+  let openSwipeWrap = null;
+
+  function closeOpenSwipe() {
+    if (openSwipeWrap) {
+      openSwipeWrap.querySelector('.item-row').style.transform = '';
+      openSwipeWrap = null;
+    }
+  }
+
+  function initSwipeRows() {
+    itemList.querySelectorAll('.swipe-wrap').forEach(wrap => {
+      const row = wrap.querySelector('.item-row');
+      let startX = 0, startY = 0, dx = 0, swiping = false;
+
+      row.addEventListener('touchstart', e => {
+        if (e.target.closest('.item-drag')) return;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        dx = 0;
+        swiping = false;
+        row.style.transition = 'none';
+      }, { passive: true });
+
+      row.addEventListener('touchmove', e => {
+        const mx = e.touches[0].clientX - startX;
+        const my = e.touches[0].clientY - startY;
+        // Only swipe if horizontal movement > vertical
+        if (!swiping && Math.abs(mx) > 10 && Math.abs(mx) > Math.abs(my)) {
+          swiping = true;
+          if (openSwipeWrap && openSwipeWrap !== wrap) closeOpenSwipe();
+        }
+        if (!swiping) return;
+        e.preventDefault();
+        dx = Math.min(0, Math.max(-SWIPE_THRESHOLD, mx));
+        row.style.transform = `translateX(${dx}px)`;
+      }, { passive: false });
+
+      row.addEventListener('touchend', () => {
+        row.style.transition = 'transform 0.2s ease';
+        if (dx < -SWIPE_THRESHOLD / 2) {
+          row.style.transform = `translateX(-${SWIPE_THRESHOLD}px)`;
+          openSwipeWrap = wrap;
+        } else {
+          row.style.transform = '';
+          if (openSwipeWrap === wrap) openSwipeWrap = null;
+        }
+      }, { passive: true });
+    });
+  }
+
+  // Close swipe when tapping elsewhere
+  document.addEventListener('touchstart', e => {
+    if (openSwipeWrap && !openSwipeWrap.contains(e.target)) {
+      closeOpenSwipe();
+    }
+  }, { passive: true });
 
   async function handleReorder() {
     const rows = itemList.querySelectorAll('.item-row');

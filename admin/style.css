@@ -240,6 +240,37 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   flex-shrink: 0;
 }
 
+.swipe-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-behind {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 70px;
+  background: #d33;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swipe-delete {
+  background: none;
+  border: none;
+  padding: 12px;
+  cursor: pointer;
+  color: #fff;
+}
+
+.item-row {
+  position: relative;
+  background: var(--bg);
+  transition: transform 0.2s ease;
+}
+
 .list-empty {
   text-align: center;
   padding: 80px 24px;
