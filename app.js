@@ -278,7 +278,7 @@
 
   function formatId(id) {
     const n = parseInt(id, 10);
-    return !isNaN(n) ? '#' + String(n).padStart(6, '0') : '#' + id;
+    return !isNaN(n) ? 'A' + String(n).padStart(6, '0') : 'A' + id;
   }
 
   function esc(s) {
