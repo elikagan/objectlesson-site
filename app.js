@@ -4,6 +4,8 @@
 
   let items = [];
   let activeCategory = 'all';
+  let detailImages = [];
+  let detailIndex = 0;
 
   const grid = document.getElementById('product-grid');
   const empty = document.getElementById('empty');
@@ -74,12 +76,24 @@
 
   // --- Detail view ---
 
+  function setDetailImage(index) {
+    const heroEl = document.getElementById('detail-hero');
+    const thumbStrip = document.getElementById('detail-thumbs');
+    detailIndex = index;
+    heroEl.src = detailImages[index];
+    thumbStrip.querySelector('.active')?.classList.remove('active');
+    const thumbs = thumbStrip.querySelectorAll('.detail-thumb');
+    if (thumbs[index]) thumbs[index].classList.add('active');
+  }
+
   function showDetail(id) {
     const item = items.find(i => i.id === id);
     if (!item) return;
 
-    const allImages = item.images || [];
-    const hero = item.heroImage || allImages[0] || '';
+    detailImages = item.images || [];
+    const hero = item.heroImage || detailImages[0] || '';
+    detailIndex = detailImages.indexOf(hero);
+    if (detailIndex < 0) detailIndex = 0;
 
     const heroEl = document.getElementById('detail-hero');
     heroEl.src = hero;
@@ -97,16 +111,14 @@
 
     // Thumbnails
     const thumbStrip = document.getElementById('detail-thumbs');
-    if (allImages.length > 1) {
-      thumbStrip.innerHTML = allImages.map(img =>
-        `<img src="${img}" alt="" class="detail-thumb${img === hero ? ' active' : ''}" data-src="${img}">`
+    if (detailImages.length > 1) {
+      thumbStrip.innerHTML = detailImages.map((img, i) =>
+        `<img src="${img}" alt="" class="detail-thumb${i === detailIndex ? ' active' : ''}" data-index="${i}">`
       ).join('');
       thumbStrip.style.display = '';
       thumbStrip.querySelectorAll('.detail-thumb').forEach(th => {
         th.addEventListener('click', () => {
-          heroEl.src = th.dataset.src;
-          thumbStrip.querySelector('.active')?.classList.remove('active');
-          th.classList.add('active');
+          setDetailImage(parseInt(th.dataset.index, 10));
         });
       });
     } else {
@@ -127,7 +139,7 @@
   // --- Buy link (#2: SMS text) ---
 
   function buyLink(item) {
-    const msg = `Hi I'm interested in ${item.title}, ${formatId(item.id)} for $${Number(item.price).toLocaleString()}.`;
+    const msg = `Hi, I'm interested in ${item.title} for $${Number(item.price).toLocaleString()}. (item ${formatId(item.id)})`;
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     if (isMobile) {
@@ -179,6 +191,44 @@
     history.pushState(null, '', location.pathname);
     showGrid();
   });
+
+  // --- Swipe on hero image ---
+
+  (function () {
+    const heroEl = document.getElementById('detail-hero');
+    let startX = 0, startY = 0, tracking = false;
+
+    heroEl.addEventListener('touchstart', (e) => {
+      if (detailImages.length < 2) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      tracking = true;
+    }, { passive: true });
+
+    heroEl.addEventListener('touchmove', (e) => {
+      if (!tracking) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      // If horizontal swipe is dominant, prevent vertical scroll
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    heroEl.addEventListener('touchend', (e) => {
+      if (!tracking) return;
+      tracking = false;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+        if (dx < 0 && detailIndex < detailImages.length - 1) {
+          setDetailImage(detailIndex + 1);
+        } else if (dx > 0 && detailIndex > 0) {
+          setDetailImage(detailIndex - 1);
+        }
+      }
+    }, { passive: true });
+  })();
 
   // --- Helpers ---
 
