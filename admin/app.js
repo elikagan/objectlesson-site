@@ -9,11 +9,23 @@
   const PIN_HASH = '7f6257b880b51353e620ab9224907e72348e8d2c3c1f6e0ba9866661acbc05e9';
   const SIMPLE_HASH = '2a1bf354';
 
+  // --- Persistent storage (cookies, since Safari HTTP drops localStorage) ---
+  function store(key, val) {
+    try { localStorage.setItem(key, val); } catch {}
+    document.cookie = key + '=' + encodeURIComponent(val) + ';path=/admin;max-age=31536000;SameSite=Strict';
+  }
+  function load(key) {
+    const ls = localStorage.getItem(key);
+    if (ls) return ls;
+    const m = document.cookie.match('(?:^|; )' + key + '=([^;]*)');
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+
   // --- State ---
-  let unlocked = !!localStorage.getItem('ol_unlocked');
-  let ghToken = localStorage.getItem('ol_gh_token') || '';
-  let geminiKey = localStorage.getItem('ol_gemini_key') || '';
-  let dealerCode = localStorage.getItem('ol_dealer_code') || '14EK';
+  let unlocked = !!load('ol_unlocked');
+  let ghToken = load('ol_gh_token');
+  let geminiKey = load('ol_gemini_key');
+  let dealerCode = load('ol_dealer_code') || '14EK';
   let items = [];
   let inventorySha = '';
   let editingId = null;
@@ -59,7 +71,7 @@
     const hash = await hashPin(pin);
     if (hash === PIN_HASH || simpleHash(pin) === SIMPLE_HASH) {
       unlocked = true;
-      localStorage.setItem('ol_unlocked', '1');
+      store('ol_unlocked', '1');
       initApp();
     } else {
       toast('Wrong PIN');
@@ -95,9 +107,9 @@
     geminiKey = document.getElementById('input-gemini-key').value.trim();
     dealerCode = document.getElementById('input-dealer-code').value.trim() || '14EK';
     if (!ghToken || !geminiKey) { toast('Both keys are required'); return; }
-    localStorage.setItem('ol_gh_token', ghToken);
-    localStorage.setItem('ol_gemini_key', geminiKey);
-    localStorage.setItem('ol_dealer_code', dealerCode);
+    store('ol_gh_token', ghToken);
+    store('ol_gemini_key', geminiKey);
+    store('ol_dealer_code', dealerCode);
     showView('list');
     loadInventory();
   });
