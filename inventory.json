@@ -17,17 +17,5 @@
     "heroImage": "images/products/mm3pl1ta/0.jpg",
     "order": 0,
     "createdAt": "2026-02-26T17:00:13.166Z"
-  },
-  {
-    "id": "demo1",
-    "title": "Mid-Century Brass Desk Lamp",
-    "description": "Adjustable brass desk lamp with original green glass shade, circa 1950s. Beautiful aged patina.",
-    "price": 385,
-    "category": "light",
-    "dealerCode": "14EK",
-    "images": [],
-    "heroImage": "",
-    "order": 5,
-    "createdAt": "2026-02-25T00:00:00Z"
   }
 ]
