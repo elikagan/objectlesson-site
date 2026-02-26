@@ -551,7 +551,7 @@
   }
 
   async function geminiRemoveBackground(dataUrl) {
-    const result = await geminiCall('gemini-2.5-flash-preview-native-audio-dialog', [{
+    const result = await geminiCall('gemini-2.5-flash-image', [{
       parts: [
         { text: 'Remove the background from this product photo. Place the object on a clean pure white background with soft, even studio lighting and a very subtle drop shadow beneath the object. Keep the object exactly as it is — do not change its appearance, color, or proportions. Return only the edited image.' },
         { inlineData: { mimeType: dataUrlMimeType(dataUrl), data: dataUrlToBase64(dataUrl) } }
