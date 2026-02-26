@@ -31,18 +31,6 @@
     "createdAt": "2026-02-25T00:00:00Z"
   },
   {
-    "id": "demo3",
-    "title": "Abstract Oil on Canvas",
-    "description": "Original abstract painting in warm earth tones. Signed lower right. Unframed, gallery-wrapped canvas.",
-    "price": 650,
-    "category": "wall-art",
-    "dealerCode": "14EK",
-    "images": [],
-    "heroImage": "",
-    "order": 2,
-    "createdAt": "2026-02-25T00:00:00Z"
-  },
-  {
     "id": "demo1",
     "title": "Mid-Century Brass Desk Lamp",
     "description": "Adjustable brass desk lamp with original green glass shade, circa 1950s. Beautiful aged patina.",
