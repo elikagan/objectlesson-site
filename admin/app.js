@@ -570,9 +570,11 @@
     for (const file of e.target.files) {
       const reader = new FileReader();
       reader.onload = ev => {
+        const dataUrl = ev.target.result;
         photos.push({
           file,
-          dataUrl: ev.target.result,
+          dataUrl,
+          blobUrl: toBlobUrl(dataUrl),
           processed: false,
           aiProcess: true
         });
@@ -583,15 +585,22 @@
     photoInput.value = '';
   });
 
+  let photoSortableGen = 0;
+
   function renderPhotos() {
+    const gen = ++photoSortableGen;
+
+    if (photoSortable) { photoSortable.destroy(); photoSortable = null; }
+
     if (photos.length === 0) {
       photoGrid.innerHTML = '';
-      if (photoSortable) { photoSortable.destroy(); photoSortable = null; }
       return;
     }
+
+    // Use blob URLs for display (avoids embedding MB of base64 in DOM)
     photoGrid.innerHTML = photos.map((p, i) => `
       <div class="photo-cell" data-index="${i}">
-        <img src="${p.dataUrl}" draggable="false">
+        <img src="${p.blobUrl || p.dataUrl}" draggable="false">
         ${i === 0 ? '<span class="photo-hero-dot"></span>' : ''}
         <button class="photo-remove" data-index="${i}">&times;</button>
         ${!p.processed ? `<button class="photo-ai ${p.aiProcess !== false ? 'active' : ''}" data-index="${i}" title="AI processing">
@@ -603,7 +612,10 @@
     photoGrid.querySelectorAll('.photo-remove').forEach(b => {
       b.addEventListener('click', e => {
         e.stopPropagation();
-        photos.splice(+b.dataset.index, 1);
+        const idx = +b.dataset.index;
+        // Revoke blob URL to free memory
+        if (photos[idx] && photos[idx].blobUrl) URL.revokeObjectURL(photos[idx].blobUrl);
+        photos.splice(idx, 1);
         renderPhotos();
       });
     });
@@ -617,19 +629,22 @@
       });
     });
 
-    // Drag-and-drop reorder
-    if (photoSortable) photoSortable.destroy();
-    photoSortable = new Sortable(photoGrid, {
-      animation: 200,
-      ghostClass: 'photo-ghost',
-      delay: 150,
-      delayOnTouchOnly: true,
-      filter: '.photo-remove',
-      onEnd: (evt) => {
-        const moved = photos.splice(evt.oldIndex, 1)[0];
-        photos.splice(evt.newIndex, 0, moved);
-        renderPhotos();
-      }
+    // Defer Sortable init until images have rendered
+    requestAnimationFrame(() => {
+      if (gen !== photoSortableGen) return; // stale call
+      if (!photoGrid.children.length) return;
+      photoSortable = new Sortable(photoGrid, {
+        animation: 200,
+        ghostClass: 'photo-ghost',
+        delay: 150,
+        delayOnTouchOnly: true,
+        filter: '.photo-remove',
+        onEnd: (evt) => {
+          const moved = photos.splice(evt.oldIndex, 1)[0];
+          photos.splice(evt.newIndex, 0, moved);
+          renderPhotos();
+        }
+      });
     });
   }
 
@@ -668,7 +683,10 @@
           setStatus(`Processing image ${i + 1} of ${unprocessed.length}...`);
           const cleaned = await geminiRemoveBackground(unprocessed[i].dataUrl);
           if (cleaned) {
+            // Revoke old blob URL before replacing
+            if (unprocessed[i].blobUrl) URL.revokeObjectURL(unprocessed[i].blobUrl);
             unprocessed[i].dataUrl = cleaned;
+            unprocessed[i].blobUrl = toBlobUrl(cleaned);
             unprocessed[i].processed = true;
           }
         }
@@ -912,11 +930,26 @@
 
   function formatId(id) {
     const n = parseInt(id, 10);
-    return !isNaN(n) ? '#' + String(n).padStart(6, '0') : id;
+    return !isNaN(n) ? 'A' + String(n).padStart(6, '0') : 'A' + id;
   }
 
   function toTitleCase(str) {
     return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  // Convert data URL to lightweight blob URL for display (avoids MB of base64 in DOM)
+  function toBlobUrl(dataUrl) {
+    if (!dataUrl || !dataUrl.startsWith('data:')) return null;
+    try {
+      const parts = dataUrl.split(',');
+      const mime = parts[0].match(/:(.*?);/)[1];
+      const binary = atob(parts[1]);
+      const array = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
+      return URL.createObjectURL(new Blob([array], { type: mime }));
+    } catch {
+      return null;
+    }
   }
 
   function esc(s) {
