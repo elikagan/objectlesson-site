@@ -19,6 +19,25 @@
     "createdAt": "2026-02-26T06:50:36.212Z"
   },
   {
+    "id": "mm3pl1ta",
+    "title": "Ceramic Studio Vase",
+    "description": "Hand-thrown ceramic vase with vertical stripes of textured unglazed brown, dark blue, and lavender glazes.",
+    "price": 225,
+    "category": "ceramic",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/mm3pl1ta/0.jpg",
+      "images/products/mm3pl1ta/1.jpg",
+      "images/products/mm3pl1ta/2.jpg",
+      "images/products/mm3pl1ta/3.jpg",
+      "images/products/mm3pl1ta/4.jpg"
+    ],
+    "heroImage": "images/products/mm3pl1ta/0.jpg",
+    "order": 1,
+    "createdAt": "2026-02-26T17:00:13.166Z"
+  },
+  {
     "id": "mm33naov",
     "title": "CERAMIC STUDIO VASE",
     "description": "Ceramic vase with textured unglazed sections and vertical glazed stripes in deep blue and lavender. Likely late 20th century.",
@@ -31,7 +50,7 @@
       "images/products/mm33naov/2.jpg"
     ],
     "heroImage": "images/products/mm33naov/0.jpg",
-    "order": 1,
+    "order": 2,
     "createdAt": "2026-02-26T06:46:07.301Z"
   },
   {
@@ -50,7 +69,7 @@
       "images/products/mm32vp50/5.jpg"
     ],
     "heroImage": "images/products/mm32vp50/3.jpg",
-    "order": 2,
+    "order": 3,
     "createdAt": "2026-02-26T06:25:03.056Z"
   },
   {
@@ -62,7 +81,7 @@
     "dealerCode": "14EK",
     "images": [],
     "heroImage": "",
-    "order": 3,
+    "order": 4,
     "createdAt": "2026-02-25T00:00:00Z"
   },
   {
@@ -74,7 +93,7 @@
     "dealerCode": "14EK",
     "images": [],
     "heroImage": "",
-    "order": 4,
+    "order": 5,
     "createdAt": "2026-02-25T00:00:00Z"
   },
   {
@@ -86,7 +105,7 @@
     "dealerCode": "14EK",
     "images": [],
     "heroImage": "",
-    "order": 5,
+    "order": 6,
     "createdAt": "2026-02-25T00:00:00Z"
   },
   {
@@ -98,27 +117,8 @@
     "dealerCode": "14EK",
     "images": [],
     "heroImage": "",
-    "order": 6,
-    "createdAt": "2026-02-25T00:00:00Z"
-  },
-  {
-    "id": "mm3pl1ta",
-    "title": "Ceramic Studio Vase",
-    "description": "Hand-thrown ceramic vase with vertical stripes of textured unglazed brown, dark blue, and lavender glazes.",
-    "price": 225,
-    "category": "ceramic",
-    "dealerCode": "14EK",
-    "isNew": true,
-    "images": [
-      "images/products/mm3pl1ta/0.jpg",
-      "images/products/mm3pl1ta/1.jpg",
-      "images/products/mm3pl1ta/2.jpg",
-      "images/products/mm3pl1ta/3.jpg",
-      "images/products/mm3pl1ta/4.jpg"
-    ],
-    "heroImage": "images/products/mm3pl1ta/0.jpg",
     "order": 7,
-    "createdAt": "2026-02-26T17:00:13.166Z"
+    "createdAt": "2026-02-25T00:00:00Z"
   },
   {
     "id": "demo6",
