@@ -50,7 +50,7 @@
   let items = [];
   let inventorySha = '';
   let editingId = null;
-  let photos = []; // { file, dataUrl, processed, isTag, isHero }
+  let photos = []; // { file, dataUrl, processed, remotePath? }
   let sortable = null;
 
   // --- DOM refs ---
@@ -328,14 +328,13 @@
       document.getElementById('field-category').value = item.category || '';
       document.getElementById('field-dealer').value = item.dealerCode || '';
 
-      // Load existing images
+      // Load existing images — hero is first, so put it first
       if (item.images) {
-        photos = item.images.map((img, i) => ({
+        const sorted = [...item.images].sort((a, b) => (a === item.heroImage ? -1 : b === item.heroImage ? 1 : 0));
+        photos = sorted.map(img => ({
           file: null,
           dataUrl: `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${img}`,
           processed: true,
-          isTag: false,
-          isHero: (img === item.heroImage),
           remotePath: img
         }));
       }
@@ -368,12 +367,6 @@
           await deleteFile(img, f.sha, 'Delete image');
         } catch (e) { /* ignore */ }
       }
-      if (item.tagImage) {
-        try {
-          const f = await getFile(item.tagImage);
-          await deleteFile(item.tagImage, f.sha, 'Delete tag image');
-        } catch (e) { /* ignore */ }
-      }
 
       items = items.filter(i => i.id !== editingId);
       await saveInventory('Delete ' + (item.title || 'item'));
@@ -385,6 +378,8 @@
 
   // --- Photos ---
 
+  let photoSortable = null;
+
   photoInput.addEventListener('change', e => {
     for (const file of e.target.files) {
       const reader = new FileReader();
@@ -392,9 +387,7 @@
         photos.push({
           file,
           dataUrl: ev.target.result,
-          processed: false,
-          isTag: false,
-          isHero: photos.length === 0
+          processed: false
         });
         renderPhotos();
       };
@@ -406,37 +399,34 @@
   function renderPhotos() {
     if (photos.length === 0) {
       photoGrid.innerHTML = '';
+      if (photoSortable) { photoSortable.destroy(); photoSortable = null; }
       return;
     }
     photoGrid.innerHTML = photos.map((p, i) => `
-      <div class="photo-cell">
+      <div class="photo-cell" data-index="${i}">
         <img src="${p.dataUrl}">
-        <div class="photo-badges">
-          <span class="photo-badge ${p.isHero ? 'active' : ''}" data-action="hero" data-index="${i}">Hero</span>
-          <span class="photo-badge ${p.isTag ? 'active' : ''}" data-action="tag" data-index="${i}">Tag</span>
-        </div>
+        ${i === 0 ? '<span class="photo-hero-dot"></span>' : ''}
         <button class="photo-remove" data-index="${i}">&times;</button>
       </div>
     `).join('');
 
-    photoGrid.querySelectorAll('.photo-badge').forEach(b => {
-      b.addEventListener('click', e => {
-        e.stopPropagation();
-        const idx = +b.dataset.index;
-        if (b.dataset.action === 'hero') {
-          photos.forEach((p, i) => p.isHero = (i === idx));
-        } else {
-          photos[idx].isTag = !photos[idx].isTag;
-        }
+    // Drag to reorder — first photo = hero
+    if (photoSortable) photoSortable.destroy();
+    photoSortable = new Sortable(photoGrid, {
+      animation: 200,
+      ghostClass: 'sortable-ghost',
+      onEnd: () => {
+        const cells = photoGrid.querySelectorAll('.photo-cell');
+        const reordered = Array.from(cells).map(c => photos[+c.dataset.index]);
+        photos = reordered;
         renderPhotos();
-      });
+      }
     });
 
     photoGrid.querySelectorAll('.photo-remove').forEach(b => {
       b.addEventListener('click', e => {
         e.stopPropagation();
         photos.splice(+b.dataset.index, 1);
-        if (photos.length && !photos.some(p => p.isHero)) photos[0].isHero = true;
         renderPhotos();
       });
     });
@@ -454,36 +444,39 @@
     btn.disabled = true;
 
     try {
-      // 1. OCR on tag photos
-      const tagPhotos = photos.filter(p => p.isTag && !p.processed);
-      if (tagPhotos.length > 0) {
-        setStatus('Reading price tag...');
-        for (const p of tagPhotos) {
-          const ocrResult = await geminiOCR(p.dataUrl);
+      // 1. Auto-detect price tag, OCR it, remove it from photos
+      if (photos.some(p => !p.processed)) {
+        setStatus('Scanning for price tag...');
+        const tagIndex = await geminiDetectTag(photos.map(p => p.dataUrl));
+        if (tagIndex >= 0 && tagIndex < photos.length) {
+          setStatus('Reading price tag...');
+          const ocrResult = await geminiOCR(photos[tagIndex].dataUrl);
           if (ocrResult.price) document.getElementById('field-price').value = ocrResult.price;
           if (ocrResult.dealerCode) document.getElementById('field-dealer').value = ocrResult.dealerCode;
+          // Remove tag photo from product photos
+          photos.splice(tagIndex, 1);
+          renderPhotos();
         }
       }
 
-      // 2. Background removal on product photos
-      const productPhotos = photos.filter(p => !p.isTag && !p.processed);
-      if (productPhotos.length > 0) {
-        for (let i = 0; i < productPhotos.length; i++) {
-          setStatus(`Processing image ${i + 1} of ${productPhotos.length}...`);
-          const cleaned = await geminiRemoveBackground(productPhotos[i].dataUrl);
+      // 2. Background removal on unprocessed product photos
+      const unprocessed = photos.filter(p => !p.processed);
+      if (unprocessed.length > 0) {
+        for (let i = 0; i < unprocessed.length; i++) {
+          setStatus(`Processing image ${i + 1} of ${unprocessed.length}...`);
+          const cleaned = await geminiRemoveBackground(unprocessed[i].dataUrl);
           if (cleaned) {
-            productPhotos[i].dataUrl = cleaned;
-            productPhotos[i].processed = true;
+            unprocessed[i].dataUrl = cleaned;
+            unprocessed[i].processed = true;
           }
         }
         renderPhotos();
       }
 
       // 3. Suggest title, description, category
-      setStatus('Analyzing item...');
-      const nonTagPhotos = photos.filter(p => !p.isTag);
-      if (nonTagPhotos.length > 0) {
-        const suggestions = await geminiSuggest(nonTagPhotos.map(p => p.dataUrl));
+      if (photos.length > 0) {
+        setStatus('Analyzing item...');
+        const suggestions = await geminiSuggest(photos.map(p => p.dataUrl));
         if (suggestions.title && !document.getElementById('field-title').value) {
           document.getElementById('field-title').value = suggestions.title;
         }
@@ -550,6 +543,24 @@
     }
   }
 
+  async function geminiDetectTag(dataUrls) {
+    const parts = [
+      { text: `I have ${dataUrls.length} photos of an antique/vintage item for sale. One of them might be a photo of a price tag or label (handwritten or printed text on a small card/sticker). Which image index (0-based) is the price tag? If none is a price tag, return -1. Return ONLY valid JSON: {"tagIndex": number}` }
+    ];
+    for (const url of dataUrls) {
+      parts.push({ inlineData: { mimeType: dataUrlMimeType(url), data: dataUrlToBase64(url) } });
+    }
+    const result = await geminiCall('gemini-2.5-flash', [{ parts }], {
+      responseMimeType: 'application/json'
+    });
+    try {
+      const text = result.candidates[0].content.parts[0].text;
+      return JSON.parse(text).tagIndex ?? -1;
+    } catch {
+      return -1;
+    }
+  }
+
   async function geminiRemoveBackground(dataUrl) {
     const result = await geminiCall('gemini-2.5-flash-image', [{
       parts: [
@@ -610,40 +621,23 @@
       const id = editingId || Date.now().toString(36);
       const imgDir = `images/products/${id}`;
       const uploadedImages = [];
-      let heroImage = '';
-      let tagImage = '';
 
-      // Upload new photos
+      // Upload photos (first = hero)
       for (let i = 0; i < photos.length; i++) {
         const p = photos[i];
 
         if (p.remotePath) {
-          // Already on GitHub
           uploadedImages.push(p.remotePath);
-          if (p.isHero) heroImage = p.remotePath;
           continue;
         }
 
-        if (p.isTag) {
-          // Upload tag image (not in public images array)
-          const path = `${imgDir}/tag_${i}.jpg`;
-          const base64 = dataUrlToBase64(p.dataUrl);
-          await putFileBinary(path, base64, null, 'Add tag image');
-          tagImage = path;
-          continue;
-        }
-
-        // Upload product image
         const path = `${imgDir}/${i}.jpg`;
         const base64 = dataUrlToBase64(p.dataUrl);
         await putFileBinary(path, base64, null, 'Add product image');
         uploadedImages.push(path);
-        if (p.isHero) heroImage = path;
       }
 
-      if (!heroImage && uploadedImages.length > 0) heroImage = uploadedImages[0];
-
-      // Build item
+      // Build item — first image is always the hero
       const itemData = {
         id,
         title,
@@ -652,8 +646,7 @@
         category,
         dealerCode: dc,
         images: uploadedImages,
-        heroImage,
-        tagImage: tagImage || undefined,
+        heroImage: uploadedImages[0] || '',
         order: editingId ? (items.find(i => i.id === editingId)?.order ?? items.length) : items.length,
         createdAt: editingId ? (items.find(i => i.id === editingId)?.createdAt) : new Date().toISOString()
       };
