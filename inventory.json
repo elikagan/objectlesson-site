@@ -41,17 +41,5 @@
     "heroImage": "",
     "order": 6,
     "createdAt": "2026-02-25T00:00:00Z"
-  },
-  {
-    "id": "demo6",
-    "title": "Vintage French Brass Compass",
-    "description": "Working brass compass in original fitted case. Beautifully aged with clear markings. A conversation piece.",
-    "price": 95,
-    "category": "object",
-    "dealerCode": "14EK",
-    "images": [],
-    "heroImage": "",
-    "order": 8,
-    "createdAt": "2026-02-25T00:00:00Z"
   }
 ]
