@@ -1,24 +1,5 @@
 [
   {
-    "id": "mm33scdb",
-    "title": "Lauterbach Encaustic",
-    "description": "Mixed media relief sculpture with thick, layered paint in a circular form. Features abstract, organic textures in yellow, green, red, and dark hues, likely contemporary.",
-    "price": 550,
-    "category": "wall-art",
-    "dealerCode": "14EK",
-    "images": [
-      "images/products/mm33scdb/0.jpg",
-      "images/products/mm33scdb/1.jpg",
-      "images/products/mm33scdb/2.jpg",
-      "images/products/mm33scdb/3.jpg",
-      "images/products/mm33scdb/4.jpg",
-      "images/products/mm33scdb/5.jpg"
-    ],
-    "heroImage": "images/products/mm33scdb/0.jpg",
-    "order": 0,
-    "createdAt": "2026-02-26T06:50:36.212Z"
-  },
-  {
     "id": "mm3pl1ta",
     "title": "Ceramic Studio Vase",
     "description": "Hand-thrown ceramic vase with vertical stripes of textured unglazed brown, dark blue, and lavender glazes.",
@@ -34,8 +15,27 @@
       "images/products/mm3pl1ta/4.jpg"
     ],
     "heroImage": "images/products/mm3pl1ta/0.jpg",
-    "order": 1,
+    "order": 0,
     "createdAt": "2026-02-26T17:00:13.166Z"
+  },
+  {
+    "id": "mm33scdb",
+    "title": "Lauterbach Encaustic",
+    "description": "Mixed media relief sculpture with thick, layered paint in a circular form. Features abstract, organic textures in yellow, green, red, and dark hues, likely contemporary.",
+    "price": 550,
+    "category": "wall-art",
+    "dealerCode": "14EK",
+    "images": [
+      "images/products/mm33scdb/0.jpg",
+      "images/products/mm33scdb/1.jpg",
+      "images/products/mm33scdb/2.jpg",
+      "images/products/mm33scdb/3.jpg",
+      "images/products/mm33scdb/4.jpg",
+      "images/products/mm33scdb/5.jpg"
+    ],
+    "heroImage": "images/products/mm33scdb/0.jpg",
+    "order": 1,
+    "createdAt": "2026-02-26T06:50:36.212Z"
   },
   {
     "id": "mm33naov",
