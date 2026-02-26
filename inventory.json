@@ -53,5 +53,23 @@
     "heroImage": "images/products/000002/0.jpg",
     "order": 2,
     "createdAt": "2026-02-26T22:10:31.688Z"
+  },
+  {
+    "id": "000003",
+    "title": "Studio Pot",
+    "description": "Features a textured purple glaze with a sculptural spout, lid, and fin-like handle.",
+    "price": 295,
+    "category": "ceramic",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/000003/0.jpg",
+      "images/products/000003/1.jpg",
+      "images/products/000003/2.jpg",
+      "images/products/000003/3.jpg"
+    ],
+    "heroImage": "images/products/000003/0.jpg",
+    "order": 3,
+    "createdAt": "2026-02-26T22:19:26.952Z"
   }
 ]
