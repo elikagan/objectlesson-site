@@ -508,7 +508,7 @@
       deleteBtn.style.display = '';
       document.getElementById('field-title').value = item.title || '';
       document.getElementById('field-desc').value = item.description || '';
-      document.getElementById('field-price').value = item.price || '';
+      document.getElementById('field-price').value = item.price != null ? item.price : '';
       document.getElementById('field-category').value = item.category || '';
       document.getElementById('field-dealer').value = item.dealerCode || '';
       document.getElementById('field-new').checked = !!item.isNew;
