@@ -6,8 +6,10 @@
   const OWNER = 'elikagan';
   const BRANCH = 'main';
   const API = 'https://api.github.com';
+  const PIN_HASH = '7f6257b880b51353e620ab9224907e72348e8d2c3c1f6e0ba9866661acbc05e9';
 
   // --- State ---
+  let unlocked = !!sessionStorage.getItem('ol_unlocked');
   let ghToken = localStorage.getItem('ol_gh_token') || '';
   let geminiKey = localStorage.getItem('ol_gemini_key') || '';
   let dealerCode = localStorage.getItem('ol_dealer_code') || '14EK';
@@ -18,6 +20,7 @@
   let sortable = null;
 
   // --- DOM refs ---
+  const viewLock = document.getElementById('view-lock');
   const viewSetup = document.getElementById('view-setup');
   const viewList = document.getElementById('view-list');
   const viewEditor = document.getElementById('view-editor');
@@ -27,17 +30,50 @@
   const status = document.getElementById('processing-status');
   const toastEl = document.getElementById('toast');
 
+  // --- PIN Lock ---
+
+  async function hashPin(pin) {
+    const data = new TextEncoder().encode(pin);
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  document.getElementById('btn-unlock').addEventListener('click', async () => {
+    const pin = document.getElementById('input-pin').value;
+    const hash = await hashPin(pin);
+    if (hash === PIN_HASH) {
+      unlocked = true;
+      sessionStorage.setItem('ol_unlocked', '1');
+      initApp();
+    } else {
+      toast('Wrong PIN');
+      document.getElementById('input-pin').value = '';
+    }
+  });
+
+  document.getElementById('input-pin').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btn-unlock').click();
+  });
+
   // --- Init ---
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js');
   }
 
-  if (ghToken && geminiKey) {
-    showView('list');
-    loadInventory();
+  if (unlocked) {
+    initApp();
   } else {
-    showView('setup');
+    showView('lock');
+  }
+
+  function initApp() {
+    if (ghToken && geminiKey) {
+      showView('list');
+      loadInventory();
+    } else {
+      showView('setup');
+    }
   }
 
   // --- Setup ---
@@ -64,8 +100,8 @@
   // --- Navigation ---
 
   function showView(name) {
-    [viewSetup, viewList, viewEditor].forEach(v => v.classList.add('hidden'));
-    const v = { setup: viewSetup, list: viewList, editor: viewEditor }[name];
+    [viewLock, viewSetup, viewList, viewEditor].forEach(v => v.classList.add('hidden'));
+    const v = { lock: viewLock, setup: viewSetup, list: viewList, editor: viewEditor }[name];
     if (v) v.classList.remove('hidden');
   }
 
