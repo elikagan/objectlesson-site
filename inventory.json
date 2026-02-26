@@ -1,5 +1,21 @@
 [
   {
+    "id": "mm33naov",
+    "title": "CERAMIC STUDIO VASE",
+    "description": "Ceramic vase with textured unglazed sections and vertical glazed stripes in deep blue and lavender. Likely late 20th century.",
+    "price": 225,
+    "category": "ceramic",
+    "dealerCode": "14EK",
+    "images": [
+      "images/products/mm33naov/0.jpg",
+      "images/products/mm33naov/1.jpg",
+      "images/products/mm33naov/2.jpg"
+    ],
+    "heroImage": "images/products/mm33naov/0.jpg",
+    "order": 0,
+    "createdAt": "2026-02-26T06:46:07.301Z"
+  },
+  {
     "id": "mm32vp50",
     "title": "Vibrant Textured Abstract Swirl Wall Art",
     "description": "This striking contemporary mixed media artwork features a vibrant, organic swirl design in yellow, green, red, and earthy tones. Created with thickly applied pigments, likely acrylics or a similar textural compound, it boasts a unique impasto surface that evokes natural, biomorphic forms. The piece is in excellent condition, ready to bring abstract artistry and tactile interest to any modern interior.",
@@ -15,7 +31,7 @@
       "images/products/mm32vp50/5.jpg"
     ],
     "heroImage": "images/products/mm32vp50/3.jpg",
-    "order": 0,
+    "order": 1,
     "createdAt": "2026-02-26T06:25:03.056Z"
   },
   {
@@ -27,7 +43,7 @@
     "dealerCode": "14EK",
     "images": [],
     "heroImage": "",
-    "order": 1,
+    "order": 2,
     "createdAt": "2026-02-25T00:00:00Z"
   },
   {
@@ -77,21 +93,5 @@
     "heroImage": "",
     "order": 6,
     "createdAt": "2026-02-25T00:00:00Z"
-  },
-  {
-    "id": "mm33naov",
-    "title": "CERAMIC STUDIO VASE",
-    "description": "Ceramic vase with textured unglazed sections and vertical glazed stripes in deep blue and lavender. Likely late 20th century.",
-    "price": 225,
-    "category": "ceramic",
-    "dealerCode": "14EK",
-    "images": [
-      "images/products/mm33naov/0.jpg",
-      "images/products/mm33naov/1.jpg",
-      "images/products/mm33naov/2.jpg"
-    ],
-    "heroImage": "images/products/mm33naov/0.jpg",
-    "order": 6,
-    "createdAt": "2026-02-26T06:46:07.301Z"
   }
 ]
