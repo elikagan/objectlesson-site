@@ -527,11 +527,28 @@
     return dataUrl.match(/data:([^;]+)/)?.[1] || 'image/jpeg';
   }
 
+  // Resize image to max dimension for lighter API calls
+  function resizeImage(dataUrl, maxDim) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * scale);
+        c.height = Math.round(img.height * scale);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', 0.7));
+      };
+      img.src = dataUrl;
+    });
+  }
+
   async function geminiOCR(dataUrl) {
+    const resized = await resizeImage(dataUrl, 1024);
     const result = await geminiCall('gemini-2.5-flash', [{
       parts: [
         { text: 'Read all text on this price tag or label. Extract the price (as a number without currency symbol) and the dealer code (alphanumeric, usually 3-5 characters). Return ONLY valid JSON: {"price": number_or_null, "dealerCode": "string_or_null", "text": "all visible text"}' },
-        { inlineData: { mimeType: dataUrlMimeType(dataUrl), data: dataUrlToBase64(dataUrl) } }
+        { inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(resized) } }
       ]
     }], { responseMimeType: 'application/json' });
 
@@ -544,11 +561,13 @@
   }
 
   async function geminiDetectTag(dataUrls) {
+    // Resize to small thumbnails — only need to identify which is a price tag
+    const thumbs = await Promise.all(dataUrls.map(url => resizeImage(url, 512)));
     const parts = [
-      { text: `I have ${dataUrls.length} photos of an antique/vintage item for sale. One of them might be a photo of a price tag or label (handwritten or printed text on a small card/sticker). Which image index (0-based) is the price tag? If none is a price tag, return -1. Return ONLY valid JSON: {"tagIndex": number}` }
+      { text: `I have ${thumbs.length} photos of an antique/vintage item for sale. One of them might be a photo of a price tag or label (handwritten or printed text on a small card/sticker). Which image index (0-based) is the price tag? If none is a price tag, return -1. Return ONLY valid JSON: {"tagIndex": number}` }
     ];
-    for (const url of dataUrls) {
-      parts.push({ inlineData: { mimeType: dataUrlMimeType(url), data: dataUrlToBase64(url) } });
+    for (const url of thumbs) {
+      parts.push({ inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(url) } });
     }
     const result = await geminiCall('gemini-2.5-flash', [{ parts }], {
       responseMimeType: 'application/json'
@@ -562,10 +581,11 @@
   }
 
   async function geminiRemoveBackground(dataUrl) {
+    const resized = await resizeImage(dataUrl, 1536);
     const result = await geminiCall('gemini-2.5-flash-image', [{
       parts: [
         { text: 'Remove the background from this product photo. Place the object on a clean pure white background with soft, even studio lighting and a very subtle drop shadow beneath the object. Keep the object exactly as it is — do not change its appearance, color, or proportions. Return only the edited image.' },
-        { inlineData: { mimeType: dataUrlMimeType(dataUrl), data: dataUrlToBase64(dataUrl) } }
+        { inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(resized) } }
       ]
     }], { responseModalities: ['IMAGE', 'TEXT'] });
 
@@ -580,11 +600,12 @@
   }
 
   async function geminiSuggest(dataUrls) {
+    const thumbs = await Promise.all(dataUrls.slice(0, 4).map(url => resizeImage(url, 768)));
     const parts = [
       { text: 'You are cataloging items for Object Lesson, an antique and vintage gallery in Pasadena. Based on these product photos, suggest a short title (under 8 words), a description (2-3 sentences about the item including era/period, materials, style, and condition), and a category (exactly one of: wall-art, object, ceramic, furniture, light, sculpture, misc). Return ONLY valid JSON: {"title": "string", "description": "string", "category": "string"}' }
     ];
-    for (const url of dataUrls.slice(0, 4)) {
-      parts.push({ inlineData: { mimeType: dataUrlMimeType(url), data: dataUrlToBase64(url) } });
+    for (const url of thumbs) {
+      parts.push({ inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(url) } });
     }
 
     const result = await geminiCall('gemini-2.5-flash', [{ parts }], {
