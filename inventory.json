@@ -35,5 +35,23 @@
     "heroImage": "images/products/000001/0.jpg",
     "order": 1,
     "createdAt": "2026-02-26T18:23:47.895Z"
+  },
+  {
+    "id": "000002",
+    "title": "Cicely Debeers Abstract",
+    "description": "Oil on canvas, dated 1963, featuring abstract organic shapes in a simple wooden frame.",
+    "price": 895,
+    "category": "wall-art",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/000002/0.jpg",
+      "images/products/000002/1.jpg",
+      "images/products/000002/2.jpg",
+      "images/products/000002/3.jpg"
+    ],
+    "heroImage": "images/products/000002/0.jpg",
+    "order": 2,
+    "createdAt": "2026-02-26T22:10:31.688Z"
   }
 ]
