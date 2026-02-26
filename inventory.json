@@ -29,17 +29,5 @@
     "heroImage": "",
     "order": 5,
     "createdAt": "2026-02-25T00:00:00Z"
-  },
-  {
-    "id": "demo4",
-    "title": "Danish Teak Side Table",
-    "description": "Classic Danish modern side table in solid teak. Tapered legs, clean lines. Minor surface wear consistent with age.",
-    "price": 475,
-    "category": "furniture",
-    "dealerCode": "14EK",
-    "images": [],
-    "heroImage": "",
-    "order": 6,
-    "createdAt": "2026-02-25T00:00:00Z"
   }
 ]
