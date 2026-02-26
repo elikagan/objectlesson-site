@@ -378,8 +378,6 @@
 
   // --- Photos ---
 
-  let photoSortable = null;
-
   photoInput.addEventListener('change', e => {
     for (const file of e.target.files) {
       const reader = new FileReader();
@@ -399,34 +397,36 @@
   function renderPhotos() {
     if (photos.length === 0) {
       photoGrid.innerHTML = '';
-      if (photoSortable) { photoSortable.destroy(); photoSortable = null; }
       return;
     }
     photoGrid.innerHTML = photos.map((p, i) => `
       <div class="photo-cell" data-index="${i}">
         <img src="${p.dataUrl}">
         ${i === 0 ? '<span class="photo-hero-dot"></span>' : ''}
-        <button class="photo-remove" data-index="${i}">&times;</button>
+        <div class="photo-actions">
+          ${i > 0 ? `<button class="photo-move" data-index="${i}" data-dir="-1">&larr;</button>` : ''}
+          <button class="photo-remove" data-index="${i}">&times;</button>
+          ${i < photos.length - 1 ? `<button class="photo-move" data-index="${i}" data-dir="1">&rarr;</button>` : ''}
+        </div>
       </div>
     `).join('');
-
-    // Drag to reorder — first photo = hero
-    if (photoSortable) photoSortable.destroy();
-    photoSortable = new Sortable(photoGrid, {
-      animation: 200,
-      ghostClass: 'sortable-ghost',
-      onEnd: () => {
-        const cells = photoGrid.querySelectorAll('.photo-cell');
-        const reordered = Array.from(cells).map(c => photos[+c.dataset.index]);
-        photos = reordered;
-        renderPhotos();
-      }
-    });
 
     photoGrid.querySelectorAll('.photo-remove').forEach(b => {
       b.addEventListener('click', e => {
         e.stopPropagation();
         photos.splice(+b.dataset.index, 1);
+        renderPhotos();
+      });
+    });
+
+    photoGrid.querySelectorAll('.photo-move').forEach(b => {
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        const idx = +b.dataset.index;
+        const dir = +b.dataset.dir;
+        const newIdx = idx + dir;
+        if (newIdx < 0 || newIdx >= photos.length) return;
+        [photos[idx], photos[newIdx]] = [photos[newIdx], photos[idx]];
         renderPhotos();
       });
     });
@@ -453,6 +453,7 @@
           const ocrResult = await geminiOCR(photos[tagIndex].dataUrl);
           if (ocrResult.price) document.getElementById('field-price').value = ocrResult.price;
           if (ocrResult.dealerCode) document.getElementById('field-dealer').value = ocrResult.dealerCode;
+          if (ocrResult.itemName) document.getElementById('field-title').value = ocrResult.itemName;
           // Remove tag photo from product photos
           photos.splice(tagIndex, 1);
           renderPhotos();
@@ -547,7 +548,7 @@
     const resized = await resizeImage(dataUrl, 1024);
     const result = await geminiCall('gemini-2.5-flash', [{
       parts: [
-        { text: 'Read all text on this price tag or label. Extract the price (as a number without currency symbol) and the dealer code (alphanumeric, usually 3-5 characters). Return ONLY valid JSON: {"price": number_or_null, "dealerCode": "string_or_null", "text": "all visible text"}' },
+        { text: 'Read all text on this price tag or label from an antique store. Extract: the price (number without $ symbol), the dealer code (alphanumeric, usually 2-5 characters like "14EK"), and the item name or description (e.g. "Lauterback Encaustic" or "Studio Vase"). Return ONLY valid JSON: {"price": number_or_null, "dealerCode": "string_or_null", "itemName": "string_or_null", "text": "all visible text"}' },
         { inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(resized) } }
       ]
     }], { responseMimeType: 'application/json' });
@@ -584,7 +585,7 @@
     const resized = await resizeImage(dataUrl, 1536);
     const result = await geminiCall('gemini-2.5-flash-image', [{
       parts: [
-        { text: 'Remove the background from this product photo. Place the object on a clean pure white background with soft, even studio lighting and a very subtle drop shadow beneath the object. Keep the object exactly as it is — do not change its appearance, color, or proportions. Return only the edited image.' },
+        { text: 'Remove the background from this product photo. Replace with pure white (#FFFFFF). Keep the object exactly as-is — same size, position, proportions, and colors. Do NOT reposition or center the object. Do NOT add any shadow or lighting effects. If the object is cropped at the edges of the photo, keep it cropped the same way. Just replace everything that is not the object with flat white. Return only the edited image.' },
         { inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(resized) } }
       ]
     }], { responseModalities: ['IMAGE', 'TEXT'] });
@@ -602,7 +603,7 @@
   async function geminiSuggest(dataUrls) {
     const thumbs = await Promise.all(dataUrls.slice(0, 4).map(url => resizeImage(url, 768)));
     const parts = [
-      { text: 'You are cataloging items for Object Lesson, an antique and vintage gallery in Pasadena. Based on these product photos, suggest a short title (under 8 words), a description (2-3 sentences about the item including era/period, materials, style, and condition), and a category (exactly one of: wall-art, object, ceramic, furniture, light, sculpture, misc). Return ONLY valid JSON: {"title": "string", "description": "string", "category": "string"}' }
+      { text: 'You are cataloging items for an antique gallery. Based on these photos, provide: a short title (2-5 words, just what the object is), a description (1-2 short sentences max — just materials, approximate era, and dimensions if obvious. No flowery language, no marketing speak, no adjectives like "stunning" or "beautiful"), and a category (exactly one of: wall-art, object, ceramic, furniture, light, sculpture, misc). Return ONLY valid JSON: {"title": "string", "description": "string", "category": "string"}' }
     ];
     for (const url of thumbs) {
       parts.push({ inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(url) } });

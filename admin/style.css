@@ -325,17 +325,26 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   box-shadow: 0 0 3px rgba(0,0,0,0.4);
 }
 
-.photo-remove {
+.photo-actions {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 4px;
+  pointer-events: none;
+}
+.photo-actions button { pointer-events: auto; }
+
+.photo-remove, .photo-move {
   width: 22px;
   height: 22px;
   border-radius: 50%;
   background: rgba(0,0,0,0.5);
   color: #fff;
   border: none;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1;
   cursor: pointer;
   display: flex;
