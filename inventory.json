@@ -17,5 +17,23 @@
     "heroImage": "images/products/mm3pl1ta/0.jpg",
     "order": 0,
     "createdAt": "2026-02-26T17:00:13.166Z"
+  },
+  {
+    "id": "000001",
+    "title": "Calder Print",
+    "description": "A vibrant lithograph on paper, likely from the mid-20th century American abstract movement, presented in a simple wooden frame.",
+    "price": 0,
+    "category": "wall-art",
+    "dealerCode": "EK14",
+    "isNew": true,
+    "images": [
+      "images/products/000001/0.jpg",
+      "images/products/000001/1.jpg",
+      "images/products/000001/2.jpg",
+      "images/products/000001/3.jpg"
+    ],
+    "heroImage": "images/products/000001/0.jpg",
+    "order": 1,
+    "createdAt": "2026-02-26T18:23:47.895Z"
   }
 ]
