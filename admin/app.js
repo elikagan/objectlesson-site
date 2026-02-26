@@ -874,13 +874,15 @@
         isNew,
         images: uploadedImages,
         heroImage: uploadedImages[0] || '',
-        order: editingId ? (items.find(i => i.id === editingId)?.order ?? items.length) : items.length,
+        order: editingId ? (items.find(i => i.id === editingId)?.order ?? 0) : 0,
         createdAt: editingId ? (items.find(i => i.id === editingId)?.createdAt) : new Date().toISOString()
       };
 
       if (editingId) {
         items = items.map(i => i.id === editingId ? itemData : i);
       } else {
+        // Push existing items down so the new one appears first
+        items.forEach(i => { i.order = (i.order ?? 0) + 1; });
         items.push(itemData);
       }
 
