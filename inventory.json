@@ -7,14 +7,14 @@
     "category": "wall-art",
     "dealerCode": "14EK",
     "images": [
+      "images/products/mm32vp50/3.jpg",
       "images/products/mm32vp50/0.jpg",
       "images/products/mm32vp50/1.jpg",
       "images/products/mm32vp50/2.jpg",
-      "images/products/mm32vp50/3.jpg",
       "images/products/mm32vp50/4.jpg",
       "images/products/mm32vp50/5.jpg"
     ],
-    "heroImage": "images/products/mm32vp50/0.jpg",
+    "heroImage": "images/products/mm32vp50/3.jpg",
     "order": 0,
     "createdAt": "2026-02-26T06:25:03.056Z"
   },
