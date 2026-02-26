@@ -7,6 +7,7 @@
   const BRANCH = 'main';
   const API = 'https://api.github.com';
   const PIN_HASH = '7f6257b880b51353e620ab9224907e72348e8d2c3c1f6e0ba9866661acbc05e9';
+  const SIMPLE_HASH = '2a1bf354';
 
   // --- State ---
   let unlocked = !!sessionStorage.getItem('ol_unlocked');
@@ -32,16 +33,30 @@
 
   // --- PIN Lock ---
 
+  // Simple hash that works without crypto.subtle (which requires HTTPS)
+  function simpleHash(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) {
+      h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+    }
+    return h.toString(16);
+  }
+
   async function hashPin(pin) {
-    const data = new TextEncoder().encode(pin);
-    const buf = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (crypto.subtle) {
+      try {
+        const data = new TextEncoder().encode(pin);
+        const buf = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+      } catch (e) { /* fall through */ }
+    }
+    return simpleHash(pin);
   }
 
   document.getElementById('btn-unlock').addEventListener('click', async () => {
     const pin = document.getElementById('input-pin').value;
     const hash = await hashPin(pin);
-    if (hash === PIN_HASH) {
+    if (hash === PIN_HASH || simpleHash(pin) === SIMPLE_HASH) {
       unlocked = true;
       sessionStorage.setItem('ol_unlocked', '1');
       initApp();
