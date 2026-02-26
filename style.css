@@ -33,13 +33,6 @@ header {
   display: inline-block;
 }
 
-.tagline {
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  color: var(--light);
-  margin-top: 8px;
-}
-
 /* --- Filter bar --- */
 
 .filter-bar {
