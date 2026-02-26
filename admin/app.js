@@ -9,23 +9,44 @@
   const PIN_HASH = '7f6257b880b51353e620ab9224907e72348e8d2c3c1f6e0ba9866661acbc05e9';
   const SIMPLE_HASH = '2a1bf354';
 
-  // --- Persistent storage (cookies, since Safari HTTP drops localStorage) ---
-  function store(key, val) {
-    try { localStorage.setItem(key, val); } catch {}
-    document.cookie = key + '=' + encodeURIComponent(val) + ';path=/admin;max-age=31536000;SameSite=Strict';
+  // --- IndexedDB persistent storage ---
+  const DB_NAME = 'ol_admin';
+  const DB_STORE = 'kv';
+  let _db = null;
+
+  function openDB() {
+    if (_db) return Promise.resolve(_db);
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore(DB_STORE);
+      req.onsuccess = () => { _db = req.result; resolve(_db); };
+      req.onerror = () => reject(req.error);
+    });
   }
-  function load(key) {
-    const ls = localStorage.getItem(key);
-    if (ls) return ls;
-    const m = document.cookie.match('(?:^|; )' + key + '=([^;]*)');
-    return m ? decodeURIComponent(m[1]) : '';
+
+  async function store(key, val) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, 'readwrite');
+      tx.objectStore(DB_STORE).put(val, key);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async function load(key) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, 'readonly');
+      const req = tx.objectStore(DB_STORE).get(key);
+      req.onsuccess = () => resolve(req.result ?? '');
+      req.onerror = () => reject(req.error);
+    });
   }
 
   // --- State ---
-  let unlocked = !!load('ol_unlocked');
-  let ghToken = load('ol_gh_token');
-  let geminiKey = load('ol_gemini_key');
-  let dealerCode = load('ol_dealer_code') || '14EK';
+  let ghToken = '';
+  let geminiKey = '';
   let items = [];
   let inventorySha = '';
   let editingId = null;
@@ -70,9 +91,8 @@
     const pin = document.getElementById('input-pin').value;
     const hash = await hashPin(pin);
     if (hash === PIN_HASH || simpleHash(pin) === SIMPLE_HASH) {
-      unlocked = true;
-      store('ol_unlocked', '1');
-      initApp();
+      await store('ol_unlocked', '1');
+      await boot();
     } else {
       toast('Wrong PIN');
       document.getElementById('input-pin').value = '';
@@ -85,31 +105,47 @@
     navigator.serviceWorker.register('sw.js');
   }
 
-  if (unlocked) {
-    initApp();
-  } else {
-    showView('lock');
+  // One-time: clear old cookies and localStorage from previous versions
+  ['ol_unlocked', 'ol_gh_token', 'ol_gemini_key', 'ol_dealer_code'].forEach(k => {
+    try { localStorage.removeItem(k); } catch {}
+    document.cookie = k + '=;path=/admin;max-age=0';
+  });
+
+  // Boot: load stored state from IndexedDB, then route to the right view
+  async function boot() {
+    ghToken = await load('ol_gh_token');
+    geminiKey = await load('ol_gemini_key');
+    const unlocked = await load('ol_unlocked');
+
+    if (!unlocked) {
+      showView('lock');
+      return;
+    }
+
+    if (!ghToken || !geminiKey) {
+      // First time only — need keys. Show logo/text, hide topbar
+      document.getElementById('setup-topbar').style.display = 'none';
+      document.getElementById('setup-logo').style.display = '';
+      document.getElementById('setup-text').style.display = '';
+      showView('setup');
+      return;
+    }
+
+    // Normal path: straight to inventory
+    showView('list');
+    loadInventory();
   }
 
-  function initApp() {
-    if (ghToken && geminiKey) {
-      showView('list');
-      loadInventory();
-    } else {
-      showView('setup');
-    }
-  }
+  boot();
 
   // --- Setup ---
 
-  document.getElementById('btn-save-setup').addEventListener('click', () => {
+  document.getElementById('btn-save-setup').addEventListener('click', async () => {
     ghToken = document.getElementById('input-gh-token').value.trim();
     geminiKey = document.getElementById('input-gemini-key').value.trim();
-    dealerCode = document.getElementById('input-dealer-code').value.trim() || '14EK';
     if (!ghToken || !geminiKey) { toast('Both keys are required'); return; }
-    store('ol_gh_token', ghToken);
-    store('ol_gemini_key', geminiKey);
-    store('ol_dealer_code', dealerCode);
+    await store('ol_gh_token', ghToken);
+    await store('ol_gemini_key', geminiKey);
     showView('list');
     loadInventory();
   });
@@ -117,8 +153,10 @@
   document.getElementById('btn-settings').addEventListener('click', () => {
     document.getElementById('input-gh-token').value = ghToken;
     document.getElementById('input-gemini-key').value = geminiKey;
-    document.getElementById('input-dealer-code').value = dealerCode;
-    document.getElementById('btn-cancel-setup').style.display = '';
+    // Show back nav, hide logo/intro text (settings mode, not first-time setup)
+    document.getElementById('setup-topbar').style.display = '';
+    document.getElementById('setup-logo').style.display = 'none';
+    document.getElementById('setup-text').style.display = 'none';
     showView('setup');
   });
 
@@ -288,7 +326,7 @@
       document.getElementById('field-desc').value = item.description || '';
       document.getElementById('field-price').value = item.price || '';
       document.getElementById('field-category').value = item.category || '';
-      document.getElementById('field-dealer').value = item.dealerCode || dealerCode;
+      document.getElementById('field-dealer').value = item.dealerCode || '';
 
       // Load existing images
       if (item.images) {
@@ -308,7 +346,7 @@
       document.getElementById('field-desc').value = '';
       document.getElementById('field-price').value = '';
       document.getElementById('field-category').value = '';
-      document.getElementById('field-dealer').value = dealerCode;
+      document.getElementById('field-dealer').value = '';
     }
 
     renderPhotos();
@@ -559,7 +597,7 @@
     const description = document.getElementById('field-desc').value.trim();
     const price = parseFloat(document.getElementById('field-price').value) || 0;
     const category = document.getElementById('field-category').value;
-    const dc = document.getElementById('field-dealer').value.trim() || dealerCode;
+    const dc = document.getElementById('field-dealer').value.trim();
 
     if (!title) { toast('Title is required'); return; }
     if (!category) { toast('Category is required'); return; }
