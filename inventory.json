@@ -1,21 +1,5 @@
 [
   {
-    "id": "mm33naov",
-    "title": "CERAMIC STUDIO VASE",
-    "description": "Ceramic vase with textured unglazed sections and vertical glazed stripes in deep blue and lavender. Likely late 20th century.",
-    "price": 225,
-    "category": "ceramic",
-    "dealerCode": "14EK",
-    "images": [
-      "images/products/mm33naov/0.jpg",
-      "images/products/mm33naov/1.jpg",
-      "images/products/mm33naov/2.jpg"
-    ],
-    "heroImage": "images/products/mm33naov/0.jpg",
-    "order": 0,
-    "createdAt": "2026-02-26T06:46:07.301Z"
-  },
-  {
     "id": "mm33scdb",
     "title": "Lauterbach Encaustic",
     "description": "Mixed media relief sculpture with thick, layered paint in a circular form. Features abstract, organic textures in yellow, green, red, and dark hues, likely contemporary.",
@@ -31,8 +15,24 @@
       "images/products/mm33scdb/5.jpg"
     ],
     "heroImage": "images/products/mm33scdb/0.jpg",
-    "order": 1,
+    "order": 0,
     "createdAt": "2026-02-26T06:50:36.212Z"
+  },
+  {
+    "id": "mm33naov",
+    "title": "CERAMIC STUDIO VASE",
+    "description": "Ceramic vase with textured unglazed sections and vertical glazed stripes in deep blue and lavender. Likely late 20th century.",
+    "price": 225,
+    "category": "ceramic",
+    "dealerCode": "14EK",
+    "images": [
+      "images/products/mm33naov/0.jpg",
+      "images/products/mm33naov/1.jpg",
+      "images/products/mm33naov/2.jpg"
+    ],
+    "heroImage": "images/products/mm33naov/0.jpg",
+    "order": 1,
+    "createdAt": "2026-02-26T06:46:07.301Z"
   },
   {
     "id": "mm32vp50",
