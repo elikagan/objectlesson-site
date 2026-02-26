@@ -693,7 +693,7 @@
     const resized = await resizeImage(dataUrl, 1536);
     const result = await geminiCall('gemini-2.5-flash-image', [{
       parts: [
-        { text: 'Prepare this photo for an art gallery product listing. Remove the background and replace it with pure white (#FFFFFF). Do NOT move, resize, reposition, or re-center the object — keep the exact same composition, crop, angle, and scale as the original photo. Improve the lighting and color balance on the object so it looks clean and professional. If the object would naturally rest on a surface (like a vase or sculpture), add a very subtle, barely noticeable contact shadow. If the object is something that hangs on a wall (like a painting or wall art), do not add any shadow. Return only the edited image.' },
+        { text: 'Prepare this photo for an art gallery product listing. Remove the background and replace it with pure white (#FFFFFF). Do NOT move, resize, reposition, or re-center the object — keep the exact same composition, crop, angle, and scale as the original photo. Improve the lighting and color balance on the object so it looks clean and professional. Add a very subtle, barely noticeable shadow appropriate to the object: for objects that rest on a surface (like a vase or sculpture), a faint contact shadow beneath; for wall-hanging items (like a painting or wall art), a faint shadow behind as if mounted on a wall — never a floor shadow for wall art. Return only the edited image.' },
         { inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(resized) } }
       ]
     }], { responseModalities: ['IMAGE', 'TEXT'] });
