@@ -87,7 +87,7 @@
     document.getElementById('detail-title').textContent = item.title;
     document.getElementById('detail-price').textContent = '$' + Number(item.price).toLocaleString();
     document.getElementById('detail-desc').textContent = item.description || '';
-    document.getElementById('detail-id').textContent = 'ID: ' + item.id;
+    document.getElementById('detail-id').textContent = formatId(item.id);
     document.getElementById('detail-inquire').href = buyLink(item);
 
     // New badge
@@ -126,7 +126,7 @@
   // --- Buy link (#2: SMS text) ---
 
   function buyLink(item) {
-    const msg = `Hi I'm interested in ${item.title}, ${item.id} for $${Number(item.price).toLocaleString()}.`;
+    const msg = `Hi I'm interested in ${item.title}, ${formatId(item.id)} for $${Number(item.price).toLocaleString()}.`;
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     if (isMobile) {
@@ -180,6 +180,11 @@
   });
 
   // --- Helpers ---
+
+  function formatId(id) {
+    const n = parseInt(id, 10);
+    return !isNaN(n) ? '#' + String(n).padStart(6, '0') : '#' + id;
+  }
 
   function esc(s) {
     const d = document.createElement('div');

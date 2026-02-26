@@ -261,7 +261,7 @@
             <div class="item-thumb">${imgHtml}</div>
             <div class="item-info">
               <div class="item-name">${esc(item.title || 'Untitled')}</div>
-              <div class="item-meta">$${Number(item.price || 0).toLocaleString()}</div>
+              <div class="item-meta"><span class="item-id">${formatId(item.id)}</span> · $${Number(item.price || 0).toLocaleString()}</div>
             </div>
             ${item.isNew ? '<span class="item-new">New</span>' : ''}
             <span class="item-category">${esc(item.category || '')}</span>
@@ -480,7 +480,8 @@
         photos.push({
           file,
           dataUrl: ev.target.result,
-          processed: false
+          processed: false,
+          aiProcess: true
         });
         renderPhotos();
       };
@@ -500,6 +501,9 @@
         <img src="${p.dataUrl}" draggable="false">
         ${i === 0 ? '<span class="photo-hero-dot"></span>' : ''}
         <button class="photo-remove" data-index="${i}">&times;</button>
+        ${!p.processed ? `<button class="photo-ai ${p.aiProcess !== false ? 'active' : ''}" data-index="${i}" title="AI processing">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z"/></svg>
+        </button>` : ''}
       </div>
     `).join('');
 
@@ -508,6 +512,15 @@
         e.stopPropagation();
         photos.splice(+b.dataset.index, 1);
         renderPhotos();
+      });
+    });
+
+    photoGrid.querySelectorAll('.photo-ai').forEach(b => {
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        const idx = +b.dataset.index;
+        photos[idx].aiProcess = !photos[idx].aiProcess;
+        b.classList.toggle('active');
       });
     });
 
@@ -555,8 +568,8 @@
         }
       }
 
-      // 2. Background removal on unprocessed product photos
-      const unprocessed = photos.filter(p => !p.processed);
+      // 2. Background removal on unprocessed product photos (skip ai-exempt)
+      const unprocessed = photos.filter(p => !p.processed && p.aiProcess !== false);
       if (unprocessed.length > 0) {
         for (let i = 0; i < unprocessed.length; i++) {
           setStatus(`Processing image ${i + 1} of ${unprocessed.length}...`);
@@ -680,7 +693,7 @@
     const resized = await resizeImage(dataUrl, 1536);
     const result = await geminiCall('gemini-2.5-flash-image', [{
       parts: [
-        { text: 'Clean this image for an art gallery listing. Keep the object exactly as it is, but place it on a pure white, seamless studio background with soft, professional lighting. Remove all background clutter and distractions. Return only the edited image.' },
+        { text: 'Clean this image for an art gallery listing. Remove all background clutter and distractions. If the object is cropped or cut off at the edges, shrink it so the entire object is visible with generous white space around it. Place the object centered, floating on a pure white (#FFFFFF) background with a soft, subtle drop shadow beneath it. Return only the edited image.' },
         { inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(resized) } }
       ]
     }], { responseModalities: ['IMAGE', 'TEXT'] });
@@ -736,7 +749,7 @@
     btn.textContent = 'Saving...';
 
     try {
-      const id = editingId || Date.now().toString(36);
+      const id = editingId || nextId();
       const imgDir = `images/products/${id}`;
       const uploadedImages = [];
 
@@ -790,6 +803,20 @@
   }
 
   // --- Utils ---
+
+  function nextId() {
+    let max = 0;
+    for (const item of items) {
+      const n = parseInt(item.id, 10);
+      if (!isNaN(n) && n > max) max = n;
+    }
+    return String(max + 1).padStart(6, '0');
+  }
+
+  function formatId(id) {
+    const n = parseInt(id, 10);
+    return !isNaN(n) ? '#' + String(n).padStart(6, '0') : id;
+  }
 
   function toTitleCase(str) {
     return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());

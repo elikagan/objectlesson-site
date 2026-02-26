@@ -199,15 +199,14 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   width: 52px;
   height: 52px;
   border-radius: 6px;
-  background: var(--bg2);
+  background: #fff;
   overflow: hidden;
   flex-shrink: 0;
 }
 .item-thumb img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  padding: 4px;
+  object-fit: cover;
 }
 
 .item-info {
@@ -227,6 +226,11 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   font-size: 13px;
   color: var(--text);
   margin-top: 2px;
+}
+
+.item-id {
+  color: var(--light);
+  font-size: 11px;
 }
 
 .item-category {
@@ -335,7 +339,8 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   aspect-ratio: 1;
   border-radius: 8px;
   overflow: hidden;
-  background: var(--bg2);
+  background: #fff;
+  border: 1px solid var(--border);
 }
 
 .photo-cell img {
@@ -373,6 +378,28 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   align-items: center;
   justify-content: center;
   z-index: 2;
+}
+
+.photo-ai {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.35);
+  color: rgba(255,255,255,0.4);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.photo-ai.active {
+  background: rgba(0,0,0,0.5);
+  color: #fff;
 }
 
 .photo-ghost {

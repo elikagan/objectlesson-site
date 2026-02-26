@@ -39,40 +39,26 @@ header {
 .filter-wrap {
   display: flex;
   justify-content: center;
-  padding: 0 24px 32px;
+  padding: 0 24px 28px;
   position: relative;
 }
 
 .filter-btn {
   font-family: var(--font);
-  font-size: 12px;
-  letter-spacing: 0.04em;
+  font-size: 11px;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  padding: 6px 16px;
-  border: 1px solid var(--black);
-  border-radius: 100px;
+  padding: 0;
+  border: none;
   background: none;
-  color: var(--black);
+  color: var(--light);
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.filter-btn::after {
-  content: '';
-  display: inline-block;
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 4px solid currentColor;
-  margin-left: 8px;
-  vertical-align: middle;
+  transition: color 0.2s ease;
 }
 
 .filter-btn:hover {
-  background: var(--black);
-  color: #fff;
+  color: var(--gray);
 }
 
 .filter-dropdown {
@@ -161,7 +147,7 @@ main {
 .card-image {
   position: relative;
   aspect-ratio: 1;
-  background: #f9f9f9;
+  background: #fff;
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 10px;
@@ -262,7 +248,7 @@ main {
   width: 100%;
   aspect-ratio: 1;
   object-fit: contain;
-  background: #f9f9f9;
+  background: #fff;
   border-radius: 4px;
   display: block;
 }
@@ -373,20 +359,18 @@ footer {
   opacity: 0.3;
 }
 
-.footer-contact {
-  text-align: right;
+.footer-links {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  gap: 20px;
 }
 
-.footer-contact a,
-.footer-contact p {
+.footer-links a {
   font-size: 13px;
   color: var(--gray);
-  line-height: 1.5;
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
-.footer-contact a:hover { color: var(--black); }
+.footer-links a:hover { color: var(--black); }
 
 /* --- Mobile --- */
 
@@ -401,6 +385,5 @@ footer {
   .detail-title { font-size: 20px; }
   .detail-price { font-size: 16px; }
   footer { padding: 36px 20px; }
-  .footer-inner { flex-direction: column; align-items: center; text-align: center; }
-  .footer-contact { text-align: center; }
+  .footer-inner { flex-direction: column; align-items: center; text-align: center; gap: 16px; }
 }
