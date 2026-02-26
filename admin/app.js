@@ -47,12 +47,71 @@
   // --- State ---
   let ghToken = '';
   let geminiKey = '';
+  let currentPin = null;
   let items = [];
   let inventorySha = '';
   let editingId = null;
   let photos = []; // { file, dataUrl, processed, remotePath? }
   let sortable = null;
   let photoSortable = null;
+
+  // --- Encrypted config (keys stored in repo, decrypted with PIN) ---
+
+  function xorCipher(key, text) {
+    return text.split('').map((c, i) =>
+      String.fromCharCode(c.charCodeAt(0) ^ key.charCodeAt(i % key.length))
+    ).join('');
+  }
+
+  async function encryptConfig(pin, data) {
+    const json = JSON.stringify(data);
+    if (!crypto.subtle) return 'X' + btoa(xorCipher(pin, json));
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, km, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(json));
+    const buf = new Uint8Array(28 + ct.byteLength);
+    buf.set(salt, 0);
+    buf.set(iv, 16);
+    buf.set(new Uint8Array(ct), 28);
+    return 'A' + btoa(String.fromCharCode(...buf));
+  }
+
+  async function decryptConfig(pin, encoded) {
+    if (encoded[0] === 'X') return JSON.parse(xorCipher(pin, atob(encoded.slice(1))));
+    const buf = Uint8Array.from(atob(encoded.slice(1)), c => c.charCodeAt(0));
+    const salt = buf.slice(0, 16);
+    const iv = buf.slice(16, 28);
+    const ct = buf.slice(28);
+    const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, km, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    const dec = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+    return JSON.parse(new TextDecoder().decode(dec));
+  }
+
+  async function backupConfig(pin) {
+    if (!ghToken || !geminiKey) return;
+    const encrypted = await encryptConfig(pin, { g: ghToken, m: geminiKey });
+    const path = 'admin/config.enc';
+    let sha;
+    try {
+      const r = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}`, {
+        headers: { 'Authorization': `Bearer ${ghToken}` }
+      });
+      if (r.ok) sha = (await r.json()).sha;
+    } catch {}
+    await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${ghToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: 'Update config',
+        content: btoa(encrypted),
+        branch: BRANCH,
+        ...(sha ? { sha } : {})
+      })
+    });
+  }
 
   // --- DOM refs ---
   const viewLock = document.getElementById('view-lock');
@@ -92,8 +151,9 @@
     const pin = document.getElementById('input-pin').value;
     const hash = await hashPin(pin);
     if (hash === PIN_HASH || simpleHash(pin) === SIMPLE_HASH) {
+      currentPin = pin;
       await store('ol_unlocked', '1');
-      await boot();
+      await boot(pin);
     } else {
       toast('Wrong PIN');
       document.getElementById('input-pin').value = '';
@@ -112,29 +172,58 @@
     document.cookie = k + '=;path=/admin;max-age=0';
   });
 
-  // Boot: load stored state from IndexedDB, then route to the right view
-  async function boot() {
+  // Boot: load stored state, fall back to encrypted config in repo
+  async function boot(pin) {
+    if (pin) currentPin = pin;
+
     ghToken = await load('ol_gh_token');
     geminiKey = await load('ol_gemini_key');
     const unlocked = await load('ol_unlocked');
 
-    if (!unlocked) {
+    // Not unlocked and no PIN entered — show lock screen
+    if (!unlocked && !currentPin) {
       showView('lock');
       return;
     }
 
-    if (!ghToken || !geminiKey) {
-      // First time only — need keys. Show logo/text, hide topbar
-      document.getElementById('setup-topbar').style.display = 'none';
-      document.getElementById('setup-logo').style.display = '';
-      document.getElementById('setup-text').style.display = '';
-      showView('setup');
+    // Keys in IndexedDB — go straight to inventory
+    if (ghToken && geminiKey) {
+      if (currentPin) backupConfig(currentPin).catch(() => {});
+      showView('list');
+      loadInventory();
       return;
     }
 
-    // Normal path: straight to inventory
-    showView('list');
-    loadInventory();
+    // Keys missing — try to restore from encrypted config in repo
+    if (currentPin) {
+      try {
+        const resp = await fetch('config.enc?t=' + Date.now());
+        if (resp.ok) {
+          const blob = await resp.text();
+          const config = await decryptConfig(currentPin, blob.trim());
+          ghToken = config.g;
+          geminiKey = config.m;
+          await store('ol_gh_token', ghToken);
+          await store('ol_gemini_key', geminiKey);
+          showView('list');
+          loadInventory();
+          return;
+        }
+      } catch (e) { /* config.enc missing or decrypt failed */ }
+    }
+
+    // No PIN available — re-show lock to get it
+    if (!currentPin) {
+      await store('ol_unlocked', '');
+      showView('lock');
+      return;
+    }
+
+    // Have PIN but no config.enc — first time setup
+    document.getElementById('setup-topbar').style.display = 'none';
+    document.getElementById('setup-logo').style.display = '';
+    document.getElementById('setup-text').style.display = '';
+    showView('setup');
   }
 
   boot();
@@ -147,6 +236,8 @@
     if (!ghToken || !geminiKey) { toast('Both keys are required'); return; }
     await store('ol_gh_token', ghToken);
     await store('ol_gemini_key', geminiKey);
+    // Backup encrypted config to repo so phone never needs key entry
+    if (currentPin) backupConfig(currentPin).catch(() => {});
     showView('list');
     loadInventory();
   });
