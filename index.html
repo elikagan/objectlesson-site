@@ -10,38 +10,84 @@
 </head>
 <body>
 
-  <header>
-    <a href="/">
-      <img src="OL_logo.svg" alt="Object Lesson" class="logo">
-    </a>
-  </header>
+  <!-- Grid View -->
+  <div id="view-grid">
+    <header>
+      <a href="/">
+        <img src="OL_logo.svg" alt="Object Lesson" class="logo">
+      </a>
+    </header>
 
-  <nav class="filters" id="filters">
-    <button class="filter active" data-category="all">All</button>
-    <button class="filter" data-category="wall-art">Wall Art</button>
-    <button class="filter" data-category="object">Object</button>
-    <button class="filter" data-category="ceramic">Ceramic</button>
-    <button class="filter" data-category="furniture">Furniture</button>
-    <button class="filter" data-category="light">Light</button>
-    <button class="filter" data-category="sculpture">Sculpture</button>
-    <button class="filter" data-category="misc">Misc</button>
-  </nav>
-
-  <main>
-    <div class="grid" id="product-grid"></div>
-    <p class="empty" id="empty">Nothing here yet.</p>
-  </main>
-
-  <footer>
-    <div class="footer-inner">
-      <img src="OL_logo.svg" alt="Object Lesson" class="footer-logo">
-      <div class="footer-contact">
-        <a href="mailto:eli@objectlesson.la">eli@objectlesson.la</a>
-        <a href="https://instagram.com/objectlesson_la" target="_blank" rel="noopener">@objectlesson_la</a>
-        <p>Pasadena Antique Center<br>480 S. Fair Oaks Ave, Pasadena</p>
+    <div class="filter-wrap">
+      <button class="filter-btn" id="filter-btn">All</button>
+      <div class="filter-dropdown" id="filter-dropdown">
+        <button class="filter-opt active" data-category="all">All</button>
+        <button class="filter-opt" data-category="wall-art">Wall Art</button>
+        <button class="filter-opt" data-category="object">Object</button>
+        <button class="filter-opt" data-category="ceramic">Ceramic</button>
+        <button class="filter-opt" data-category="furniture">Furniture</button>
+        <button class="filter-opt" data-category="light">Light</button>
+        <button class="filter-opt" data-category="sculpture">Sculpture</button>
+        <button class="filter-opt" data-category="misc">Misc</button>
       </div>
     </div>
-  </footer>
+
+    <main>
+      <div class="grid" id="product-grid"></div>
+      <p class="empty" id="empty">Nothing here yet.</p>
+    </main>
+
+    <footer>
+      <div class="footer-inner">
+        <img src="OL_logo.svg" alt="Object Lesson" class="footer-logo">
+        <div class="footer-contact">
+          <a href="mailto:eli@objectlesson.la">eli@objectlesson.la</a>
+          <a href="https://instagram.com/objectlesson_la" target="_blank" rel="noopener">@objectlesson_la</a>
+          <p>Pasadena Antique Center<br>480 S. Fair Oaks Ave, Pasadena</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Detail View -->
+  <div id="view-detail" style="display:none">
+    <header class="detail-header">
+      <button class="detail-back" id="btn-detail-back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      </button>
+      <a href="/">
+        <img src="OL_logo.svg" alt="Object Lesson" class="logo-sm">
+      </a>
+      <div style="width:20px"></div>
+    </header>
+
+    <div class="detail-body">
+      <div class="detail-gallery">
+        <img class="detail-hero" id="detail-hero" alt="">
+        <div class="detail-thumbs" id="detail-thumbs"></div>
+      </div>
+
+      <div class="detail-info">
+        <span class="detail-new" id="detail-new" style="display:none">New</span>
+        <h1 class="detail-title" id="detail-title"></h1>
+        <div class="detail-price" id="detail-price"></div>
+        <p class="detail-desc" id="detail-desc"></p>
+        <a class="detail-inquire" id="detail-inquire">Inquire</a>
+        <div class="detail-id" id="detail-id"></div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-inner">
+        <img src="OL_logo.svg" alt="Object Lesson" class="footer-logo">
+        <div class="footer-contact">
+          <a href="mailto:eli@objectlesson.la">eli@objectlesson.la</a>
+          <a href="https://instagram.com/objectlesson_la" target="_blank" rel="noopener">@objectlesson_la</a>
+          <p>Pasadena Antique Center<br>480 S. Fair Oaks Ave, Pasadena</p>
+        </div>
+      </div>
+    </footer>
+  </div>
 
   <script src="app.js"></script>
 </body>
