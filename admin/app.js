@@ -109,7 +109,12 @@
     document.getElementById('input-gh-token').value = ghToken;
     document.getElementById('input-gemini-key').value = geminiKey;
     document.getElementById('input-dealer-code').value = dealerCode;
+    document.getElementById('btn-cancel-setup').style.display = '';
     showView('setup');
+  });
+
+  document.getElementById('btn-cancel-setup').addEventListener('click', () => {
+    showView('list');
   });
 
   // --- Navigation ---
