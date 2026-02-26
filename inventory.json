@@ -16,85 +16,6 @@
     "createdAt": "2026-02-26T06:46:07.301Z"
   },
   {
-    "id": "mm32vp50",
-    "title": "Vibrant Textured Abstract Swirl Wall Art",
-    "description": "This striking contemporary mixed media artwork features a vibrant, organic swirl design in yellow, green, red, and earthy tones. Created with thickly applied pigments, likely acrylics or a similar textural compound, it boasts a unique impasto surface that evokes natural, biomorphic forms. The piece is in excellent condition, ready to bring abstract artistry and tactile interest to any modern interior.",
-    "price": 550,
-    "category": "wall-art",
-    "dealerCode": "14EK",
-    "images": [
-      "images/products/mm32vp50/3.jpg",
-      "images/products/mm32vp50/0.jpg",
-      "images/products/mm32vp50/1.jpg",
-      "images/products/mm32vp50/2.jpg",
-      "images/products/mm32vp50/4.jpg",
-      "images/products/mm32vp50/5.jpg"
-    ],
-    "heroImage": "images/products/mm32vp50/3.jpg",
-    "order": 1,
-    "createdAt": "2026-02-26T06:25:03.056Z"
-  },
-  {
-    "id": "demo2",
-    "title": "Hand-Thrown Stoneware Vase",
-    "description": "Minimalist stoneware vase with matte glaze finish. Earth-toned with subtle texture. Unsigned, likely studio pottery, 1970s.",
-    "price": 145,
-    "category": "ceramic",
-    "dealerCode": "14EK",
-    "images": [],
-    "heroImage": "",
-    "order": 2,
-    "createdAt": "2026-02-25T00:00:00Z"
-  },
-  {
-    "id": "demo1",
-    "title": "Mid-Century Brass Desk Lamp",
-    "description": "Adjustable brass desk lamp with original green glass shade, circa 1950s. Beautiful aged patina.",
-    "price": 385,
-    "category": "light",
-    "dealerCode": "14EK",
-    "images": [],
-    "heroImage": "",
-    "order": 3,
-    "createdAt": "2026-02-25T00:00:00Z"
-  },
-  {
-    "id": "demo4",
-    "title": "Danish Teak Side Table",
-    "description": "Classic Danish modern side table in solid teak. Tapered legs, clean lines. Minor surface wear consistent with age.",
-    "price": 475,
-    "category": "furniture",
-    "dealerCode": "14EK",
-    "images": [],
-    "heroImage": "",
-    "order": 4,
-    "createdAt": "2026-02-25T00:00:00Z"
-  },
-  {
-    "id": "demo5",
-    "title": "Bronze Bird Figure",
-    "description": "Small cast bronze bird sculpture on marble base. Lovely detail and weight. Mid-century decorative piece.",
-    "price": 220,
-    "category": "sculpture",
-    "dealerCode": "14EK",
-    "images": [],
-    "heroImage": "",
-    "order": 5,
-    "createdAt": "2026-02-25T00:00:00Z"
-  },
-  {
-    "id": "demo6",
-    "title": "Vintage French Brass Compass",
-    "description": "Working brass compass in original fitted case. Beautifully aged with clear markings. A conversation piece.",
-    "price": 95,
-    "category": "object",
-    "dealerCode": "14EK",
-    "images": [],
-    "heroImage": "",
-    "order": 6,
-    "createdAt": "2026-02-25T00:00:00Z"
-  },
-  {
     "id": "mm33scdb",
     "title": "Lauterbach Encaustic",
     "description": "Mixed media relief sculpture with thick, layered paint in a circular form. Features abstract, organic textures in yellow, green, red, and dark hues, likely contemporary.",
@@ -110,7 +31,86 @@
       "images/products/mm33scdb/5.jpg"
     ],
     "heroImage": "images/products/mm33scdb/0.jpg",
-    "order": 7,
+    "order": 1,
     "createdAt": "2026-02-26T06:50:36.212Z"
+  },
+  {
+    "id": "mm32vp50",
+    "title": "Vibrant Textured Abstract Swirl Wall Art",
+    "description": "This striking contemporary mixed media artwork features a vibrant, organic swirl design in yellow, green, red, and earthy tones. Created with thickly applied pigments, likely acrylics or a similar textural compound, it boasts a unique impasto surface that evokes natural, biomorphic forms. The piece is in excellent condition, ready to bring abstract artistry and tactile interest to any modern interior.",
+    "price": 550,
+    "category": "wall-art",
+    "dealerCode": "14EK",
+    "images": [
+      "images/products/mm32vp50/3.jpg",
+      "images/products/mm32vp50/0.jpg",
+      "images/products/mm32vp50/1.jpg",
+      "images/products/mm32vp50/2.jpg",
+      "images/products/mm32vp50/4.jpg",
+      "images/products/mm32vp50/5.jpg"
+    ],
+    "heroImage": "images/products/mm32vp50/3.jpg",
+    "order": 2,
+    "createdAt": "2026-02-26T06:25:03.056Z"
+  },
+  {
+    "id": "demo2",
+    "title": "Hand-Thrown Stoneware Vase",
+    "description": "Minimalist stoneware vase with matte glaze finish. Earth-toned with subtle texture. Unsigned, likely studio pottery, 1970s.",
+    "price": 145,
+    "category": "ceramic",
+    "dealerCode": "14EK",
+    "images": [],
+    "heroImage": "",
+    "order": 3,
+    "createdAt": "2026-02-25T00:00:00Z"
+  },
+  {
+    "id": "demo1",
+    "title": "Mid-Century Brass Desk Lamp",
+    "description": "Adjustable brass desk lamp with original green glass shade, circa 1950s. Beautiful aged patina.",
+    "price": 385,
+    "category": "light",
+    "dealerCode": "14EK",
+    "images": [],
+    "heroImage": "",
+    "order": 4,
+    "createdAt": "2026-02-25T00:00:00Z"
+  },
+  {
+    "id": "demo4",
+    "title": "Danish Teak Side Table",
+    "description": "Classic Danish modern side table in solid teak. Tapered legs, clean lines. Minor surface wear consistent with age.",
+    "price": 475,
+    "category": "furniture",
+    "dealerCode": "14EK",
+    "images": [],
+    "heroImage": "",
+    "order": 5,
+    "createdAt": "2026-02-25T00:00:00Z"
+  },
+  {
+    "id": "demo5",
+    "title": "Bronze Bird Figure",
+    "description": "Small cast bronze bird sculpture on marble base. Lovely detail and weight. Mid-century decorative piece.",
+    "price": 220,
+    "category": "sculpture",
+    "dealerCode": "14EK",
+    "images": [],
+    "heroImage": "",
+    "order": 6,
+    "createdAt": "2026-02-25T00:00:00Z"
+  },
+  {
+    "id": "demo6",
+    "title": "Vintage French Brass Compass",
+    "description": "Working brass compass in original fitted case. Beautifully aged with clear markings. A conversation piece.",
+    "price": 95,
+    "category": "object",
+    "dealerCode": "14EK",
+    "images": [],
+    "heroImage": "",
+    "order": 7,
+    "createdAt": "2026-02-25T00:00:00Z"
   }
 ]
