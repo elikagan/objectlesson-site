@@ -10,7 +10,7 @@
   const SIMPLE_HASH = '2a1bf354';
 
   // --- State ---
-  let unlocked = !!sessionStorage.getItem('ol_unlocked');
+  let unlocked = !!localStorage.getItem('ol_unlocked');
   let ghToken = localStorage.getItem('ol_gh_token') || '';
   let geminiKey = localStorage.getItem('ol_gemini_key') || '';
   let dealerCode = localStorage.getItem('ol_dealer_code') || '14EK';
@@ -53,21 +53,18 @@
     return simpleHash(pin);
   }
 
-  document.getElementById('btn-unlock').addEventListener('click', async () => {
+  document.getElementById('form-unlock').addEventListener('submit', async (e) => {
+    e.preventDefault();
     const pin = document.getElementById('input-pin').value;
     const hash = await hashPin(pin);
     if (hash === PIN_HASH || simpleHash(pin) === SIMPLE_HASH) {
       unlocked = true;
-      sessionStorage.setItem('ol_unlocked', '1');
+      localStorage.setItem('ol_unlocked', '1');
       initApp();
     } else {
       toast('Wrong PIN');
       document.getElementById('input-pin').value = '';
     }
-  });
-
-  document.getElementById('input-pin').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('btn-unlock').click();
   });
 
   // --- Init ---
