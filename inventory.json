@@ -77,5 +77,21 @@
     "heroImage": "",
     "order": 6,
     "createdAt": "2026-02-25T00:00:00Z"
+  },
+  {
+    "id": "mm33naov",
+    "title": "CERAMIC STUDIO VASE",
+    "description": "Ceramic vase with textured unglazed sections and vertical glazed stripes in deep blue and lavender. Likely late 20th century.",
+    "price": 225,
+    "category": "ceramic",
+    "dealerCode": "14EK",
+    "images": [
+      "images/products/mm33naov/0.jpg",
+      "images/products/mm33naov/1.jpg",
+      "images/products/mm33naov/2.jpg"
+    ],
+    "heroImage": "images/products/mm33naov/0.jpg",
+    "order": 6,
+    "createdAt": "2026-02-26T06:46:07.301Z"
   }
 ]
