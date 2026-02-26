@@ -340,6 +340,12 @@ main {
 .detail-price {
   font-size: 18px;
   color: var(--gray);
+  margin-bottom: 6px;
+}
+
+.detail-size {
+  font-size: 14px;
+  color: var(--light);
   margin-bottom: 16px;
 }
 

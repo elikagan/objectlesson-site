@@ -509,6 +509,7 @@
       document.getElementById('field-title').value = item.title || '';
       document.getElementById('field-desc').value = item.description || '';
       document.getElementById('field-price').value = item.price != null ? item.price : '';
+      document.getElementById('field-size').value = item.size || '';
       document.getElementById('field-category').value = item.category || '';
       document.getElementById('field-dealer').value = item.dealerCode || '';
       document.getElementById('field-new').checked = !!item.isNew;
@@ -529,6 +530,7 @@
       document.getElementById('field-title').value = '';
       document.getElementById('field-desc').value = '';
       document.getElementById('field-price').value = '';
+      document.getElementById('field-size').value = '';
       document.getElementById('field-category').value = '';
       document.getElementById('field-dealer').value = '';
       document.getElementById('field-new').checked = true;
@@ -686,6 +688,9 @@
         if (suggestions.category && !document.getElementById('field-category').value) {
           document.getElementById('field-category').value = suggestions.category;
         }
+        if (suggestions.size && !document.getElementById('field-size').value) {
+          document.getElementById('field-size').value = suggestions.size;
+        }
       }
 
       setStatus('Done.');
@@ -802,7 +807,7 @@
   async function geminiSuggest(dataUrls) {
     const thumbs = await Promise.all(dataUrls.slice(0, 4).map(url => resizeImage(url, 768)));
     const parts = [
-      { text: 'You are cataloging items for an antique gallery. Based on these photos, provide: a short title (2-5 words, title case, just what the object is), a description that flows naturally from the title as a continuation (1 simple descriptive sentence — materials, era, origin if obvious. Do NOT repeat the title. Do NOT start with "This" or "A" or "An". No flowery language, no marketing speak), and a category (exactly one of: wall-art, object, ceramic, furniture, light, sculpture, misc). Return ONLY valid JSON: {"title": "string", "description": "string", "category": "string"}' }
+      { text: 'You are cataloging items for an antique gallery. Based on these photos, provide: a short title (2-5 words, title case, just what the object is), a description that flows naturally from the title as a continuation (1 simple descriptive sentence — materials, era, origin if obvious. Do NOT repeat the title. Do NOT start with "This" or "A" or "An". No flowery language, no marketing speak), estimated size/dimensions if you can tell from the photos (use format like 24" × 18" for flat items or 12" H × 8" W × 8" D for 3D objects — leave empty string if you truly cannot estimate), and a category (exactly one of: wall-art, object, ceramic, furniture, light, sculpture, misc). Return ONLY valid JSON: {"title": "string", "description": "string", "size": "string", "category": "string"}' }
     ];
     for (const url of thumbs) {
       parts.push({ inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(url) } });
@@ -828,6 +833,7 @@
     const title = document.getElementById('field-title').value.trim();
     const description = document.getElementById('field-desc').value.trim();
     const price = parseFloat(document.getElementById('field-price').value) || 0;
+    const size = document.getElementById('field-size').value.trim();
     const category = document.getElementById('field-category').value;
     const dc = document.getElementById('field-dealer').value.trim();
     const isNew = document.getElementById('field-new').checked;
@@ -865,6 +871,7 @@
         title,
         description,
         price,
+        size,
         category,
         dealerCode: dc,
         isNew,

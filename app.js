@@ -114,6 +114,9 @@
 
     document.getElementById('detail-title').textContent = item.title;
     document.getElementById('detail-price').textContent = '$' + Number(item.price).toLocaleString();
+    const sizeEl = document.getElementById('detail-size');
+    sizeEl.textContent = item.size || '';
+    sizeEl.style.display = item.size ? '' : 'none';
     document.getElementById('detail-desc').textContent = item.description || '';
     document.getElementById('detail-id').textContent = formatId(item.id);
     document.getElementById('detail-inquire').href = buyLink(item);
