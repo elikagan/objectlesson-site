@@ -10,6 +10,7 @@
   const gridView = document.getElementById('view-grid');
   const detailView = document.getElementById('view-detail');
   const filterBtn = document.getElementById('filter-btn');
+  const filterLabel = document.getElementById('filter-label');
   const filterDropdown = document.getElementById('filter-dropdown');
 
   const categoryLabels = {
@@ -146,7 +147,7 @@
     const opt = e.target.closest('[data-category]');
     if (!opt) return;
     activeCategory = opt.dataset.category;
-    filterBtn.textContent = categoryLabels[activeCategory];
+    filterLabel.textContent = categoryLabels[activeCategory];
     // Update active state
     filterDropdown.querySelector('.active')?.classList.remove('active');
     opt.classList.add('active');

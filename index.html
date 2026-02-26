@@ -16,21 +16,23 @@
       <a href="/">
         <img src="OL_logo.svg" alt="Object Lesson" class="logo">
       </a>
-    </header>
-
-    <div class="filter-wrap">
-      <button class="filter-btn" id="filter-btn">All</button>
-      <div class="filter-dropdown" id="filter-dropdown">
-        <button class="filter-opt active" data-category="all">All</button>
-        <button class="filter-opt" data-category="wall-art">Wall Art</button>
-        <button class="filter-opt" data-category="object">Object</button>
-        <button class="filter-opt" data-category="ceramic">Ceramic</button>
-        <button class="filter-opt" data-category="furniture">Furniture</button>
-        <button class="filter-opt" data-category="light">Light</button>
-        <button class="filter-opt" data-category="sculpture">Sculpture</button>
-        <button class="filter-opt" data-category="misc">Misc</button>
+      <div class="filter-wrap">
+        <button class="filter-btn" id="filter-btn">
+          <svg class="filter-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+          <span id="filter-label">All</span>
+        </button>
+        <div class="filter-dropdown" id="filter-dropdown">
+          <button class="filter-opt active" data-category="all">All</button>
+          <button class="filter-opt" data-category="wall-art">Wall Art</button>
+          <button class="filter-opt" data-category="object">Object</button>
+          <button class="filter-opt" data-category="ceramic">Ceramic</button>
+          <button class="filter-opt" data-category="furniture">Furniture</button>
+          <button class="filter-opt" data-category="light">Light</button>
+          <button class="filter-opt" data-category="sculpture">Sculpture</button>
+          <button class="filter-opt" data-category="misc">Misc</button>
+        </div>
       </div>
-    </div>
+    </header>
 
     <main>
       <div class="grid" id="product-grid"></div>
