@@ -40,7 +40,7 @@ header {
   margin: 0 auto;
   padding: 0 24px 32px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 /* --- Filter (pill button + dropdown) --- */
