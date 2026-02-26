@@ -23,18 +23,31 @@ a { color: inherit; text-decoration: none; }
 /* --- Header --- */
 
 header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px 24px 40px;
+  text-align: center;
+  padding: 36px 24px 12px;
 }
 
 .logo {
-  width: 140px;
+  width: 160px;
   height: auto;
-  display: block;
+  display: inline-block;
+}
+
+.tagline {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--light);
+  margin-top: 8px;
+}
+
+/* --- Filter bar --- */
+
+.filter-bar {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 32px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* --- Filter (pill button + dropdown) --- */
@@ -253,12 +266,27 @@ main {
   margin-bottom: 28px;
 }
 
-.detail-hero {
+.detail-carousel {
+  overflow: hidden;
+  position: relative;
+}
+
+.detail-track {
+  display: flex;
+  will-change: transform;
+}
+
+.detail-track.animating {
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.detail-slide {
   width: 100%;
-  aspect-ratio: 1;
-  object-fit: contain;
-  background: #fff;
-  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.detail-slide img {
+  width: 100%;
   display: block;
 }
 
@@ -384,8 +412,9 @@ footer {
 /* --- Mobile --- */
 
 @media (max-width: 559px) {
-  header { padding: 24px 16px 20px; }
-  .logo { width: 110px; }
+  header { padding: 24px 16px 8px; }
+  .logo { width: 120px; }
+  .filter-bar { padding: 0 16px 20px; }
   .filter-btn { font-size: 10px; padding: 6px 12px; }
   .filter-icon { width: 14px; height: 14px; }
   main { padding: 0 16px 60px; }
@@ -393,6 +422,8 @@ footer {
   .card-title { font-size: 13px; }
   .card-price { font-size: 12px; }
   .detail-body { padding: 24px 20px 60px; }
+  .detail-gallery { margin-left: -20px; margin-right: -20px; }
+  .detail-thumbs { padding: 0 20px; }
   .detail-title { font-size: 20px; }
   .detail-price { font-size: 16px; }
   footer { padding: 0 16px; }

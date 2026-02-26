@@ -77,13 +77,21 @@
     });
   }
 
-  // --- Detail view ---
+  // --- Detail view (sliding carousel) ---
 
-  function setDetailImage(index) {
-    const heroEl = document.getElementById('detail-hero');
-    const thumbStrip = document.getElementById('detail-thumbs');
+  const track = document.getElementById('detail-track');
+
+  function slideTo(index, animate) {
     detailIndex = index;
-    heroEl.src = detailImages[index];
+    if (animate) {
+      track.classList.add('animating');
+    } else {
+      track.classList.remove('animating');
+    }
+    track.style.transform = `translateX(${-index * 100}%)`;
+
+    // Update thumbnails
+    const thumbStrip = document.getElementById('detail-thumbs');
     thumbStrip.querySelector('.active')?.classList.remove('active');
     const thumbs = thumbStrip.querySelectorAll('.detail-thumb');
     if (thumbs[index]) thumbs[index].classList.add('active');
@@ -98,9 +106,11 @@
     detailIndex = detailImages.indexOf(hero);
     if (detailIndex < 0) detailIndex = 0;
 
-    const heroEl = document.getElementById('detail-hero');
-    heroEl.src = hero;
-    heroEl.alt = item.title;
+    // Build carousel slides
+    track.innerHTML = detailImages.map((img, i) =>
+      `<div class="detail-slide"><img src="${img}" alt="${i === 0 ? esc(item.title) : ''}" draggable="false"></div>`
+    ).join('');
+    slideTo(detailIndex, false);
 
     document.getElementById('detail-title').textContent = item.title;
     document.getElementById('detail-price').textContent = '$' + Number(item.price).toLocaleString();
@@ -121,7 +131,7 @@
       thumbStrip.style.display = '';
       thumbStrip.querySelectorAll('.detail-thumb').forEach(th => {
         th.addEventListener('click', () => {
-          setDetailImage(parseInt(th.dataset.index, 10));
+          slideTo(parseInt(th.dataset.index, 10), true);
         });
       });
     } else {
@@ -195,41 +205,63 @@
     showGrid();
   });
 
-  // --- Swipe on hero image ---
+  // --- Swipe carousel with real-time drag ---
 
   (function () {
-    const heroEl = document.getElementById('detail-hero');
-    let startX = 0, startY = 0, tracking = false;
+    const carousel = document.getElementById('detail-carousel');
+    let startX = 0, startY = 0, dragging = false, locked = false;
+    let carouselW = 0;
 
-    heroEl.addEventListener('touchstart', (e) => {
+    carousel.addEventListener('touchstart', (e) => {
       if (detailImages.length < 2) return;
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
-      tracking = true;
+      dragging = true;
+      locked = false;
+      carouselW = carousel.offsetWidth;
+      track.classList.remove('animating');
     }, { passive: true });
 
-    heroEl.addEventListener('touchmove', (e) => {
-      if (!tracking) return;
+    carousel.addEventListener('touchmove', (e) => {
+      if (!dragging) return;
       const dx = e.touches[0].clientX - startX;
       const dy = e.touches[0].clientY - startY;
-      // If horizontal swipe is dominant, prevent vertical scroll
-      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+
+      // Determine direction lock on first significant move
+      if (!locked && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+        locked = true;
+        if (Math.abs(dy) > Math.abs(dx)) {
+          // Vertical scroll — abort drag
+          dragging = false;
+          return;
+        }
+      }
+
+      if (locked) {
         e.preventDefault();
+        // Add resistance at edges
+        let offset = dx;
+        if ((detailIndex === 0 && dx > 0) || (detailIndex === detailImages.length - 1 && dx < 0)) {
+          offset = dx * 0.3;
+        }
+        const pct = (-detailIndex * carouselW + offset) / carouselW * 100;
+        track.style.transform = `translateX(${pct}%)`;
       }
     }, { passive: false });
 
-    heroEl.addEventListener('touchend', (e) => {
-      if (!tracking) return;
-      tracking = false;
+    carousel.addEventListener('touchend', (e) => {
+      if (!dragging) return;
+      dragging = false;
       const dx = e.changedTouches[0].clientX - startX;
-      const dy = e.changedTouches[0].clientY - startY;
-      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
-        if (dx < 0 && detailIndex < detailImages.length - 1) {
-          setDetailImage(detailIndex + 1);
-        } else if (dx > 0 && detailIndex > 0) {
-          setDetailImage(detailIndex - 1);
-        }
+      const threshold = carouselW * 0.2; // 20% of width
+
+      let target = detailIndex;
+      if (dx < -threshold && detailIndex < detailImages.length - 1) {
+        target = detailIndex + 1;
+      } else if (dx > threshold && detailIndex > 0) {
+        target = detailIndex - 1;
       }
+      slideTo(target, true);
     }, { passive: true });
   })();
 
