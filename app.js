@@ -34,6 +34,7 @@
     } catch (e) {
       items = [];
     }
+    initMosaic();
     renderGrid();
     handleHash();
   }
@@ -142,6 +143,7 @@
       thumbStrip.style.display = 'none';
     }
 
+    stopMosaic();
     gridView.style.display = 'none';
     detailView.style.display = '';
     window.scrollTo(0, 0);
@@ -150,6 +152,7 @@
   function showGrid() {
     detailView.style.display = 'none';
     gridView.style.display = '';
+    if (mosaicCells.length) startMosaic();
   }
 
   // --- Buy link (#2: SMS text) ---
@@ -286,6 +289,113 @@
     d.textContent = s || '';
     return d.innerHTML;
   }
+
+  // --- Mosaic ---
+
+  const mosaic = document.getElementById('mosaic');
+  const MOSAIC_CELLS = 18;
+  const MOSAIC_INTERVAL = 1000;
+  const MOSAIC_FLIP_MS = 700;
+  const DESKTOP_FLIPS = 4;   // 4-5
+  const MOBILE_FLIPS = 2;    // 2-3
+
+  let mosaicCells = [];
+  let mosaicTimer = null;
+  let mosaicItems = [];       // items with images
+
+  function isMobile() { return window.innerWidth <= 559; }
+  function isTablet() { return window.innerWidth > 559 && window.innerWidth <= 959; }
+  function visibleCells() { return isMobile() ? 9 : isTablet() ? 12 : 18; }
+  function flipBase() { return isMobile() ? MOBILE_FLIPS : DESKTOP_FLIPS; }
+
+  function initMosaic() {
+    mosaicItems = items.filter(i => i.heroImage || (i.images && i.images.length > 0));
+    if (mosaicItems.length < 4) { mosaic.style.display = 'none'; return; }
+
+    mosaic.style.display = '';
+    mosaic.innerHTML = '';
+    mosaicCells = [];
+
+    const shuffled = [...mosaicItems].sort(() => Math.random() - 0.5);
+
+    for (let i = 0; i < MOSAIC_CELLS; i++) {
+      const item = shuffled[i % shuffled.length];
+      const nextItem = shuffled[(i + 1) % shuffled.length];
+
+      const cell = document.createElement('a');
+      cell.className = 'mosaic-cell';
+      cell.href = '#' + item.id;
+      cell.innerHTML = `
+        <div class="mosaic-inner">
+          <div class="mosaic-face mosaic-front">
+            <img src="${imgUrl(item.heroImage || item.images[0])}" alt="" loading="lazy">
+          </div>
+          <div class="mosaic-face mosaic-back">
+            <img src="${imgUrl(nextItem.heroImage || nextItem.images[0])}" alt="" loading="lazy">
+          </div>
+        </div>
+      `;
+      mosaic.appendChild(cell);
+      mosaicCells.push({ el: cell, flipped: false, currentItem: item, animating: false });
+    }
+
+    startMosaic();
+  }
+
+  function startMosaic() {
+    if (mosaicTimer) clearInterval(mosaicTimer);
+    mosaicTimer = setInterval(flipMosaicTiles, MOSAIC_INTERVAL);
+  }
+
+  function stopMosaic() {
+    if (mosaicTimer) { clearInterval(mosaicTimer); mosaicTimer = null; }
+  }
+
+  function flipMosaicTiles() {
+    if (mosaicItems.length < 2) return;
+
+    const vis = visibleCells();
+    const available = mosaicCells.filter((c, i) => i < vis && !c.animating);
+    if (available.length < 2) return;
+
+    const base = flipBase();
+    const count = Math.min(
+      Math.random() < 0.5 ? base : base + 1,
+      available.length
+    );
+
+    const shuffled = [...available].sort(() => Math.random() - 0.5);
+    shuffled.slice(0, count).forEach(cell => {
+      let newItem;
+      let attempts = 0;
+      do {
+        newItem = mosaicItems[Math.floor(Math.random() * mosaicItems.length)];
+        attempts++;
+      } while (newItem.id === cell.currentItem.id && attempts < 20);
+
+      const inner = cell.el.querySelector('.mosaic-inner');
+      const hiddenImg = cell.flipped
+        ? inner.querySelector('.mosaic-front img')
+        : inner.querySelector('.mosaic-back img');
+      hiddenImg.src = imgUrl(newItem.heroImage || newItem.images[0]);
+
+      cell.animating = true;
+      cell.flipped = !cell.flipped;
+      inner.classList.toggle('flipped');
+
+      setTimeout(() => {
+        cell.el.href = '#' + newItem.id;
+        cell.currentItem = newItem;
+        cell.animating = false;
+      }, MOSAIC_FLIP_MS + 50);
+    });
+  }
+
+  // Pause mosaic when on detail view or tab hidden
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopMosaic();
+    else if (gridView.style.display !== 'none') startMosaic();
+  });
 
   // --- Init ---
   load();

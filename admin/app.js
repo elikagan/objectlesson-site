@@ -904,6 +904,9 @@
         items.push(itemData);
       }
 
+      // Sort so new item (order 0) appears at top immediately
+      items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
       await saveInventory((editingId ? 'Update ' : 'Add ') + title);
 
       toast('Saved');
