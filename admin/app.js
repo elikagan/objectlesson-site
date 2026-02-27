@@ -465,6 +465,8 @@
       handle: '.item-drag',
       ghostClass: 'sortable-ghost',
       animation: 200,
+      filter: '.archive-header, .archive-items',
+      onMove(evt) { return !evt.related.classList.contains('archive-header') && !evt.related.classList.contains('archive-items'); },
       onEnd: handleReorder
     });
 
@@ -562,23 +564,37 @@
   }, { passive: true });
 
   async function handleReorder() {
-    const rows = itemList.querySelectorAll('.item-row');
+    // Only reorder active (non-sold) items — exclude archive section
+    const rows = itemList.querySelectorAll(':scope > .swipe-wrap > .item-row');
     const newOrder = Array.from(rows).map(r => r.dataset.id);
-    items = newOrder.map((id, i) => {
+    const activeItems = newOrder.map((id, i) => {
       const item = items.find(it => it.id === id);
       return { ...item, order: i };
     });
+    const soldItems = items.filter(i => i.isSold);
+    items = [...activeItems, ...soldItems];
     await saveInventory('Reorder items');
   }
 
   // --- Save inventory ---
 
-  async function saveInventory(message) {
+  async function saveInventory(message, _retried) {
     try {
       const json = JSON.stringify(items, null, 2);
       const result = await putFile('inventory.json', json, inventorySha, message || 'Update inventory');
       inventorySha = result.content.sha;
     } catch (e) {
+      // SHA conflict (409) — re-fetch current SHA and retry once
+      if (!_retried && e.message && (e.message.includes('does not match') || e.message.includes('409'))) {
+        try {
+          const file = await getFile('inventory.json');
+          inventorySha = file.sha;
+          return saveInventory(message, true);
+        } catch (retryErr) {
+          toast('Save failed: ' + retryErr.message);
+          throw retryErr;
+        }
+      }
       toast('Save failed: ' + e.message);
       throw e;
     }

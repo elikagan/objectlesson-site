@@ -76,7 +76,7 @@ async function handleWebhook(request, env) {
   try {
     const body = await request.text();
 
-    // Validate Square webhook signature
+    // Validate Square webhook signature (skip if key not configured)
     if (env.SQUARE_WEBHOOK_SIGNATURE_KEY) {
       const signature = request.headers.get('x-square-hmacsha256-signature');
       if (!signature) return new Response('Missing signature', { status: 401 });
@@ -103,20 +103,25 @@ async function handleWebhook(request, env) {
 
     if (event.type === 'payment.updated') {
       const payment = event.data?.object?.payment;
-      if (payment?.status === 'COMPLETED' && payment.note?.startsWith('Object Lesson |')) {
-        const amount = (payment.amount_money?.amount || 0) / 100;
-        const itemInfo = payment.note.replace('Object Lesson | ', '');
+      if (payment?.status === 'COMPLETED') {
+        // Check for our payment note — may be on payment.note or order note
+        const note = payment.note || '';
+        if (note.startsWith('Object Lesson |')) {
+          const amount = (payment.amount_money?.amount || 0) / 100;
+          const itemInfo = note.replace('Object Lesson | ', '');
+          const idMatch = note.match(/\(([^)]+)\)$/);
+          const itemId = idMatch ? idMatch[1] : null;
 
-        // Extract item ID from note format: "Object Lesson | Title (itemId)"
-        const idMatch = payment.note.match(/\(([^)]+)\)$/);
-        const itemId = idMatch ? idMatch[1] : null;
+          // Auto-mark as sold — don't let failure block SMS
+          if (itemId && env.GITHUB_TOKEN) {
+            try { await markAsSold(env, itemId); } catch {}
+          }
 
-        // Auto-mark as sold in inventory
-        if (itemId && env.GITHUB_TOKEN) {
-          await markAsSold(env, itemId);
+          // Send SMS alert — don't let failure block webhook response
+          try {
+            await sendSMS(env, `Sale: ${itemInfo} — $${amount.toLocaleString()}. Check Square for details.`);
+          } catch {}
         }
-
-        await sendSMS(env, `Sale: ${itemInfo} — $${amount.toLocaleString()}. Check Square for details.`);
       }
     }
 
