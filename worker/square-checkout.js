@@ -279,17 +279,7 @@ async function handleWebhook(request, env) {
           console.log('🚨 STEP 6: SKIPPING email capture —', !buyerEmail ? 'no buyer email on payment' : 'missing Supabase env vars');
         }
 
-        // Always send SMS for completed payments
-        const smsMsg = itemInfo
-          ? `Sale: ${itemInfo} — $${amount.toLocaleString()}. Check Square for details.`
-          : `New sale: $${amount.toLocaleString()}. Check Square for details.`;
-        console.log('🚨 STEP 7: SENDING SMS — message:', smsMsg);
-        try {
-          await sendSMS(env, smsMsg);
-          console.log('🚨 STEP 7: SMS SENT ✓✓✓');
-        } catch (e) {
-          console.error('🚨🚨🚨 STEP 7 FAILED: sendSMS error:', e.message);
-        }
+        // Sale notifications handled by Square app directly
       } else {
         console.log('🚨🚨🚨 STEP 4 STOPPED: Payment status is NOT COMPLETED — it is:', payment?.status);
       }
@@ -358,46 +348,3 @@ async function markAsSold(env, itemId) {
   }
 }
 
-async function sendSMS(env, message) {
-  console.log('🚨 SMS STEP A: sendSMS called with message:', message);
-
-  console.log('🚨 SMS STEP B: Checking Twilio env vars...');
-  console.log('🚨 SMS STEP B: TWILIO_ACCOUNT_SID:', env.TWILIO_ACCOUNT_SID ? `SET (${env.TWILIO_ACCOUNT_SID.slice(0, 6)}...)` : '❌ MISSING');
-  console.log('🚨 SMS STEP B: TWILIO_AUTH_TOKEN:', env.TWILIO_AUTH_TOKEN ? `SET (${env.TWILIO_AUTH_TOKEN.slice(0, 4)}...)` : '❌ MISSING');
-  console.log('🚨 SMS STEP B: TWILIO_FROM_NUMBER:', env.TWILIO_FROM_NUMBER ? `SET (${env.TWILIO_FROM_NUMBER})` : '❌ MISSING');
-  console.log('🚨 SMS STEP B: ALERT_PHONE_NUMBER:', env.ALERT_PHONE_NUMBER ? `SET (${env.ALERT_PHONE_NUMBER})` : '❌ MISSING');
-
-  if (!env.TWILIO_ACCOUNT_SID || !env.TWILIO_AUTH_TOKEN || !env.TWILIO_FROM_NUMBER || !env.ALERT_PHONE_NUMBER) {
-    console.error('🚨🚨🚨 SMS STEP B FAILED: Missing Twilio env vars — SMS WILL NOT SEND');
-    return;
-  }
-
-  const url = `https://api.twilio.com/2010-04-01/Accounts/${env.TWILIO_ACCOUNT_SID}/Messages.json`;
-  const auth = btoa(`${env.TWILIO_ACCOUNT_SID}:${env.TWILIO_AUTH_TOKEN}`);
-
-  console.log('🚨 SMS STEP C: Calling Twilio API...');
-  console.log('🚨 SMS STEP C: To:', env.ALERT_PHONE_NUMBER, 'From:', env.TWILIO_FROM_NUMBER);
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${auth}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: new URLSearchParams({
-      To: env.ALERT_PHONE_NUMBER,
-      From: env.TWILIO_FROM_NUMBER,
-      Body: message
-    }).toString()
-  });
-
-  const data = await res.json();
-  console.log('🚨 SMS STEP D: Twilio response status:', res.status);
-  console.log('🚨 SMS STEP D: Twilio response body:', JSON.stringify(data));
-
-  if (!res.ok) {
-    console.error('🚨🚨🚨 SMS STEP D FAILED: Twilio returned', res.status, JSON.stringify(data));
-    throw new Error(`Twilio error ${res.status}: ${data.message || JSON.stringify(data)}`);
-  }
-  console.log('🚨 SMS STEP D: SUCCESS — SID:', data.sid, '✓✓✓');
-}
