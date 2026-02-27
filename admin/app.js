@@ -425,7 +425,7 @@
               <div class="item-name">${esc(item.title || 'Untitled')}</div>
               <div class="item-meta"><span class="item-id">${formatId(item.id)}</span> · $${Number(item.price || 0).toLocaleString()}</div>
             </div>
-            ${item.isNew ? '<span class="item-new">New</span>' : ''}
+            ${item.isSold ? '<span class="item-sold">Sold</span>' : item.isNew ? '<span class="item-new">New</span>' : ''}
             <span class="item-category">${esc(item.category || '')}</span>
           </div>
         </div>
@@ -584,6 +584,7 @@
       document.getElementById('field-category').value = item.category || '';
       document.getElementById('field-dealer').value = item.dealerCode || '';
       document.getElementById('field-new').checked = !!item.isNew;
+      document.getElementById('field-sold').checked = !!item.isSold;
 
       // Load existing images — hero is first, so put it first
       if (item.images) {
@@ -605,6 +606,7 @@
       document.getElementById('field-category').value = '';
       document.getElementById('field-dealer').value = '';
       document.getElementById('field-new').checked = true;
+      document.getElementById('field-sold').checked = false;
     }
 
     renderPhotos();
@@ -923,6 +925,7 @@
     const category = document.getElementById('field-category').value;
     const dc = document.getElementById('field-dealer').value.trim();
     const isNew = document.getElementById('field-new').checked;
+    const isSold = document.getElementById('field-sold').checked;
 
     if (!title) { toast('Title is required'); return; }
     if (!category) { toast('Category is required'); return; }
@@ -960,7 +963,8 @@
         size,
         category,
         dealerCode: dc,
-        isNew,
+        isNew: isSold ? false : isNew,
+        isSold,
         images: uploadedImages,
         heroImage: uploadedImages[0] || '',
         order: editingId ? (items.find(i => i.id === editingId)?.order ?? 0) : 0,

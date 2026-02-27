@@ -6,6 +6,17 @@
   <title>Object Lesson</title>
   <meta name="description" content="Uncommon objects, art and design — Pasadena.">
   <link rel="icon" type="image/svg+xml" href="OL_logo.svg">
+  <!-- Open Graph -->
+  <meta property="og:title" content="Object Lesson">
+  <meta property="og:description" content="Uncommon objects, art and design — Pasadena.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://objectlesson.la/">
+  <meta property="og:image" content="https://objectlesson.la/Asset%201.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Object Lesson">
+  <meta name="twitter:description" content="Uncommon objects, art and design — Pasadena.">
+  <meta name="twitter:image" content="https://objectlesson.la/Asset%201.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,8 +24,8 @@
   <!-- Grid View -->
   <div id="view-grid">
     <header>
-      <a class="loc-pill" href="https://maps.google.com/?q=480+S+Fair+Oaks+Ave,+Pasadena,+CA+91105" target="_blank" rel="noopener">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <a class="loc-pill" href="#about">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
       </a>
       <a href="/">
         <img src="OL_logo.svg" alt="Object Lesson" class="logo">
@@ -48,6 +59,7 @@
 
     <main>
       <div class="grid" id="product-grid"></div>
+      <div class="loading" id="loading"><div class="loading-dot"></div></div>
       <p class="empty" id="empty">Nothing here yet.</p>
     </main>
 
@@ -83,6 +95,7 @@
       </div>
 
       <div class="detail-info">
+        <span class="detail-sold" id="detail-sold" style="display:none">Sold</span>
         <span class="detail-new" id="detail-new" style="display:none">New</span>
         <h1 class="detail-title" id="detail-title"></h1>
         <div class="detail-price" id="detail-price"></div>
@@ -107,6 +120,51 @@
         </div>
       </div>
     </footer>
+  </div>
+
+  <!-- Not Found View -->
+  <div id="view-notfound" style="display:none">
+    <header class="detail-header">
+      <button class="detail-back" id="btn-notfound-back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      </button>
+      <a href="/">
+        <img src="OL_logo.svg" alt="Object Lesson" class="logo-sm">
+      </a>
+      <div style="width:20px"></div>
+    </header>
+    <div class="notfound-body">
+      <p class="notfound-msg">This item is no longer available.</p>
+      <a href="/" class="notfound-link" id="notfound-browse">Browse all items</a>
+    </div>
+  </div>
+
+  <!-- About View -->
+  <div id="view-about" style="display:none">
+    <header class="detail-header">
+      <button class="detail-back" id="btn-about-back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      </button>
+      <a href="/">
+        <img src="OL_logo.svg" alt="Object Lesson" class="logo-sm">
+      </a>
+      <div style="width:20px"></div>
+    </header>
+    <div class="about-body">
+      <img src="OL_logo.svg" alt="Object Lesson" class="about-logo">
+      <p class="about-tagline">Uncommon objects, art and design</p>
+      <p class="about-founders">Eli Kagan &amp; Megan Gage</p>
+      <div class="about-details">
+        <p class="about-location">
+          <a href="https://maps.google.com/?q=480+S+Fair+Oaks+Ave,+Pasadena,+CA+91105" target="_blank" rel="noopener">480 S. Fair Oaks Ave<br>Pasadena, CA 91105</a>
+        </p>
+        <p class="about-context">In the Pasadena Antique Center</p>
+        <div class="about-links">
+          <a href="mailto:eli@objectlesson.la">eli@objectlesson.la</a>
+          <a href="https://instagram.com/objectlesson_la" target="_blank" rel="noopener">@objectlesson_la</a>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>

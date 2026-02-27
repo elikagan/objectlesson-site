@@ -280,6 +280,22 @@ main {
   border-radius: 4px;
 }
 
+.card--sold { opacity: 0.45; }
+
+.card-sold {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gray);
+  background: #fff;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
 .card-title {
   font-size: 14px;
   font-weight: 500;
@@ -302,6 +318,29 @@ main {
   display: none;
 }
 .empty.show { display: block; }
+
+/* --- Loading --- */
+
+.loading {
+  text-align: center;
+  padding: 80px 24px;
+}
+
+.loading-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--light);
+  border-radius: 50%;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.loading.hidden { display: none; }
 
 /* --- Detail View --- */
 
@@ -408,6 +447,19 @@ main {
   text-transform: uppercase;
   color: var(--black);
   border: 1px solid var(--black);
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.detail-sold {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gray);
+  border: 1px solid var(--light);
   padding: 3px 8px;
   border-radius: 4px;
   margin-bottom: 12px;
@@ -558,4 +610,106 @@ footer {
   .footer-inner { gap: 16px; }
   .footer-copy { font-size: 11px; }
   .footer-links a { font-size: 11px; }
+  .about-body { padding: 60px 20px 80px; }
+  .about-logo { width: 140px; }
+  .about-tagline { font-size: 17px; }
+  .notfound-body { padding: 80px 20px; }
+}
+
+/* --- Not Found --- */
+
+.notfound-body {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 120px 24px;
+  text-align: center;
+}
+
+.notfound-msg {
+  font-size: 16px;
+  color: var(--gray);
+  margin-bottom: 20px;
+}
+
+.notfound-link {
+  font-size: 14px;
+  color: var(--light);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.notfound-link:hover {
+  color: var(--gray);
+  border-color: var(--light);
+}
+
+/* --- About View --- */
+
+.about-body {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 80px 24px 120px;
+  text-align: center;
+}
+
+.about-logo {
+  width: 160px;
+  height: auto;
+  display: block;
+  margin: 0 auto 32px;
+}
+
+.about-tagline {
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--black);
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+
+.about-founders {
+  font-size: 14px;
+  color: var(--gray);
+  margin-bottom: 40px;
+}
+
+.about-details {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--gray);
+}
+
+.about-details a {
+  color: var(--gray);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.about-details a:hover {
+  color: var(--black);
+  border-color: var(--light);
+}
+
+.about-location {
+  margin-bottom: 2px;
+}
+
+.about-location a {
+  line-height: 1.6;
+}
+
+.about-context {
+  font-size: 13px;
+  color: var(--light);
+  margin-bottom: 28px;
+}
+
+.about-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
 }

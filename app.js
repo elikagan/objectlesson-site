@@ -55,8 +55,11 @@
 
   const grid = document.getElementById('product-grid');
   const empty = document.getElementById('empty');
+  const loadingEl = document.getElementById('loading');
   const gridView = document.getElementById('view-grid');
   const detailView = document.getElementById('view-detail');
+  const notfoundView = document.getElementById('view-notfound');
+  const aboutView = document.getElementById('view-about');
   const filterBtn = document.getElementById('filter-btn');
   const filterLabel = document.getElementById('filter-label');
   const filterDropdown = document.getElementById('filter-dropdown');
@@ -80,6 +83,7 @@
     } catch (e) {
       items = [];
     }
+    loadingEl.classList.add('hidden');
     initMosaic();
     renderGrid();
     handleHash();
@@ -89,11 +93,19 @@
   // --- Grid render ---
 
   function renderGrid() {
-    const filtered = activeCategory === 'all'
-      ? items
-      : activeCategory === 'under-400'
-      ? items.filter(i => Number(i.price) > 0 && Number(i.price) < 400)
-      : items.filter(i => i.category === activeCategory);
+    loadingEl.classList.add('hidden');
+
+    let filtered;
+    if (activeCategory === 'all') {
+      // In "All": show everything, sold items pushed to end
+      const available = items.filter(i => !i.isSold);
+      const sold = items.filter(i => i.isSold);
+      filtered = [...available, ...sold];
+    } else if (activeCategory === 'under-400') {
+      filtered = items.filter(i => !i.isSold && Number(i.price) > 0 && Number(i.price) < 400);
+    } else {
+      filtered = items.filter(i => !i.isSold && i.category === activeCategory);
+    }
 
     grid.innerHTML = '';
 
@@ -110,15 +122,19 @@
       card.href = '#' + item.id;
       card.style.animationDelay = (i * 0.04) + 's';
 
+      const isSold = !!item.isSold;
+      if (isSold) card.classList.add('card--sold');
+
       const imgSrc = imgUrl(item.heroImage || (item.images && item.images[0]) || '');
       const imgHtml = imgSrc
         ? `<img src="${imgSrc}" alt="${esc(item.title)}" loading="lazy">`
         : '';
 
-      const newBadge = item.isNew ? '<span class="card-new">New</span>' : '';
+      const newBadge = item.isNew && !isSold ? '<span class="card-new">New</span>' : '';
+      const soldBadge = isSold ? '<span class="card-sold">Sold</span>' : '';
 
       card.innerHTML = `
-        <div class="card-image">${imgHtml}${newBadge}</div>
+        <div class="card-image">${imgHtml}${newBadge}${soldBadge}</div>
         <div class="card-title">${esc(item.title)}</div>
         <div class="card-price">$${Number(item.price).toLocaleString()}</div>
       `;
@@ -171,9 +187,19 @@
     sizeEl.style.display = item.size ? '' : 'none';
     document.getElementById('detail-desc').textContent = item.description || '';
     document.getElementById('detail-id').textContent = formatId(item.id);
+
+    // Sold state
+    const soldEl = document.getElementById('detail-sold');
     const inquireEl = document.getElementById('detail-inquire');
-    inquireEl.href = buyLink(item);
-    inquireEl.onclick = () => trackEvent('inquire', id);
+    if (item.isSold) {
+      soldEl.style.display = '';
+      inquireEl.style.display = 'none';
+    } else {
+      soldEl.style.display = 'none';
+      inquireEl.style.display = '';
+      inquireEl.href = buyLink(item);
+      inquireEl.onclick = () => trackEvent('inquire', id);
+    }
 
     // Share button
     document.getElementById('detail-share').onclick = async () => {
@@ -191,9 +217,9 @@
       }
     };
 
-    // New badge
+    // New badge (don't show on sold items)
     const newEl = document.getElementById('detail-new');
-    newEl.style.display = item.isNew ? '' : 'none';
+    newEl.style.display = item.isNew && !item.isSold ? '' : 'none';
 
     // Thumbnails
     const thumbStrip = document.getElementById('detail-thumbs');
@@ -215,13 +241,35 @@
     stopMosaic();
     gridView.style.display = 'none';
     detailView.style.display = '';
+    aboutView.style.display = 'none';
+    notfoundView.style.display = 'none';
     window.scrollTo(0, 0);
   }
 
   function showGrid() {
     detailView.style.display = 'none';
+    aboutView.style.display = 'none';
+    notfoundView.style.display = 'none';
     gridView.style.display = '';
     if (mosaicCells.length) startMosaic();
+  }
+
+  function showAbout() {
+    stopMosaic();
+    gridView.style.display = 'none';
+    detailView.style.display = 'none';
+    notfoundView.style.display = 'none';
+    aboutView.style.display = '';
+    window.scrollTo(0, 0);
+  }
+
+  function showNotFound() {
+    stopMosaic();
+    gridView.style.display = 'none';
+    detailView.style.display = 'none';
+    aboutView.style.display = 'none';
+    notfoundView.style.display = '';
+    window.scrollTo(0, 0);
   }
 
   // --- Buy link (#2: SMS text) ---
@@ -266,8 +314,15 @@
 
   function handleHash() {
     const hash = location.hash.slice(1);
-    if (hash && items.length) {
-      showDetail(hash);
+    if (hash === 'about') {
+      showAbout();
+    } else if (hash && items.length) {
+      const item = items.find(i => i.id === hash);
+      if (item) {
+        showDetail(hash);
+      } else {
+        showNotFound();
+      }
     } else {
       showGrid();
     }
@@ -276,6 +331,24 @@
   window.addEventListener('hashchange', handleHash);
 
   document.getElementById('btn-detail-back').addEventListener('click', (e) => {
+    e.preventDefault();
+    history.pushState(null, '', location.pathname);
+    showGrid();
+  });
+
+  document.getElementById('btn-about-back').addEventListener('click', (e) => {
+    e.preventDefault();
+    history.pushState(null, '', location.pathname);
+    showGrid();
+  });
+
+  document.getElementById('btn-notfound-back').addEventListener('click', (e) => {
+    e.preventDefault();
+    history.pushState(null, '', location.pathname);
+    showGrid();
+  });
+
+  document.getElementById('notfound-browse').addEventListener('click', (e) => {
     e.preventDefault();
     history.pushState(null, '', location.pathname);
     showGrid();
@@ -379,7 +452,7 @@
   function flipBase() { return isMobile() ? MOBILE_FLIPS : DESKTOP_FLIPS; }
 
   function initMosaic() {
-    mosaicItems = items.filter(i => i.heroImage || (i.images && i.images.length > 0));
+    mosaicItems = items.filter(i => !i.isSold && (i.heroImage || (i.images && i.images.length > 0)));
     if (mosaicItems.length < 4) { mosaic.style.display = 'none'; return; }
 
     mosaic.style.display = '';

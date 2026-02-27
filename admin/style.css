@@ -580,6 +580,18 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   flex-shrink: 0;
 }
 
+.item-sold {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text);
+  background: var(--bg2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
 /* --- Hamburger Menu --- */
 
 .menu-wrap {
