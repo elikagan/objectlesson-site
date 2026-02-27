@@ -221,8 +221,7 @@
     metaEl.style.display = (hasMaker || hasCond) ? '' : 'none';
     makerEl.textContent = item.maker || '';
     makerEl.style.display = hasMaker ? '' : 'none';
-    const condLabels = { 'excellent': 'Excellent', 'good': 'Good', 'fair': 'Fair', 'as-is': 'As-Is' };
-    condEl.textContent = condLabels[item.condition] || '';
+    condEl.textContent = item.condition || '';
     condEl.style.display = hasCond ? '' : 'none';
 
     document.getElementById('detail-id').textContent = formatId(item.id);
