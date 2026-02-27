@@ -15,156 +15,8 @@
       "images/products/000006/3.jpg"
     ],
     "heroImage": "images/products/000006/0.jpg",
-    "order": 3,
+    "order": 0,
     "createdAt": "2026-02-27T00:27:43.671Z"
-  },
-  {
-    "id": "000005",
-    "title": "Burlwood Box",
-    "description": "Crafted from a unique piece of light-toned burl wood, it features a hinged lid revealing a dark-lined interior.",
-    "price": 325,
-    "size": "",
-    "category": "object",
-    "dealerCode": "14EK",
-    "isNew": true,
-    "images": [
-      "images/products/000005/0.jpg",
-      "images/products/000005/1.jpg",
-      "images/products/000005/2.jpg",
-      "images/products/000005/3.jpg"
-    ],
-    "heroImage": "images/products/000005/0.jpg",
-    "order": 4,
-    "createdAt": "2026-02-27T00:23:14.346Z"
-  },
-  {
-    "id": "000004",
-    "title": "Minoru Ohira Wood Wall Sculpture",
-    "description": "Composed of numerous interlocking wooden blocks, some featuring subtle red and blue accents.",
-    "price": 3900,
-    "size": "",
-    "category": "sculpture",
-    "dealerCode": "14EK",
-    "isNew": true,
-    "images": [
-      "images/products/000004/0.jpg",
-      "images/products/000004/1.jpg",
-      "images/products/000004/2.jpg",
-      "images/products/000004/3.jpg"
-    ],
-    "heroImage": "images/products/000004/0.jpg",
-    "order": 5,
-    "createdAt": "2026-02-26T23:14:42.025Z"
-  },
-  {
-    "id": "mm3pl1ta",
-    "title": "Ceramic Studio Vase",
-    "description": "Hand-thrown ceramic vase with vertical stripes of textured unglazed brown, dark blue, and lavender glazes.",
-    "price": 225,
-    "category": "ceramic",
-    "dealerCode": "14EK",
-    "isNew": true,
-    "images": [
-      "images/products/mm3pl1ta/0.jpg",
-      "images/products/mm3pl1ta/1.jpg",
-      "images/products/mm3pl1ta/2.jpg",
-      "images/products/mm3pl1ta/3.jpg",
-      "images/products/mm3pl1ta/4.jpg"
-    ],
-    "heroImage": "images/products/mm3pl1ta/0.jpg",
-    "order": 6,
-    "createdAt": "2026-02-26T17:00:13.166Z"
-  },
-  {
-    "id": "000001",
-    "title": "Calder Print",
-    "description": "A vibrant lithograph on paper, likely from the mid-20th century American abstract movement, presented in a simple wooden frame.",
-    "price": 695,
-    "category": "wall-art",
-    "dealerCode": "EK14",
-    "isNew": true,
-    "images": [
-      "images/products/000001/0.jpg",
-      "images/products/000001/1.jpg",
-      "images/products/000001/2.jpg",
-      "images/products/000001/3.jpg"
-    ],
-    "heroImage": "images/products/000001/0.jpg",
-    "order": 7,
-    "createdAt": "2026-02-26T18:23:47.895Z"
-  },
-  {
-    "id": "000002",
-    "title": "Cicely Debeers Abstract",
-    "description": "Oil on canvas, dated 1963, featuring abstract organic shapes in a simple wooden frame.",
-    "price": 895,
-    "category": "wall-art",
-    "dealerCode": "14EK",
-    "isNew": true,
-    "images": [
-      "images/products/000002/0.jpg",
-      "images/products/000002/1.jpg",
-      "images/products/000002/2.jpg",
-      "images/products/000002/3.jpg"
-    ],
-    "heroImage": "images/products/000002/0.jpg",
-    "order": 8,
-    "createdAt": "2026-02-26T22:10:31.688Z"
-  },
-  {
-    "id": "000003",
-    "title": "Studio Pot",
-    "description": "Features a textured purple glaze with a sculptural spout, lid, and fin-like handle.",
-    "price": 295,
-    "category": "ceramic",
-    "dealerCode": "14EK",
-    "isNew": true,
-    "images": [
-      "images/products/000003/0.jpg",
-      "images/products/000003/1.jpg",
-      "images/products/000003/2.jpg",
-      "images/products/000003/3.jpg"
-    ],
-    "heroImage": "images/products/000003/0.jpg",
-    "order": 9,
-    "createdAt": "2026-02-26T22:19:26.952Z"
-  },
-  {
-    "id": "000007",
-    "title": "Minoru Ohira",
-    "description": "Black polished spheres rise from a light wood cube.",
-    "price": 3400,
-    "size": "",
-    "category": "sculpture",
-    "dealerCode": "14EK",
-    "isNew": true,
-    "images": [
-      "images/products/000007/0.jpg",
-      "images/products/000007/1.jpg",
-      "images/products/000007/2.jpg"
-    ],
-    "heroImage": "images/products/000007/0.jpg",
-    "order": 2,
-    "createdAt": "2026-02-27T00:30:26.796Z"
-  },
-  {
-    "id": "000008",
-    "title": "Inlaid Wood Platter",
-    "description": "Constructed from diverse light and dark wood segments in a detailed geometric pattern, resting on a coordinated wooden pedestal.",
-    "price": 295,
-    "size": "",
-    "category": "object",
-    "dealerCode": "14EK",
-    "isNew": true,
-    "images": [
-      "images/products/000008/3.jpg",
-      "images/products/000008/0.jpg",
-      "images/products/000008/1.jpg",
-      "images/products/000008/2.jpg"
-    ],
-    "heroImage": "images/products/000008/3.jpg",
-    "order": 1,
-    "createdAt": "2026-02-27T00:38:05.143Z"
   },
   {
     "id": "000009",
@@ -183,7 +35,155 @@
       "images/products/000009/4.jpg"
     ],
     "heroImage": "images/products/000009/0.jpg",
-    "order": 0,
+    "order": 1,
     "createdAt": "2026-02-27T00:42:45.829Z"
+  },
+  {
+    "id": "000005",
+    "title": "Burlwood Box",
+    "description": "Crafted from a unique piece of light-toned burl wood, it features a hinged lid revealing a dark-lined interior.",
+    "price": 325,
+    "size": "",
+    "category": "object",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/000005/0.jpg",
+      "images/products/000005/1.jpg",
+      "images/products/000005/2.jpg",
+      "images/products/000005/3.jpg"
+    ],
+    "heroImage": "images/products/000005/0.jpg",
+    "order": 2,
+    "createdAt": "2026-02-27T00:23:14.346Z"
+  },
+  {
+    "id": "000004",
+    "title": "Minoru Ohira Wood Wall Sculpture",
+    "description": "Composed of numerous interlocking wooden blocks, some featuring subtle red and blue accents.",
+    "price": 3900,
+    "size": "",
+    "category": "sculpture",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/000004/0.jpg",
+      "images/products/000004/1.jpg",
+      "images/products/000004/2.jpg",
+      "images/products/000004/3.jpg"
+    ],
+    "heroImage": "images/products/000004/0.jpg",
+    "order": 3,
+    "createdAt": "2026-02-26T23:14:42.025Z"
+  },
+  {
+    "id": "mm3pl1ta",
+    "title": "Ceramic Studio Vase",
+    "description": "Hand-thrown ceramic vase with vertical stripes of textured unglazed brown, dark blue, and lavender glazes.",
+    "price": 225,
+    "category": "ceramic",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/mm3pl1ta/0.jpg",
+      "images/products/mm3pl1ta/1.jpg",
+      "images/products/mm3pl1ta/2.jpg",
+      "images/products/mm3pl1ta/3.jpg",
+      "images/products/mm3pl1ta/4.jpg"
+    ],
+    "heroImage": "images/products/mm3pl1ta/0.jpg",
+    "order": 4,
+    "createdAt": "2026-02-26T17:00:13.166Z"
+  },
+  {
+    "id": "000001",
+    "title": "Calder Print",
+    "description": "A vibrant lithograph on paper, likely from the mid-20th century American abstract movement, presented in a simple wooden frame.",
+    "price": 695,
+    "category": "wall-art",
+    "dealerCode": "EK14",
+    "isNew": true,
+    "images": [
+      "images/products/000001/0.jpg",
+      "images/products/000001/1.jpg",
+      "images/products/000001/2.jpg",
+      "images/products/000001/3.jpg"
+    ],
+    "heroImage": "images/products/000001/0.jpg",
+    "order": 5,
+    "createdAt": "2026-02-26T18:23:47.895Z"
+  },
+  {
+    "id": "000002",
+    "title": "Cicely Debeers Abstract",
+    "description": "Oil on canvas, dated 1963, featuring abstract organic shapes in a simple wooden frame.",
+    "price": 895,
+    "category": "wall-art",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/000002/0.jpg",
+      "images/products/000002/1.jpg",
+      "images/products/000002/2.jpg",
+      "images/products/000002/3.jpg"
+    ],
+    "heroImage": "images/products/000002/0.jpg",
+    "order": 6,
+    "createdAt": "2026-02-26T22:10:31.688Z"
+  },
+  {
+    "id": "000003",
+    "title": "Studio Pot",
+    "description": "Features a textured purple glaze with a sculptural spout, lid, and fin-like handle.",
+    "price": 295,
+    "category": "ceramic",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/000003/0.jpg",
+      "images/products/000003/1.jpg",
+      "images/products/000003/2.jpg",
+      "images/products/000003/3.jpg"
+    ],
+    "heroImage": "images/products/000003/0.jpg",
+    "order": 7,
+    "createdAt": "2026-02-26T22:19:26.952Z"
+  },
+  {
+    "id": "000007",
+    "title": "Minoru Ohira",
+    "description": "Black polished spheres rise from a light wood cube.",
+    "price": 3400,
+    "size": "",
+    "category": "sculpture",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/000007/0.jpg",
+      "images/products/000007/1.jpg",
+      "images/products/000007/2.jpg"
+    ],
+    "heroImage": "images/products/000007/0.jpg",
+    "order": 8,
+    "createdAt": "2026-02-27T00:30:26.796Z"
+  },
+  {
+    "id": "000008",
+    "title": "Inlaid Wood Platter",
+    "description": "Constructed from diverse light and dark wood segments in a detailed geometric pattern, resting on a coordinated wooden pedestal.",
+    "price": 295,
+    "size": "",
+    "category": "object",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/000008/3.jpg",
+      "images/products/000008/0.jpg",
+      "images/products/000008/1.jpg",
+      "images/products/000008/2.jpg"
+    ],
+    "heroImage": "images/products/000008/3.jpg",
+    "order": 9,
+    "createdAt": "2026-02-27T00:38:05.143Z"
   }
 ]
