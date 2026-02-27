@@ -287,7 +287,7 @@
     "dealerCode": "14EK",
     "isNew": false,
     "isHold": false,
-    "isSold": false,
+    "isSold": true,
     "images": [
       "images/products/000008/3.jpg",
       "images/products/000008/0.jpg",
