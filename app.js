@@ -660,7 +660,7 @@
 
     function showBar() {
       bar.style.display = '';
-      requestAnimationFrame(() => requestAnimationFrame(() => bar.classList.add('show')));
+      setTimeout(() => bar.classList.add('show'), 50);
     }
 
     function hideBar() {
