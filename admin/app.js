@@ -1014,18 +1014,6 @@
     return d.toISOString().slice(0, 10) + 'T00:00:00Z';
   }
 
-  function timeAgo(dateStr) {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const m = Math.floor(diff / 60000);
-    if (m < 1) return 'now';
-    if (m < 60) return m + 'm';
-    const h = Math.floor(m / 60);
-    if (h < 24) return h + 'h';
-    const d = Math.floor(h / 24);
-    if (d === 1) return '1d';
-    return d + 'd';
-  }
-
   function pctChange(cur, prev) {
     if (prev === 0 && cur === 0) return { t: '—', c: 'flat' };
     if (prev === 0) return { t: '\u2191 new', c: 'up' };
@@ -1060,10 +1048,9 @@
       const pvDays = Math.max(14, range);
 
       // 3 efficient parallel queries
-      const [pageViews, itemEvents, recentEvents] = await Promise.all([
+      const [pageViews, itemEvents] = await Promise.all([
         supaSelect(`select=session_id,created_at,referrer,utm_source,ua_mobile&event=eq.page_view&created_at=gte.${daysAgoStr(pvDays)}&order=created_at.asc&limit=50000`),
-        supaSelect(`select=item_id,event&event=in.(item_view,inquire)&created_at=gte.${daysAgoStr(range)}&item_id=not.is.null&limit=50000`),
-        supaSelect(`select=event,item_id,created_at&event=in.(item_view,inquire)&order=created_at.desc&limit=15`)
+        supaSelect(`select=item_id,event&event=in.(item_view,inquire)&created_at=gte.${daysAgoStr(range)}&item_id=not.is.null&limit=50000`)
       ]);
 
       // Pre-process timestamps
@@ -1153,14 +1140,6 @@
       const mob = rangePV.filter(r => r.ua_mobile).length;
       const desk = rangePV.length - mob;
       const totalDev = rangePV.length || 1;
-
-      // Activity feed (item views + inquiries only)
-      const feedHtml = recentEvents.map(r => {
-        const it = items.find(i => i.id === r.item_id);
-        const name = it ? esc(it.title) : formatId(r.item_id || '');
-        const isInq = r.event === 'inquire';
-        return `<div class="activity-row"><span class="activity-dot ${isInq ? 'inquire' : 'item'}"></span><span class="activity-text">${isInq ? 'Inquired' : 'Viewed'} ${name}</span><span class="activity-time">${timeAgo(r.created_at)}</span></div>`;
-      }).join('');
 
       const rl = range + 'd';
 
@@ -1285,12 +1264,6 @@
           </div>
         </div>
 
-        ${recentEvents.length > 0 ? `
-        <div class="analytics-section">
-          <div class="analytics-section-title">Recent Activity</div>
-          ${feedHtml}
-        </div>
-        ` : ''}
       `;
     } catch (e) {
       body.innerHTML = `<div class="analytics-empty">Error loading analytics: ${esc(e.message)}</div>`;

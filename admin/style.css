@@ -885,34 +885,3 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   font-size: 11px;
 }
 
-/* Activity feed */
-.activity-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--border);
-}
-.activity-row:last-child { border-bottom: none; }
-.activity-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.activity-dot.item { background: var(--light); }
-.activity-dot.inquire { background: var(--black); }
-.activity-text {
-  flex: 1;
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--black);
-}
-.activity-time {
-  font-size: 12px;
-  color: var(--light);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
