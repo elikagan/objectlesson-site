@@ -153,7 +153,8 @@
     "size": "",
     "category": "object",
     "dealerCode": "14EK",
-    "isNew": true,
+    "isNew": false,
+    "isSold": false,
     "images": [
       "images/products/000005/0.jpg",
       "images/products/000005/1.jpg",
