@@ -56,6 +56,7 @@
   let photos = []; // { file, dataUrl, processed, remotePath? }
   let sortable = null;
   let photoSortable = null;
+  let analyticsRange = 30;
 
   // --- Encrypted config (keys stored in repo, decrypted with PIN) ---
 
@@ -297,6 +298,30 @@
     history.replaceState(null, '', location.pathname);
     showView('list');
   });
+
+  // Date range toggle
+  document.getElementById('range-toggle').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-range]');
+    if (!btn) return;
+    analyticsRange = parseInt(btn.dataset.range, 10);
+    document.getElementById('range-toggle').querySelector('.active')?.classList.remove('active');
+    btn.classList.add('active');
+    loadAnalytics();
+  });
+
+  // Pull-to-refresh on analytics view
+  (function () {
+    const av = document.getElementById('view-analytics');
+    let ptrY = 0, ptrOn = false;
+    av.addEventListener('touchstart', (e) => {
+      if (window.scrollY === 0) { ptrY = e.touches[0].clientY; ptrOn = true; }
+    }, { passive: true });
+    av.addEventListener('touchmove', (e) => {
+      if (!ptrOn) return;
+      if (e.touches[0].clientY - ptrY > 80 && window.scrollY === 0) { ptrOn = false; loadAnalytics(); }
+    }, { passive: true });
+    av.addEventListener('touchend', () => { ptrOn = false; }, { passive: true });
+  })();
 
   document.getElementById('btn-cancel-setup').addEventListener('click', () => {
     showView('list');
@@ -968,142 +993,245 @@
 
   // --- Analytics ---
 
-  async function supaQuery(query) {
-    if (!supaUrl || !supaKey) return null;
-    const res = await fetch(`${supaUrl}/rest/v1/rpc/analytics_query`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': supaKey,
-        'Authorization': 'Bearer ' + supaKey
-      },
-      body: JSON.stringify({ q: query })
-    });
-    if (!res.ok) return null;
-    return res.json();
-  }
+  const catLabels = {
+    'wall-art': 'Wall Art', 'object': 'Object', 'ceramic': 'Ceramic',
+    'furniture': 'Furniture', 'light': 'Light', 'sculpture': 'Sculpture', 'misc': 'Misc'
+  };
 
-  // Direct REST API queries (no RPC needed)
   async function supaSelect(params) {
     if (!supaUrl || !supaKey) return [];
     const url = `${supaUrl}/rest/v1/events?${params}`;
     const res = await fetch(url, {
-      headers: {
-        'apikey': supaKey,
-        'Authorization': 'Bearer ' + supaKey
-      }
+      headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
     });
     if (!res.ok) return [];
     return res.json();
   }
 
+  function daysAgoStr(n) {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return d.toISOString().slice(0, 10) + 'T00:00:00Z';
+  }
+
+  function timeAgo(dateStr) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return 'now';
+    if (m < 60) return m + 'm';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + 'h';
+    const d = Math.floor(h / 24);
+    if (d === 1) return '1d';
+    return d + 'd';
+  }
+
+  function pctChange(cur, prev) {
+    if (prev === 0 && cur === 0) return { t: '—', c: 'flat' };
+    if (prev === 0) return { t: '\u2191 new', c: 'up' };
+    const p = Math.round((cur - prev) / prev * 100);
+    if (p === 0) return { t: '—', c: 'flat' };
+    if (p > 0) return { t: '\u2191 ' + p + '%', c: 'up' };
+    return { t: '\u2193 ' + Math.abs(p) + '%', c: 'down' };
+  }
+
   async function loadAnalytics() {
     const body = document.getElementById('analytics-body');
-    const loading = document.getElementById('analytics-loading');
 
     if (!supaUrl || !supaKey) {
       body.innerHTML = '<div class="analytics-empty">Add your Supabase URL and Service Key in Settings to enable analytics.</div>';
       return;
     }
 
-    loading.style.display = '';
+    body.innerHTML = '<div class="analytics-loading"><span class="spinner"></span> Loading...</div>';
 
     try {
       const now = new Date();
       const todayStr = now.toISOString().slice(0, 10);
-      // Monday of current week
-      const day = now.getDay();
-      const mon = new Date(now);
-      mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+      const yest = new Date(now); yest.setDate(now.getDate() - 1);
+      const yesterdayStr = yest.toISOString().slice(0, 10);
+      const dow = now.getDay();
+      const mon = new Date(now); mon.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1));
       const weekStr = mon.toISOString().slice(0, 10);
+      const lastMon = new Date(mon); lastMon.setDate(mon.getDate() - 7);
+      const lastWeekStr = lastMon.toISOString().slice(0, 10);
 
-      // Fetch all event data we need in parallel
-      const [todayData, weekData, topItems, inquiryCount, sourceData, deviceData] = await Promise.all([
-        // Today's views + uniques
-        supaSelect(`select=session_id,event&event=eq.page_view&created_at=gte.${todayStr}T00:00:00Z`),
-        // This week's views + uniques
-        supaSelect(`select=session_id,event&event=eq.page_view&created_at=gte.${weekStr}T00:00:00Z`),
-        // Top items (last 30 days)
-        supaSelect(`select=item_id,event&event=in.(item_view,inquire)&created_at=gte.${thirtyDaysAgo()}&item_id=not.is.null`),
-        // Total inquiries (last 30 days)
-        supaSelect(`select=id&event=eq.inquire&created_at=gte.${thirtyDaysAgo()}`),
-        // Traffic sources (last 30 days)
-        supaSelect(`select=referrer,utm_source&event=eq.page_view&created_at=gte.${thirtyDaysAgo()}`),
-        // Device split (last 30 days)
-        supaSelect(`select=ua_mobile&event=eq.page_view&created_at=gte.${thirtyDaysAgo()}`)
+      const range = analyticsRange;
+      const pvDays = Math.max(14, range);
+
+      // 3 efficient parallel queries
+      const [pageViews, itemEvents, recentEvents] = await Promise.all([
+        supaSelect(`select=session_id,created_at,referrer,utm_source,ua_mobile&event=eq.page_view&created_at=gte.${daysAgoStr(pvDays)}&order=created_at.asc&limit=50000`),
+        supaSelect(`select=item_id,event&event=in.(item_view,inquire)&created_at=gte.${daysAgoStr(range)}&item_id=not.is.null&limit=50000`),
+        supaSelect(`select=event,item_id,created_at&order=created_at.desc&limit=15`)
       ]);
 
-      // Process data
-      const todayViews = todayData.length;
-      const todayUniques = new Set(todayData.map(r => r.session_id)).size;
-      const weekViews = weekData.length;
-      const weekUniques = new Set(weekData.map(r => r.session_id)).size;
-      const inquiries = inquiryCount.length;
+      // Pre-process timestamps
+      pageViews.forEach(r => { r._ts = new Date(r.created_at).getTime(); });
 
-      // Top items by views
-      const itemViews = {};
-      const itemInquiries = {};
-      topItems.forEach(r => {
-        if (r.event === 'item_view') itemViews[r.item_id] = (itemViews[r.item_id] || 0) + 1;
-        if (r.event === 'inquire') itemInquiries[r.item_id] = (itemInquiries[r.item_id] || 0) + 1;
+      const msOf = s => new Date(s + 'T00:00:00Z').getTime();
+      const todayMs = msOf(todayStr), yesterdayMs = msOf(yesterdayStr);
+      const weekMs = msOf(weekStr), lastWeekMs = msOf(lastWeekStr);
+      const rangeMs = new Date(daysAgoStr(range)).getTime();
+
+      const pvBetween = (s, e) => pageViews.filter(r => r._ts >= s && (!e || r._ts < e));
+
+      const todayPV = pvBetween(todayMs);
+      const yesterdayPV = pvBetween(yesterdayMs, todayMs);
+      const weekPV = pvBetween(weekMs);
+      const lastWeekPV = pvBetween(lastWeekMs, weekMs);
+      const rangePV = pvBetween(rangeMs);
+
+      // Summary cards
+      const todayViews = todayPV.length;
+      const todayUniques = new Set(todayPV.map(r => r.session_id)).size;
+      const weekViews = weekPV.length;
+      const weekUniques = new Set(weekPV.map(r => r.session_id)).size;
+      const todayDelta = pctChange(todayViews, yesterdayPV.length);
+      const weekDelta = pctChange(weekViews, lastWeekPV.length);
+
+      // 14-day sparkline
+      const sparkDays = [];
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(now); d.setDate(now.getDate() - i);
+        const ds = d.toISOString().slice(0, 10);
+        const s = msOf(ds), e = s + 86400000;
+        sparkDays.push({
+          day: d.toLocaleDateString('en', { weekday: 'narrow' }),
+          count: pageViews.filter(r => r._ts >= s && r._ts < e).length,
+          isToday: i === 0
+        });
+      }
+      const sparkMax = Math.max(1, ...sparkDays.map(d => d.count));
+
+      // Conversion funnel
+      const funnelVisitors = new Set(rangePV.map(r => r.session_id)).size;
+      const funnelViews = itemEvents.filter(r => r.event === 'item_view').length;
+      const funnelInquiries = itemEvents.filter(r => r.event === 'inquire').length;
+      const fvMax = Math.max(1, funnelVisitors);
+
+      // Top items
+      const ivCounts = {}, iqCounts = {};
+      itemEvents.forEach(r => {
+        if (r.event === 'item_view') ivCounts[r.item_id] = (ivCounts[r.item_id] || 0) + 1;
+        if (r.event === 'inquire') iqCounts[r.item_id] = (iqCounts[r.item_id] || 0) + 1;
       });
-      const topItemList = Object.entries(itemViews)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
-        .map(([id, views]) => ({
-          id,
-          views,
-          inquiries: itemInquiries[id] || 0,
-          item: items.find(i => i.id === id)
-        }));
+      const topList = Object.entries(ivCounts)
+        .sort((a, b) => b[1] - a[1]).slice(0, 10)
+        .map(([id, v]) => ({ id, views: v, inq: iqCounts[id] || 0, item: items.find(i => i.id === id) }));
+
+      // Category popularity
+      const catCounts = {};
+      itemEvents.filter(r => r.event === 'item_view').forEach(r => {
+        const it = items.find(i => i.id === r.item_id);
+        if (it && it.category) {
+          const lbl = catLabels[it.category] || it.category;
+          catCounts[lbl] = (catCounts[lbl] || 0) + 1;
+        }
+      });
+      const totalCat = Object.values(catCounts).reduce((a, b) => a + b, 0) || 1;
+      const sortedCats = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
 
       // Traffic sources
       const sources = {};
-      sourceData.forEach(r => {
+      rangePV.forEach(r => {
         let src = 'Direct';
         if (r.utm_source) {
           src = r.utm_source.charAt(0).toUpperCase() + r.utm_source.slice(1);
         } else if (r.referrer) {
           try {
-            const host = new URL(r.referrer).hostname.replace('www.', '').replace('.com', '').replace('.co', '');
-            src = host.charAt(0).toUpperCase() + host.slice(1);
+            const h = new URL(r.referrer).hostname.replace('www.', '');
+            src = h.split('.')[0].charAt(0).toUpperCase() + h.split('.')[0].slice(1);
           } catch { src = 'Other'; }
         }
         sources[src] = (sources[src] || 0) + 1;
       });
-      const totalSources = sourceData.length || 1;
-      const sortedSources = Object.entries(sources).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const totalSrc = rangePV.length || 1;
+      const sortedSrc = Object.entries(sources).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
-      // Device split
-      const mobileCount = deviceData.filter(r => r.ua_mobile).length;
-      const desktopCount = deviceData.length - mobileCount;
-      const totalDevices = deviceData.length || 1;
+      // Devices
+      const mob = rangePV.filter(r => r.ua_mobile).length;
+      const desk = rangePV.length - mob;
+      const totalDev = rangePV.length || 1;
 
-      // Render
+      // Activity feed
+      const feedHtml = recentEvents.map(r => {
+        let dot, text;
+        if (r.event === 'inquire') {
+          dot = 'inquire'; const it = items.find(i => i.id === r.item_id);
+          text = 'Inquired ' + (it ? esc(it.title) : formatId(r.item_id || ''));
+        } else if (r.event === 'item_view') {
+          dot = 'item'; const it = items.find(i => i.id === r.item_id);
+          text = 'Viewed ' + (it ? esc(it.title) : formatId(r.item_id || ''));
+        } else if (r.event === 'page_view') {
+          dot = 'view'; text = 'Page visit';
+        } else {
+          dot = 'view'; text = r.event;
+        }
+        return `<div class="activity-row"><span class="activity-dot ${dot}"></span><span class="activity-text">${text}</span><span class="activity-time">${timeAgo(r.created_at)}</span></div>`;
+      }).join('');
+
+      const rl = range + 'd';
+
+      // --- Render ---
       body.innerHTML = `
         <div class="analytics-cards">
           <div class="analytics-card">
             <div class="analytics-card-label">Today</div>
             <div class="analytics-card-value">${todayViews}</div>
             <div class="analytics-card-sub">${todayUniques} unique${todayUniques !== 1 ? 's' : ''}</div>
+            <div class="analytics-card-change change-${todayDelta.c}">${todayDelta.t}</div>
           </div>
           <div class="analytics-card">
             <div class="analytics-card-label">This Week</div>
             <div class="analytics-card-value">${weekViews}</div>
             <div class="analytics-card-sub">${weekUniques} unique${weekUniques !== 1 ? 's' : ''}</div>
+            <div class="analytics-card-change change-${weekDelta.c}">${weekDelta.t}</div>
           </div>
         </div>
 
-        <div class="analytics-card analytics-card-full">
-          <div class="analytics-card-label">Inquiries</div>
-          <div class="analytics-card-value">${inquiries}</div>
-          <div class="analytics-card-sub">last 30 days</div>
+        <div class="analytics-section">
+          <div class="analytics-section-title">Daily Views <span class="analytics-dim">14 days</span></div>
+          <div class="sparkline">
+            ${sparkDays.map(d => `
+              <div class="sparkline-col">
+                <div class="sparkline-bar${d.isToday ? ' today' : ''}" style="height:${Math.max(4, Math.round(d.count / sparkMax * 100))}%"></div>
+                <span class="sparkline-day">${d.day}</span>
+              </div>
+            `).join('')}
+          </div>
         </div>
 
-        ${topItemList.length > 0 ? `
+        ${funnelVisitors > 0 ? `
         <div class="analytics-section">
-          <div class="analytics-section-title">Most Viewed <span class="analytics-dim">30 days</span></div>
-          ${topItemList.map(t => {
+          <div class="analytics-section-title">Conversion Funnel <span class="analytics-dim">${rl}</span></div>
+          <div class="funnel">
+            <div class="funnel-row">
+              <div class="funnel-bar" style="width:100%"></div>
+              <span class="funnel-label"><span class="funnel-count">${funnelVisitors}</span> visitors</span>
+            </div>
+            <div class="funnel-row">
+              <div class="funnel-bar" style="width:${Math.max(3, Math.round(funnelViews / fvMax * 100))}%"></div>
+              <span class="funnel-label"><span class="funnel-count">${funnelViews}</span> item views <span class="funnel-pct">${Math.round(funnelViews / fvMax * 100)}%</span></span>
+            </div>
+            <div class="funnel-row">
+              <div class="funnel-bar funnel-accent" style="width:${Math.max(3, Math.round(funnelInquiries / fvMax * 100))}%"></div>
+              <span class="funnel-label"><span class="funnel-count">${funnelInquiries}</span> inquiries <span class="funnel-pct">${funnelVisitors > 0 ? Math.round(funnelInquiries / funnelVisitors * 100) : 0}%</span></span>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+
+        <div class="analytics-card analytics-card-full">
+          <div class="analytics-card-label">Inquiries</div>
+          <div class="analytics-card-value">${funnelInquiries}</div>
+          <div class="analytics-card-sub">last ${rl}</div>
+        </div>
+
+        ${topList.length > 0 ? `
+        <div class="analytics-section">
+          <div class="analytics-section-title">Most Viewed <span class="analytics-dim">${rl}</span></div>
+          ${topList.map(t => {
             const thumb = t.item ? (t.item.heroImage || (t.item.images && t.item.images[0]) || '') : '';
             const imgHtml = thumb ? `<img src="https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${thumb}" alt="">` : '';
             const title = t.item ? esc(t.item.title || 'Untitled') : formatId(t.id);
@@ -1112,7 +1240,7 @@
                 <div class="item-thumb">${imgHtml}</div>
                 <div class="analytics-item-info">
                   <div class="analytics-item-title">${title}</div>
-                  <div class="analytics-item-stats">${t.views} view${t.views !== 1 ? 's' : ''}${t.inquiries > 0 ? ` · ${t.inquiries} inq` : ''}</div>
+                  <div class="analytics-item-stats">${t.views} view${t.views !== 1 ? 's' : ''}${t.inq > 0 ? ` \u00b7 ${t.inq} inq` : ''}</div>
                 </div>
               </div>
             `;
@@ -1120,46 +1248,62 @@
         </div>
         ` : ''}
 
+        ${sortedCats.length > 0 ? `
         <div class="analytics-section">
-          <div class="analytics-section-title">Traffic Sources <span class="analytics-dim">30 days</span></div>
-          ${sortedSources.length > 0 ? sortedSources.map(([src, count]) => `
+          <div class="analytics-section-title">Popular Categories <span class="analytics-dim">${rl}</span></div>
+          ${sortedCats.map(([cat, count]) => `
+            <div class="analytics-bar-row">
+              <span class="analytics-bar-label">${esc(cat)}</span>
+              <div class="analytics-bar-track">
+                <div class="analytics-bar-fill" style="width:${Math.round(count / totalCat * 100)}%"></div>
+              </div>
+              <span class="analytics-bar-pct">${Math.round(count / totalCat * 100)}%</span>
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
+
+        <div class="analytics-section">
+          <div class="analytics-section-title">Traffic Sources <span class="analytics-dim">${rl}</span></div>
+          ${sortedSrc.length > 0 ? sortedSrc.map(([src, count]) => `
             <div class="analytics-bar-row">
               <span class="analytics-bar-label">${esc(src)}</span>
               <div class="analytics-bar-track">
-                <div class="analytics-bar-fill" style="width:${Math.round(count / totalSources * 100)}%"></div>
+                <div class="analytics-bar-fill" style="width:${Math.round(count / totalSrc * 100)}%"></div>
               </div>
-              <span class="analytics-bar-pct">${Math.round(count / totalSources * 100)}%</span>
+              <span class="analytics-bar-pct">${Math.round(count / totalSrc * 100)}%</span>
             </div>
           `).join('') : '<div class="analytics-empty-small">No data yet</div>'}
         </div>
 
         <div class="analytics-section">
-          <div class="analytics-section-title">Devices <span class="analytics-dim">30 days</span></div>
+          <div class="analytics-section-title">Devices <span class="analytics-dim">${rl}</span></div>
           <div class="analytics-bar-row">
             <span class="analytics-bar-label">Mobile</span>
             <div class="analytics-bar-track">
-              <div class="analytics-bar-fill" style="width:${Math.round(mobileCount / totalDevices * 100)}%"></div>
+              <div class="analytics-bar-fill" style="width:${Math.round(mob / totalDev * 100)}%"></div>
             </div>
-            <span class="analytics-bar-pct">${Math.round(mobileCount / totalDevices * 100)}%</span>
+            <span class="analytics-bar-pct">${Math.round(mob / totalDev * 100)}%</span>
           </div>
           <div class="analytics-bar-row">
             <span class="analytics-bar-label">Desktop</span>
             <div class="analytics-bar-track">
-              <div class="analytics-bar-fill" style="width:${Math.round(desktopCount / totalDevices * 100)}%"></div>
+              <div class="analytics-bar-fill" style="width:${Math.round(desk / totalDev * 100)}%"></div>
             </div>
-            <span class="analytics-bar-pct">${Math.round(desktopCount / totalDevices * 100)}%</span>
+            <span class="analytics-bar-pct">${Math.round(desk / totalDev * 100)}%</span>
           </div>
         </div>
+
+        ${recentEvents.length > 0 ? `
+        <div class="analytics-section">
+          <div class="analytics-section-title">Recent Activity</div>
+          ${feedHtml}
+        </div>
+        ` : ''}
       `;
     } catch (e) {
       body.innerHTML = `<div class="analytics-empty">Error loading analytics: ${esc(e.message)}</div>`;
     }
-  }
-
-  function thirtyDaysAgo() {
-    const d = new Date();
-    d.setDate(d.getDate() - 30);
-    return d.toISOString().slice(0, 10) + 'T00:00:00Z';
   }
 
   // --- Utils ---
