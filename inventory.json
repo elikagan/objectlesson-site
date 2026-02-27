@@ -1,5 +1,24 @@
 [
   {
+    "id": "000004",
+    "title": "Minoru Ohira Wood Wall Sculpture",
+    "description": "Composed of numerous interlocking wooden blocks, some featuring subtle red and blue accents.",
+    "price": 3900,
+    "size": "",
+    "category": "sculpture",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/000004/0.jpg",
+      "images/products/000004/1.jpg",
+      "images/products/000004/2.jpg",
+      "images/products/000004/3.jpg"
+    ],
+    "heroImage": "images/products/000004/0.jpg",
+    "order": 0,
+    "createdAt": "2026-02-26T23:14:42.025Z"
+  },
+  {
     "id": "mm3pl1ta",
     "title": "Ceramic Studio Vase",
     "description": "Hand-thrown ceramic vase with vertical stripes of textured unglazed brown, dark blue, and lavender glazes.",
@@ -15,7 +34,7 @@
       "images/products/mm3pl1ta/4.jpg"
     ],
     "heroImage": "images/products/mm3pl1ta/0.jpg",
-    "order": 0,
+    "order": 1,
     "createdAt": "2026-02-26T17:00:13.166Z"
   },
   {
@@ -33,7 +52,7 @@
       "images/products/000001/3.jpg"
     ],
     "heroImage": "images/products/000001/0.jpg",
-    "order": 1,
+    "order": 2,
     "createdAt": "2026-02-26T18:23:47.895Z"
   },
   {
@@ -51,7 +70,7 @@
       "images/products/000002/3.jpg"
     ],
     "heroImage": "images/products/000002/0.jpg",
-    "order": 2,
+    "order": 3,
     "createdAt": "2026-02-26T22:10:31.688Z"
   },
   {
@@ -69,26 +88,7 @@
       "images/products/000003/3.jpg"
     ],
     "heroImage": "images/products/000003/0.jpg",
-    "order": 3,
-    "createdAt": "2026-02-26T22:19:26.952Z"
-  },
-  {
-    "id": "000004",
-    "title": "Minoru Ohira Wood Wall Sculpture",
-    "description": "Composed of numerous interlocking wooden blocks, some featuring subtle red and blue accents.",
-    "price": 3900,
-    "size": "",
-    "category": "sculpture",
-    "dealerCode": "14EK",
-    "isNew": true,
-    "images": [
-      "images/products/000004/0.jpg",
-      "images/products/000004/1.jpg",
-      "images/products/000004/2.jpg",
-      "images/products/000004/3.jpg"
-    ],
-    "heroImage": "images/products/000004/0.jpg",
     "order": 4,
-    "createdAt": "2026-02-26T23:14:42.025Z"
+    "createdAt": "2026-02-26T22:19:26.952Z"
   }
 ]
