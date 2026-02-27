@@ -396,6 +396,33 @@ main {
   height: auto;
 }
 
+.detail-scroll-hint {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  animation: scroll-bounce 2s ease-in-out infinite;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+.detail-scroll-hint.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+@keyframes scroll-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(6px); }
+}
+
 .detail-body {
   max-width: 800px;
   margin: 0 auto;
@@ -409,6 +436,7 @@ main {
 .detail-carousel {
   overflow: hidden;
   position: relative;
+  background: #f5f5f5;
 }
 
 .detail-track {
@@ -455,6 +483,7 @@ main {
 
 .detail-info {
   padding: 0;
+  overflow: hidden;
 }
 
 .detail-new {
@@ -540,6 +569,8 @@ main {
   border-radius: 10px;
   padding: 16px;
   margin-top: 8px;
+  max-width: 100%;
+  overflow: hidden;
 }
 .email-gate-label {
   font-size: 13px;
@@ -549,6 +580,7 @@ main {
 }
 .email-gate-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
 }
@@ -561,7 +593,7 @@ main {
   background: #fff;
   color: var(--black);
   outline: none;
-  flex: 1;
+  flex: 1 1 100%;
   min-width: 0;
   transition: border-color 0.15s ease;
 }
@@ -578,6 +610,8 @@ main {
   color: #fff;
   cursor: pointer;
   white-space: nowrap;
+  flex: 1 1 100%;
+  text-align: center;
   transition: opacity 0.15s ease;
 }
 .email-gate-btn:hover { opacity: 0.85; }
@@ -964,6 +998,8 @@ footer {
   background: #f5f5f5;
   border-radius: 10px;
   padding: 14px 16px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .discount-input-wrap {

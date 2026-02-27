@@ -180,6 +180,18 @@
 
     trackEvent('item_view', id);
 
+    // Show scroll hint, hide on scroll
+    const scrollHint = document.getElementById('detail-scroll-hint');
+    scrollHint.classList.remove('hidden');
+    function onScroll() {
+      if (window.scrollY > 50) {
+        scrollHint.classList.add('hidden');
+        window.removeEventListener('scroll', onScroll);
+      }
+    }
+    window.addEventListener('scroll', onScroll);
+    scrollHint.onclick = () => window.scrollBy({ top: 300, behavior: 'smooth' });
+
     detailImages = (item.images || []).map(imgUrl);
     const hero = imgUrl(item.heroImage) || detailImages[0] || '';
     detailIndex = detailImages.indexOf(hero);
@@ -212,7 +224,7 @@
     const wasPurchased = justPurchased === id;
     if (wasPurchased) justPurchased = null; // clear so it doesn't persist on hash nav
 
-    // Reset discount state on new detail view
+    // Reset discount and email gate state on new detail view
     appliedDiscount = null;
     const priceEl = document.getElementById('detail-price');
     priceEl.classList.remove('discounted');
@@ -222,6 +234,8 @@
     discountApplied.style.display = 'none';
     discountApplyBtn.disabled = false;
     discountApplyBtn.textContent = 'Apply';
+    document.getElementById('detail-actions').style.display = '';
+    document.getElementById('detail-email-gate').style.display = 'none';
 
     if (wasPurchased || item.isSold) {
       soldEl.style.display = '';
@@ -318,7 +332,7 @@
           } else {
             actionsEl.style.display = 'none';
             emailGate.style.display = '';
-            emailGateInput.focus();
+            emailGate.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         };
 
