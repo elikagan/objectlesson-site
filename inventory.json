@@ -7,7 +7,8 @@
     "size": "",
     "category": "wall-art",
     "dealerCode": "14EK",
-    "isNew": true,
+    "isNew": false,
+    "isSold": false,
     "images": [
       "images/products/000015/0.jpg",
       "images/products/000015/1.jpg"
