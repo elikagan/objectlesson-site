@@ -57,10 +57,14 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 7px;
+  padding: 6px 14px;
   border: 1px solid var(--border);
   border-radius: 100px;
   color: var(--light);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
   transition: all 0.2s ease;
 }
 
@@ -586,8 +590,9 @@ footer {
 @media (max-width: 559px) {
   header { padding: 24px 16px 32px; }
   .logo { width: 120px; }
-  .ig-pill, .loc-pill { padding: 6px; }
-  .ig-pill svg, .loc-pill svg { width: 14px; height: 14px; }
+  .ig-pill { padding: 6px; }
+  .ig-pill svg { width: 14px; height: 14px; }
+  .loc-pill { padding: 5px 10px; font-size: 10px; }
   .filter-btn { font-size: 10px; padding: 6px 12px; }
   .filter-icon { width: 14px; height: 14px; }
   .mosaic {
