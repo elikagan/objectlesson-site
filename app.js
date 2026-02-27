@@ -192,6 +192,8 @@
 
     document.getElementById('detail-title').textContent = item.title;
     document.getElementById('detail-price').textContent = '$' + Number(item.price).toLocaleString();
+    const taxEl = document.getElementById('detail-tax');
+    const totalEl = document.getElementById('detail-total');
     const sizeEl = document.getElementById('detail-size');
     sizeEl.textContent = item.size || '';
     sizeEl.style.display = item.size ? '' : 'none';
@@ -215,6 +217,8 @@
       inquireEl.style.display = 'none';
       buyEl.style.display = 'none';
       shippingEl.style.display = 'none';
+      taxEl.style.display = 'none';
+      totalEl.style.display = 'none';
       if (wasPurchased) {
         purchasedEl.style.display = '';
         const smsBody = encodeURIComponent(`Hi! I just purchased "${item.title}" from Object Lesson. `);
@@ -228,6 +232,8 @@
       buyEl.style.display = 'none';
       shippingEl.style.display = 'none';
       purchasedEl.style.display = 'none';
+      taxEl.style.display = 'none';
+      totalEl.style.display = 'none';
       inquireEl.style.display = '';
       inquireEl.href = buyLink(item);
       inquireEl.onclick = () => trackEvent('inquire', id);
@@ -240,6 +246,12 @@
       inquireEl.onclick = () => trackEvent('inquire', id);
 
       if (hasPrice) {
+        const tax = Number(item.price) * 0.1025;
+        const total = Number(item.price) + tax;
+        taxEl.textContent = `Tax (10.25%): $${tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        totalEl.textContent = `Total: $${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        taxEl.style.display = '';
+        totalEl.style.display = '';
         buyEl.style.display = '';
         shippingEl.style.display = '';
         buyEl.textContent = 'Buy Now';
@@ -275,6 +287,8 @@
       } else {
         buyEl.style.display = 'none';
         shippingEl.style.display = 'none';
+        taxEl.style.display = 'none';
+        totalEl.style.display = 'none';
       }
     }
 

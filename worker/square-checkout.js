@@ -47,10 +47,19 @@ async function handleCheckout(request, env) {
       },
       body: JSON.stringify({
         idempotency_key: crypto.randomUUID(),
-        quick_pay: {
-          name: title,
-          price_money: { amount: amountCents, currency: 'USD' },
-          location_id: env.SQUARE_LOCATION_ID
+        order: {
+          location_id: env.SQUARE_LOCATION_ID,
+          line_items: [{
+            name: title,
+            quantity: '1',
+            base_price_money: { amount: amountCents, currency: 'USD' }
+          }],
+          taxes: [{
+            uid: 'ca-sales-tax',
+            name: 'CA Sales Tax',
+            percentage: '10.25',
+            scope: 'ORDER'
+          }]
         },
         checkout_options: {
           redirect_url: `https://objectlesson.la/?purchased=1#${itemId}`,
@@ -106,30 +115,36 @@ async function handleWebhook(request, env) {
       const payment = event.data?.object?.payment;
       console.log('Payment status:', payment?.status, 'Note:', payment?.note);
       if (payment?.status === 'COMPLETED') {
-        // Check for our payment note — may be on payment.note or order note
         const note = payment.note || '';
+        const amount = (payment.amount_money?.amount || 0) / 100;
+
+        // Try to extract item info from our payment note
+        let itemId = null;
+        let itemInfo = '';
         if (note.startsWith('Object Lesson |')) {
-          const amount = (payment.amount_money?.amount || 0) / 100;
-          const itemInfo = note.replace('Object Lesson | ', '');
+          itemInfo = note.replace('Object Lesson | ', '');
           const idMatch = note.match(/\(([^)]+)\)$/);
-          const itemId = idMatch ? idMatch[1] : null;
+          itemId = idMatch ? idMatch[1] : null;
+        }
 
-          // Auto-mark as sold — don't let failure block SMS
-          if (itemId && env.GITHUB_TOKEN) {
-            try {
-              await markAsSold(env, itemId);
-              console.log('Marked sold:', itemId);
-            } catch (e) {
-              console.error('markAsSold failed:', e.message);
-            }
-          }
-
-          // Send SMS alert — don't let failure block webhook response
+        // Auto-mark as sold if we can identify the item
+        if (itemId && env.GITHUB_TOKEN) {
           try {
-            await sendSMS(env, `Sale: ${itemInfo} — $${amount.toLocaleString()}. Check Square for details.`);
+            await markAsSold(env, itemId);
+            console.log('Marked sold:', itemId);
           } catch (e) {
-            console.error('sendSMS failed:', e.message);
+            console.error('markAsSold failed:', e.message);
           }
+        }
+
+        // Always send SMS for completed payments
+        const smsMsg = itemInfo
+          ? `Sale: ${itemInfo} — $${amount.toLocaleString()}. Check Square for details.`
+          : `New sale: $${amount.toLocaleString()}. Check Square for details.`;
+        try {
+          await sendSMS(env, smsMsg);
+        } catch (e) {
+          console.error('sendSMS failed:', e.message);
         }
       }
     }
