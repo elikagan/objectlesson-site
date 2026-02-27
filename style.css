@@ -53,9 +53,20 @@ header {
   border-color: var(--light);
 }
 
-/* Spacer to keep logo centered when filter is moved out */
-.header-spacer {
-  width: 30px;
+.loc-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  color: var(--light);
+  transition: all 0.2s ease;
+}
+
+.loc-pill:hover {
+  color: var(--gray);
+  border-color: var(--light);
 }
 
 /* --- Filter bar (below mosaic) --- */
@@ -494,8 +505,8 @@ footer {
 @media (max-width: 559px) {
   header { padding: 24px 16px 32px; }
   .logo { width: 120px; }
-  .ig-pill { padding: 6px; }
-  .ig-pill svg { width: 14px; height: 14px; }
+  .ig-pill, .loc-pill { padding: 6px; }
+  .ig-pill svg, .loc-pill svg { width: 14px; height: 14px; }
   .filter-btn { font-size: 10px; padding: 6px 12px; }
   .filter-icon { width: 14px; height: 14px; }
   .mosaic {
