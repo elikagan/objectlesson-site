@@ -177,10 +177,14 @@ async function handleCheckout(request, env) {
 async function handleWebhook(request, env) {
   try {
     const body = await request.text();
+    console.log('🚨 STEP 1: WEBHOOK HIT — received POST to /webhook');
+    console.log('🚨 STEP 1: Request URL:', request.url);
+    console.log('🚨 STEP 1: Body length:', body.length);
 
     // Validate webhook signature if key is configured
     const signature = request.headers.get('x-square-hmacsha256-signature');
     if (env.SQUARE_WEBHOOK_SIGNATURE_KEY && signature) {
+      console.log('🚨 STEP 1b: Validating webhook signature...');
       try {
         const encoder = new TextEncoder();
         const key = await crypto.subtle.importKey(
@@ -196,20 +200,31 @@ async function handleWebhook(request, env) {
         const expected = btoa(String.fromCharCode(...new Uint8Array(sig)));
 
         if (expected !== signature) {
-          console.warn('Webhook signature mismatch — URL:', request.url);
+          console.error('🚨🚨🚨 STEP 1b FAILED: Webhook signature MISMATCH — URL:', request.url);
+          console.error('🚨🚨🚨 Expected:', expected);
+          console.error('🚨🚨🚨 Got:', signature);
+        } else {
+          console.log('🚨 STEP 1b: Signature valid ✓');
         }
       } catch (e) {
-        console.warn('Signature validation error:', e.message);
+        console.error('🚨🚨🚨 STEP 1b FAILED: Signature validation error:', e.message);
       }
+    } else {
+      console.log('🚨 STEP 1b: No signature key configured or no signature header — skipping validation');
     }
 
     const event = JSON.parse(body);
-    console.log('Webhook event:', event.type);
+    console.log('🚨 STEP 2: PARSED EVENT — type:', event.type);
 
     if (event.type === 'payment.updated') {
+      console.log('🚨 STEP 3: EVENT IS payment.updated ✓');
       const payment = event.data?.object?.payment;
-      console.log('Payment status:', payment?.status, 'Note:', payment?.note);
+      console.log('🚨 STEP 3: Payment status:', payment?.status);
+      console.log('🚨 STEP 3: Payment note:', payment?.note);
+      console.log('🚨 STEP 3: Payment amount:', payment?.amount_money);
+
       if (payment?.status === 'COMPLETED') {
+        console.log('🚨 STEP 4: PAYMENT IS COMPLETED ✓');
         const note = payment.note || '';
         const amount = (payment.amount_money?.amount || 0) / 100;
 
@@ -220,21 +235,28 @@ async function handleWebhook(request, env) {
           itemInfo = note.replace('Object Lesson | ', '');
           const idMatch = note.match(/\(([^)]+)\)$/);
           itemId = idMatch ? idMatch[1] : null;
+          console.log('🚨 STEP 4: Extracted itemId:', itemId, 'itemInfo:', itemInfo);
+        } else {
+          console.log('🚨 STEP 4: Note does not start with "Object Lesson |" — note was:', JSON.stringify(note));
         }
 
         // Auto-mark as sold if we can identify the item
         if (itemId && env.GITHUB_TOKEN) {
+          console.log('🚨 STEP 5: MARKING AS SOLD — itemId:', itemId);
           try {
             await markAsSold(env, itemId);
-            console.log('Marked sold:', itemId);
+            console.log('🚨 STEP 5: Marked sold ✓');
           } catch (e) {
-            console.error('markAsSold failed:', e.message);
+            console.error('🚨🚨🚨 STEP 5 FAILED: markAsSold error:', e.message);
           }
+        } else {
+          console.log('🚨 STEP 5: SKIPPING mark-as-sold —', !itemId ? 'no itemId' : 'no GITHUB_TOKEN');
         }
 
         // Capture buyer email from Square payment
         const buyerEmail = payment.buyer_email_address;
         if (buyerEmail && env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
+          console.log('🚨 STEP 6: CAPTURING BUYER EMAIL:', buyerEmail);
           try {
             await fetch(`${env.SUPABASE_URL}/rest/v1/emails`, {
               method: 'POST',
@@ -249,26 +271,36 @@ async function handleWebhook(request, env) {
                 source: 'purchase'
               })
             });
-            console.log('Captured buyer email:', buyerEmail);
+            console.log('🚨 STEP 6: Email captured ✓');
           } catch (e) {
-            console.error('Email capture failed:', e.message);
+            console.error('🚨🚨🚨 STEP 6 FAILED: Email capture error:', e.message);
           }
+        } else {
+          console.log('🚨 STEP 6: SKIPPING email capture —', !buyerEmail ? 'no buyer email on payment' : 'missing Supabase env vars');
         }
 
         // Always send SMS for completed payments
         const smsMsg = itemInfo
           ? `Sale: ${itemInfo} — $${amount.toLocaleString()}. Check Square for details.`
           : `New sale: $${amount.toLocaleString()}. Check Square for details.`;
+        console.log('🚨 STEP 7: SENDING SMS — message:', smsMsg);
         try {
           await sendSMS(env, smsMsg);
+          console.log('🚨 STEP 7: SMS SENT ✓✓✓');
         } catch (e) {
-          console.error('sendSMS failed:', e.message);
+          console.error('🚨🚨🚨 STEP 7 FAILED: sendSMS error:', e.message);
         }
+      } else {
+        console.log('🚨🚨🚨 STEP 4 STOPPED: Payment status is NOT COMPLETED — it is:', payment?.status);
       }
+    } else {
+      console.log('🚨🚨🚨 STEP 2 STOPPED: Event type is NOT payment.updated — it is:', event.type);
     }
 
+    console.log('🚨 DONE: Webhook handler complete, returning 200');
     return new Response('OK', { status: 200 });
-  } catch {
+  } catch (e) {
+    console.error('🚨🚨🚨 WEBHOOK CRASHED:', e.message, e.stack);
     return new Response('Error', { status: 500 });
   }
 }
@@ -327,18 +359,24 @@ async function markAsSold(env, itemId) {
 }
 
 async function sendSMS(env, message) {
+  console.log('🚨 SMS STEP A: sendSMS called with message:', message);
+
+  console.log('🚨 SMS STEP B: Checking Twilio env vars...');
+  console.log('🚨 SMS STEP B: TWILIO_ACCOUNT_SID:', env.TWILIO_ACCOUNT_SID ? `SET (${env.TWILIO_ACCOUNT_SID.slice(0, 6)}...)` : '❌ MISSING');
+  console.log('🚨 SMS STEP B: TWILIO_AUTH_TOKEN:', env.TWILIO_AUTH_TOKEN ? `SET (${env.TWILIO_AUTH_TOKEN.slice(0, 4)}...)` : '❌ MISSING');
+  console.log('🚨 SMS STEP B: TWILIO_FROM_NUMBER:', env.TWILIO_FROM_NUMBER ? `SET (${env.TWILIO_FROM_NUMBER})` : '❌ MISSING');
+  console.log('🚨 SMS STEP B: ALERT_PHONE_NUMBER:', env.ALERT_PHONE_NUMBER ? `SET (${env.ALERT_PHONE_NUMBER})` : '❌ MISSING');
+
   if (!env.TWILIO_ACCOUNT_SID || !env.TWILIO_AUTH_TOKEN || !env.TWILIO_FROM_NUMBER || !env.ALERT_PHONE_NUMBER) {
-    console.error('SMS: Missing Twilio env vars', {
-      hasSid: !!env.TWILIO_ACCOUNT_SID,
-      hasToken: !!env.TWILIO_AUTH_TOKEN,
-      hasFrom: !!env.TWILIO_FROM_NUMBER,
-      hasTo: !!env.ALERT_PHONE_NUMBER
-    });
+    console.error('🚨🚨🚨 SMS STEP B FAILED: Missing Twilio env vars — SMS WILL NOT SEND');
     return;
   }
 
   const url = `https://api.twilio.com/2010-04-01/Accounts/${env.TWILIO_ACCOUNT_SID}/Messages.json`;
   const auth = btoa(`${env.TWILIO_ACCOUNT_SID}:${env.TWILIO_AUTH_TOKEN}`);
+
+  console.log('🚨 SMS STEP C: Calling Twilio API...');
+  console.log('🚨 SMS STEP C: To:', env.ALERT_PHONE_NUMBER, 'From:', env.TWILIO_FROM_NUMBER);
 
   const res = await fetch(url, {
     method: 'POST',
@@ -354,9 +392,12 @@ async function sendSMS(env, message) {
   });
 
   const data = await res.json();
+  console.log('🚨 SMS STEP D: Twilio response status:', res.status);
+  console.log('🚨 SMS STEP D: Twilio response body:', JSON.stringify(data));
+
   if (!res.ok) {
-    console.error('SMS failed:', res.status, JSON.stringify(data));
+    console.error('🚨🚨🚨 SMS STEP D FAILED: Twilio returned', res.status, JSON.stringify(data));
     throw new Error(`Twilio error ${res.status}: ${data.message || JSON.stringify(data)}`);
   }
-  console.log('SMS sent:', data.sid);
+  console.log('🚨 SMS STEP D: SUCCESS — SID:', data.sid, '✓✓✓');
 }
