@@ -62,9 +62,9 @@
   const filterDropdown = document.getElementById('filter-dropdown');
 
   const categoryLabels = {
-    'all': 'All', 'wall-art': 'Wall Art', 'object': 'Object',
-    'ceramic': 'Ceramic', 'furniture': 'Furniture', 'light': 'Light',
-    'sculpture': 'Sculpture', 'misc': 'Misc'
+    'all': 'All', 'under-400': 'Under $400', 'wall-art': 'Wall Art',
+    'object': 'Object', 'ceramic': 'Ceramic', 'furniture': 'Furniture',
+    'light': 'Light', 'sculpture': 'Sculpture', 'misc': 'Misc'
   };
 
   // --- Load inventory ---
@@ -91,6 +91,8 @@
   function renderGrid() {
     const filtered = activeCategory === 'all'
       ? items
+      : activeCategory === 'under-400'
+      ? items.filter(i => Number(i.price) > 0 && Number(i.price) < 400)
       : items.filter(i => i.category === activeCategory);
 
     grid.innerHTML = '';
