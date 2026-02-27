@@ -17,6 +17,8 @@
   <meta name="twitter:title" content="Object Lesson">
   <meta name="twitter:description" content="Uncommon Objects, Art and Design — Pasadena.">
   <meta name="twitter:image" content="https://objectlesson.la/Asset%201.png">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://raw.githubusercontent.com data:; connect-src 'self' https://*.supabase.co https://ol-checkout.objectlesson.workers.dev https://raw.githubusercontent.com">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -98,6 +100,7 @@
         <span class="detail-new" id="detail-new" style="display:none">New</span>
         <h1 class="detail-title" id="detail-title"></h1>
         <div class="detail-price" id="detail-price"></div>
+        <div class="detail-discount-price" id="detail-discount-price" style="display:none"></div>
         <div class="detail-tax" id="detail-tax" style="display:none"></div>
         <div class="detail-total" id="detail-total" style="display:none"></div>
         <div class="detail-size" id="detail-size"></div>
@@ -110,6 +113,16 @@
           </button>
         </div>
         <p class="detail-shipping" id="detail-shipping">Free pickup in Pasadena. LA delivery available.<br>Shipping at lowest available rate — calculated after purchase.</p>
+        <div class="detail-discount" id="detail-discount" style="display:none">
+          <div class="discount-input-wrap" id="discount-input-wrap">
+            <input type="text" class="discount-input" id="discount-input" placeholder="Discount code">
+            <button class="discount-apply" id="discount-apply">Apply</button>
+          </div>
+          <div class="discount-applied" id="discount-applied" style="display:none">
+            <span class="discount-badge" id="discount-badge"></span>
+            <button class="discount-remove" id="discount-remove">&times;</button>
+          </div>
+        </div>
         <div class="detail-purchased" id="detail-purchased" style="display:none">
           <p class="purchased-thanks">Thank you for your purchase!</p>
           <p class="purchased-info">Your item will be available for pickup at Object Lesson at the <strong>Pasadena Antique Center</strong>.</p>
@@ -171,6 +184,20 @@
           <a href="https://instagram.com/objectlesson_la" target="_blank" rel="noopener">@objectlesson_la</a>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Email Capture Bar -->
+  <div class="email-bar" id="email-bar" style="display:none">
+    <button class="email-bar-close" id="email-bar-close">&times;</button>
+    <p class="email-bar-offer">Get 10% off your first purchase</p>
+    <form class="email-bar-form" id="email-bar-form">
+      <input type="email" class="email-bar-input" id="email-bar-input" placeholder="Enter your email" required>
+      <button type="submit" class="email-bar-btn">Get Code</button>
+    </form>
+    <div class="email-bar-success" id="email-bar-success" style="display:none">
+      <p>Your code: <strong>WELCOME10</strong></p>
+      <p class="email-bar-hint">Enter it on any item page for 10% off</p>
     </div>
   </div>
 

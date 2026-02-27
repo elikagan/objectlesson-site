@@ -61,6 +61,7 @@
   let activeCategory = 'all';
   let detailImages = [];
   let detailIndex = 0;
+  let appliedDiscount = null; // { code, type, value }
 
   const grid = document.getElementById('product-grid');
   const empty = document.getElementById('empty');
@@ -211,6 +212,17 @@
     const wasPurchased = justPurchased === id;
     if (wasPurchased) justPurchased = null; // clear so it doesn't persist on hash nav
 
+    // Reset discount state on new detail view
+    appliedDiscount = null;
+    const priceEl = document.getElementById('detail-price');
+    priceEl.classList.remove('discounted');
+    discountPriceEl.style.display = 'none';
+    discountInput.value = '';
+    discountInputWrap.style.display = '';
+    discountApplied.style.display = 'none';
+    discountApplyBtn.disabled = false;
+    discountApplyBtn.textContent = 'Apply';
+
     if (wasPurchased || item.isSold) {
       soldEl.style.display = '';
       holdEl.style.display = 'none';
@@ -219,6 +231,7 @@
       shippingEl.style.display = 'none';
       taxEl.style.display = 'none';
       totalEl.style.display = 'none';
+      discountEl.style.display = 'none';
       if (wasPurchased) {
         purchasedEl.style.display = '';
         const smsBody = encodeURIComponent(`Hi! I just purchased "${item.title}" from Object Lesson. `);
@@ -234,6 +247,7 @@
       purchasedEl.style.display = 'none';
       taxEl.style.display = 'none';
       totalEl.style.display = 'none';
+      discountEl.style.display = 'none';
       inquireEl.style.display = '';
       inquireEl.href = buyLink(item);
       inquireEl.onclick = () => trackEvent('inquire', id);
@@ -254,6 +268,7 @@
         totalEl.style.display = '';
         buyEl.style.display = '';
         shippingEl.style.display = '';
+        discountEl.style.display = '';
         buyEl.textContent = 'Buy Now';
         buyEl.disabled = false;
         buyEl.onclick = async () => {
@@ -261,20 +276,22 @@
           buyEl.disabled = true;
           trackEvent('buy_now', id);
           try {
+            const body = {
+              title: item.title,
+              price: Number(item.price),
+              itemId: item.id
+            };
+            if (appliedDiscount) body.discountCode = appliedDiscount.code;
             const res = await fetch(CHECKOUT_URL, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                title: item.title,
-                price: Number(item.price),
-                itemId: item.id
-              })
+              body: JSON.stringify(body)
             });
             const data = await res.json();
             if (data.url) {
               window.location.href = data.url;
             } else {
-              alert('Checkout unavailable. Please inquire directly.');
+              alert(data.error || 'Checkout unavailable. Please inquire directly.');
               buyEl.textContent = 'Buy Now';
               buyEl.disabled = false;
             }
@@ -289,6 +306,7 @@
         shippingEl.style.display = 'none';
         taxEl.style.display = 'none';
         totalEl.style.display = 'none';
+        discountEl.style.display = 'none';
       }
     }
 
@@ -629,6 +647,179 @@
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) stopMosaic();
     else if (gridView.style.display !== 'none') startMosaic();
+  });
+
+  // --- Email capture bar ---
+
+  (function () {
+    const bar = document.getElementById('email-bar');
+    const closeBtn = document.getElementById('email-bar-close');
+    const form = document.getElementById('email-bar-form');
+    const input = document.getElementById('email-bar-input');
+    const success = document.getElementById('email-bar-success');
+
+    function showBar() {
+      bar.style.display = '';
+      requestAnimationFrame(() => requestAnimationFrame(() => bar.classList.add('show')));
+    }
+
+    function hideBar() {
+      bar.classList.remove('show');
+      setTimeout(() => { bar.style.display = 'none'; }, 400);
+    }
+
+    if (!localStorage.getItem('ol_email_dismissed')) {
+      setTimeout(showBar, 5000);
+    }
+
+    closeBtn.addEventListener('click', () => {
+      localStorage.setItem('ol_email_dismissed', '1');
+      hideBar();
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = input.value.trim();
+      if (!email) return;
+
+      const btn = form.querySelector('.email-bar-btn');
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      try {
+        await fetch(`${SUPA_URL}/rest/v1/emails`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPA_ANON,
+            'Authorization': 'Bearer ' + SUPA_ANON,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ email, source: 'newsletter', discount_code: 'WELCOME10' })
+        });
+      } catch {}
+
+      trackEvent('email_signup');
+      form.style.display = 'none';
+      success.style.display = '';
+      localStorage.setItem('ol_email_dismissed', '1');
+
+      setTimeout(hideBar, 6000);
+    });
+  })();
+
+  // --- Discount code logic ---
+
+  const discountEl = document.getElementById('detail-discount');
+  const discountInputWrap = document.getElementById('discount-input-wrap');
+  const discountApplied = document.getElementById('discount-applied');
+  const discountInput = document.getElementById('discount-input');
+  const discountApplyBtn = document.getElementById('discount-apply');
+  const discountBadge = document.getElementById('discount-badge');
+  const discountRemoveBtn = document.getElementById('discount-remove');
+  const discountPriceEl = document.getElementById('detail-discount-price');
+
+  function getDiscountedPrice(originalPrice) {
+    if (!appliedDiscount) return null;
+    if (appliedDiscount.type === 'percent') {
+      return originalPrice * (1 - appliedDiscount.value / 100);
+    }
+    return Math.max(0, originalPrice - appliedDiscount.value);
+  }
+
+  function updatePriceDisplay(item) {
+    const priceEl = document.getElementById('detail-price');
+    const taxEl = document.getElementById('detail-tax');
+    const totalEl = document.getElementById('detail-total');
+    const originalPrice = Number(item.price);
+
+    if (appliedDiscount && originalPrice > 0) {
+      const discounted = getDiscountedPrice(originalPrice);
+      priceEl.classList.add('discounted');
+      discountPriceEl.textContent = '$' + discounted.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+      discountPriceEl.style.display = '';
+      const tax = discounted * 0.1025;
+      const total = discounted + tax;
+      taxEl.textContent = `Tax (10.25%): $${tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      totalEl.textContent = `Total: $${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    } else {
+      priceEl.classList.remove('discounted');
+      discountPriceEl.style.display = 'none';
+      if (originalPrice > 0) {
+        const tax = originalPrice * 0.1025;
+        const total = originalPrice + tax;
+        taxEl.textContent = `Tax (10.25%): $${tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        totalEl.textContent = `Total: $${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      }
+    }
+  }
+
+  discountApplyBtn.addEventListener('click', async () => {
+    const code = discountInput.value.trim().toUpperCase();
+    if (!code) return;
+
+    discountApplyBtn.disabled = true;
+    discountApplyBtn.textContent = '...';
+
+    try {
+      const res = await fetch(`${SUPA_URL}/rest/v1/discount_codes?code=eq.${encodeURIComponent(code)}&is_active=eq.true&select=code,type,value,max_uses,used_count`, {
+        headers: {
+          'apikey': SUPA_ANON,
+          'Authorization': 'Bearer ' + SUPA_ANON
+        }
+      });
+      const data = await res.json();
+
+      if (data.length === 0) {
+        discountInput.style.borderColor = '#c00';
+        setTimeout(() => { discountInput.style.borderColor = ''; }, 2000);
+        discountApplyBtn.disabled = false;
+        discountApplyBtn.textContent = 'Apply';
+        return;
+      }
+
+      const disc = data[0];
+      if (disc.max_uses && disc.used_count >= disc.max_uses) {
+        discountInput.style.borderColor = '#c00';
+        setTimeout(() => { discountInput.style.borderColor = ''; }, 2000);
+        discountApplyBtn.disabled = false;
+        discountApplyBtn.textContent = 'Apply';
+        return;
+      }
+
+      appliedDiscount = { code: disc.code, type: disc.type, value: Number(disc.value) };
+      const label = disc.type === 'percent' ? `${disc.code} — ${disc.value}% off` : `${disc.code} — $${disc.value} off`;
+      discountBadge.textContent = label;
+      discountInputWrap.style.display = 'none';
+      discountApplied.style.display = '';
+
+      // Get current item from hash
+      const itemId = location.hash.slice(1);
+      const item = items.find(i => i.id === itemId);
+      if (item) updatePriceDisplay(item);
+
+      trackEvent('discount_applied', itemId);
+    } catch {
+      discountApplyBtn.disabled = false;
+      discountApplyBtn.textContent = 'Apply';
+    }
+  });
+
+  discountInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); discountApplyBtn.click(); }
+  });
+
+  discountRemoveBtn.addEventListener('click', () => {
+    appliedDiscount = null;
+    discountInput.value = '';
+    discountApplied.style.display = 'none';
+    discountInputWrap.style.display = '';
+    discountApplyBtn.disabled = false;
+    discountApplyBtn.textContent = 'Apply';
+
+    const itemId = location.hash.slice(1);
+    const item = items.find(i => i.id === itemId);
+    if (item) updatePriceDisplay(item);
   });
 
   // --- Init ---

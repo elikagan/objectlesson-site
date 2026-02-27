@@ -714,6 +714,12 @@ footer {
   .about-body { padding: 60px 20px 80px; }
   .about-tagline { font-size: 17px; }
   .notfound-body { padding: 80px 20px; }
+  .email-bar { padding: 16px 16px 20px; }
+  .email-bar-offer { font-size: 14px; margin-bottom: 10px; }
+  .email-bar-form { gap: 6px; }
+  .email-bar-input { font-size: 13px; padding: 9px 12px; }
+  .email-bar-btn { font-size: 12px; padding: 9px 16px; }
+  .discount-input { width: 140px; font-size: 12px; }
 }
 
 /* --- Not Found --- */
@@ -805,4 +811,189 @@ footer {
   flex-direction: column;
   gap: 6px;
   align-items: center;
+}
+
+/* --- Email Capture Bar --- */
+
+.email-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--black);
+  color: #fff;
+  padding: 20px 24px;
+  z-index: 40;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  text-align: center;
+}
+
+.email-bar.show {
+  transform: translateY(0);
+}
+
+.email-bar-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+.email-bar-close:hover { color: #fff; }
+
+.email-bar-offer {
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  letter-spacing: 0.01em;
+}
+
+.email-bar-form {
+  display: flex;
+  gap: 8px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.email-bar-input {
+  flex: 1;
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 10px 14px;
+  border: 1px solid #444;
+  border-radius: 100px;
+  background: #2a2a2a;
+  color: #fff;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.email-bar-input::placeholder { color: #777; }
+.email-bar-input:focus { border-color: #666; }
+
+.email-bar-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 100px;
+  background: #fff;
+  color: var(--black);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+}
+.email-bar-btn:hover { opacity: 0.85; }
+.email-bar-btn:disabled { opacity: 0.5; cursor: default; }
+
+.email-bar-success p {
+  margin: 0;
+  font-size: 15px;
+}
+.email-bar-success strong {
+  font-size: 18px;
+  letter-spacing: 0.05em;
+}
+.email-bar-hint {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* --- Discount Code --- */
+
+.detail-discount {
+  margin-top: 16px;
+}
+
+.discount-input-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.discount-input {
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  background: none;
+  color: var(--black);
+  outline: none;
+  width: 160px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: border-color 0.15s ease;
+}
+.discount-input::placeholder {
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--light);
+}
+.discount-input:focus { border-color: var(--gray); }
+
+.discount-apply {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  padding: 8px 16px;
+  border: 1px solid var(--black);
+  border-radius: 100px;
+  background: none;
+  color: var(--black);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.discount-apply:hover { background: var(--black); color: #fff; }
+.discount-apply:disabled { opacity: 0.5; cursor: default; }
+
+.discount-applied {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.discount-badge {
+  font-size: 13px;
+  font-weight: 500;
+  color: #2d7d46;
+  background: #eef7f0;
+  padding: 6px 12px;
+  border-radius: 100px;
+  letter-spacing: 0.02em;
+}
+
+.discount-remove {
+  background: none;
+  border: none;
+  color: var(--light);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+.discount-remove:hover { color: var(--black); }
+
+.detail-price.discounted {
+  text-decoration: line-through;
+  color: var(--light);
+  font-size: 15px;
+}
+
+.detail-discount-price {
+  font-size: 18px;
+  color: #2d7d46;
+  font-weight: 500;
+  margin-bottom: 2px;
 }

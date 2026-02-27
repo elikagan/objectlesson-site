@@ -7,7 +7,6 @@
   const BRANCH = 'main';
   const API = 'https://api.github.com';
   const PIN_HASH = '7f6257b880b51353e620ab9224907e72348e8d2c3c1f6e0ba9866661acbc05e9';
-  const SIMPLE_HASH = '2a1bf354';
 
   // --- IndexedDB persistent storage ---
   const DB_NAME = 'ol_admin';
@@ -122,6 +121,7 @@
   const viewList = document.getElementById('view-list');
   const viewEditor = document.getElementById('view-editor');
   const viewAnalytics = document.getElementById('view-analytics');
+  const viewMarketing = document.getElementById('view-marketing');
   const itemList = document.getElementById('item-list');
   const photoGrid = document.getElementById('photo-grid');
   const photoInput = document.getElementById('photo-input');
@@ -130,36 +130,44 @@
 
   // --- PIN Lock ---
 
-  // Simple hash that works without crypto.subtle (which requires HTTPS)
-  function simpleHash(str) {
-    let h = 0;
-    for (let i = 0; i < str.length; i++) {
-      h = ((h << 5) - h + str.charCodeAt(i)) | 0;
-    }
-    return h.toString(16);
+  async function hashPin(pin) {
+    const data = new TextEncoder().encode(pin);
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
-  async function hashPin(pin) {
-    if (crypto.subtle) {
-      try {
-        const data = new TextEncoder().encode(pin);
-        const buf = await crypto.subtle.digest('SHA-256', data);
-        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-      } catch (e) { /* fall through */ }
-    }
-    return simpleHash(pin);
-  }
+  // Rate limiting for PIN attempts
+  const MAX_ATTEMPTS = 5;
+  const LOCKOUT_MS = 5 * 60 * 1000; // 5 minutes
+  let pinAttempts = 0;
+  let lockoutUntil = 0;
 
   document.getElementById('form-unlock').addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    // Check lockout
+    if (Date.now() < lockoutUntil) {
+      const mins = Math.ceil((lockoutUntil - Date.now()) / 60000);
+      toast(`Locked out. Try again in ${mins}m`);
+      return;
+    }
+
     const pin = document.getElementById('input-pin').value;
     const hash = await hashPin(pin);
-    if (hash === PIN_HASH || simpleHash(pin) === SIMPLE_HASH) {
+    if (hash === PIN_HASH) {
+      pinAttempts = 0;
       currentPin = pin;
       await store('ol_unlocked', '1');
       await boot(pin);
     } else {
-      toast('Wrong PIN');
+      pinAttempts++;
+      if (pinAttempts >= MAX_ATTEMPTS) {
+        lockoutUntil = Date.now() + LOCKOUT_MS;
+        pinAttempts = 0;
+        toast('Too many attempts. Locked for 5 minutes');
+      } else {
+        toast(`Wrong PIN (${MAX_ATTEMPTS - pinAttempts} left)`);
+      }
       document.getElementById('input-pin').value = '';
     }
   });
@@ -201,6 +209,9 @@
       if (hash === 'analytics') {
         showView('analytics');
         loadAnalytics();
+      } else if (hash === 'marketing') {
+        showView('marketing');
+        loadMarketing();
       } else {
         showView('list');
       }
@@ -294,6 +305,13 @@
     loadAnalytics();
   });
 
+  document.getElementById('menu-marketing').addEventListener('click', () => {
+    menuDropdown.classList.add('hidden');
+    location.hash = 'marketing';
+    showView('marketing');
+    loadMarketing();
+  });
+
   document.getElementById('btn-analytics-back').addEventListener('click', () => {
     history.replaceState(null, '', location.pathname);
     showView('list');
@@ -330,8 +348,8 @@
   // --- Navigation ---
 
   function showView(name) {
-    [viewLock, viewSetup, viewList, viewEditor, viewAnalytics].forEach(v => v.classList.add('hidden'));
-    const v = { lock: viewLock, setup: viewSetup, list: viewList, editor: viewEditor, analytics: viewAnalytics }[name];
+    [viewLock, viewSetup, viewList, viewEditor, viewAnalytics, viewMarketing].forEach(v => v.classList.add('hidden'));
+    const v = { lock: viewLock, setup: viewSetup, list: viewList, editor: viewEditor, analytics: viewAnalytics, marketing: viewMarketing }[name];
     if (v) v.classList.remove('hidden');
   }
 
@@ -1370,6 +1388,178 @@
       toastEl.classList.remove('show');
     }, 2200);
   }
+
+  // --- Marketing ---
+
+  document.getElementById('btn-marketing-back').addEventListener('click', () => {
+    history.replaceState(null, '', location.pathname);
+    showView('list');
+  });
+
+  async function loadMarketing() {
+    if (!supaUrl || !supaKey) {
+      document.getElementById('email-empty').style.display = '';
+      document.getElementById('dc-empty').style.display = '';
+      return;
+    }
+    loadEmails();
+    loadDiscountCodes();
+  }
+
+  async function loadEmails() {
+    try {
+      const res = await fetch(`${supaUrl}/rest/v1/emails?select=email,source,discount_code,created_at&order=created_at.desc&limit=500`, {
+        headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
+      });
+      const emails = await res.json();
+      const tbody = document.getElementById('email-tbody');
+      const countEl = document.getElementById('email-count');
+      const emptyEl = document.getElementById('email-empty');
+      const tableWrap = document.getElementById('email-table-wrap');
+
+      if (!emails.length) {
+        emptyEl.style.display = '';
+        tableWrap.style.display = 'none';
+        countEl.textContent = '';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      tableWrap.style.display = '';
+      countEl.textContent = `${emails.length} subscriber${emails.length !== 1 ? 's' : ''}`;
+
+      tbody.innerHTML = emails.map(e => {
+        const date = new Date(e.created_at).toLocaleDateString();
+        return `<tr><td>${esc(e.email)}</td><td>${esc(e.source)}</td><td>${date}</td></tr>`;
+      }).join('');
+
+      // CSV export
+      document.getElementById('btn-export-csv').onclick = () => {
+        const rows = [['Email', 'Source', 'Discount Code', 'Date']];
+        emails.forEach(e => {
+          rows.push([e.email, e.source, e.discount_code || '', new Date(e.created_at).toLocaleDateString()]);
+        });
+        const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `ol-emails-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+      };
+    } catch (e) {
+      document.getElementById('email-empty').style.display = '';
+      document.getElementById('email-empty').textContent = 'Failed to load emails.';
+    }
+  }
+
+  async function loadDiscountCodes() {
+    try {
+      const res = await fetch(`${supaUrl}/rest/v1/discount_codes?select=id,code,type,value,is_active,max_uses,used_count,created_at&order=created_at.desc`, {
+        headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
+      });
+      const codes = await res.json();
+      const listEl = document.getElementById('dc-list');
+      const emptyEl = document.getElementById('dc-empty');
+
+      if (!codes.length) {
+        emptyEl.style.display = '';
+        listEl.innerHTML = '';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      listEl.innerHTML = codes.map(dc => {
+        const discountLabel = dc.type === 'percent' ? `${dc.value}% off` : `$${dc.value} off`;
+        const usesLabel = dc.max_uses ? `${dc.used_count}/${dc.max_uses} uses` : `${dc.used_count} uses`;
+        return `
+          <div class="dc-row">
+            <span class="dc-code">${esc(dc.code)}</span>
+            <span class="dc-info">${discountLabel} &middot; ${usesLabel}</span>
+            <button class="dc-toggle ${dc.is_active ? 'active' : ''}" data-id="${dc.id}" data-active="${dc.is_active}"></button>
+          </div>`;
+      }).join('');
+
+      // Toggle active/inactive
+      listEl.querySelectorAll('.dc-toggle').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          const newActive = btn.dataset.active !== 'true';
+          btn.disabled = true;
+          try {
+            await fetch(`${supaUrl}/rest/v1/discount_codes?id=eq.${id}`, {
+              method: 'PATCH',
+              headers: {
+                'apikey': supaKey,
+                'Authorization': 'Bearer ' + supaKey,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify({ is_active: newActive })
+            });
+            btn.dataset.active = String(newActive);
+            btn.classList.toggle('active', newActive);
+          } catch {
+            toast('Failed to update');
+          }
+          btn.disabled = false;
+        });
+      });
+    } catch {
+      document.getElementById('dc-empty').style.display = '';
+      document.getElementById('dc-empty').textContent = 'Failed to load codes.';
+    }
+  }
+
+  // Create discount code
+  document.getElementById('dc-random').addEventListener('click', () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    document.getElementById('dc-code').value = code;
+  });
+
+  document.getElementById('dc-create').addEventListener('click', async () => {
+    const code = document.getElementById('dc-code').value.trim().toUpperCase();
+    const type = document.getElementById('dc-type').value;
+    const value = parseFloat(document.getElementById('dc-value').value);
+    const maxUses = document.getElementById('dc-max').value ? parseInt(document.getElementById('dc-max').value) : null;
+
+    if (!code || !value || value <= 0) { toast('Code and value required'); return; }
+    if (!supaUrl || !supaKey) { toast('Supabase not configured'); return; }
+
+    const btn = document.getElementById('dc-create');
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+    try {
+      const res = await fetch(`${supaUrl}/rest/v1/discount_codes`, {
+        method: 'POST',
+        headers: {
+          'apikey': supaKey,
+          'Authorization': 'Bearer ' + supaKey,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ code, type, value, max_uses: maxUses })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Create failed');
+      }
+
+      toast('Code created');
+      document.getElementById('dc-code').value = '';
+      document.getElementById('dc-value').value = '';
+      document.getElementById('dc-max').value = '';
+      loadDiscountCodes();
+    } catch (e) {
+      toast(e.message || 'Failed to create code');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Create Code';
+  });
 
   function confirm(msg, onConfirm) {
     const overlay = document.createElement('div');

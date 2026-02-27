@@ -953,3 +953,178 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   font-size: 11px;
 }
 
+/* --- Marketing --- */
+
+.marketing-body {
+  padding: 20px 16px calc(24px + var(--safe-b));
+}
+
+.marketing-section {
+  margin-bottom: 32px;
+}
+
+.marketing-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.marketing-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.marketing-count {
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.btn-small {
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-small:active { background: var(--bg2); }
+
+.btn-sm {
+  padding: 10px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.marketing-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.marketing-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.marketing-table th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--light);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 500;
+}
+
+.marketing-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--black);
+}
+
+.marketing-table td:first-child {
+  font-weight: 500;
+}
+
+.marketing-empty {
+  font-size: 14px;
+  color: var(--light);
+  text-align: center;
+  padding: 40px 0;
+}
+
+/* Discount code create form */
+.discount-create {
+  background: var(--bg2);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.discount-create-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.discount-create-row:last-of-type {
+  margin-bottom: 0;
+}
+
+.field-sm {
+  font-size: 14px;
+  padding: 8px 10px;
+  margin-bottom: 0;
+}
+
+.discount-create-row .field-sm {
+  flex: 1;
+}
+
+.discount-create-row .btn-small {
+  white-space: nowrap;
+  align-self: center;
+}
+
+/* Discount code list */
+.dc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.dc-code {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  min-width: 100px;
+}
+
+.dc-info {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.dc-toggle {
+  width: 36px;
+  height: 22px;
+  background: var(--border);
+  border-radius: 11px;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.dc-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.dc-toggle.active {
+  background: var(--black);
+}
+
+.dc-toggle.active::after {
+  transform: translateX(14px);
+}
+
