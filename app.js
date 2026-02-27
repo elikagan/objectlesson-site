@@ -313,7 +313,7 @@
 
         const actionsEl = document.getElementById('detail-actions');
         buyEl.onclick = () => {
-          if (localStorage.getItem('ol_email_dismissed')) {
+          if (localStorage.getItem('ol_email_collected')) {
             proceedToCheckout();
           } else {
             actionsEl.style.display = 'none';
@@ -342,6 +342,7 @@
               body: JSON.stringify({ email, source: 'purchase' })
             });
           } catch {}
+          localStorage.setItem('ol_email_collected', '1');
           localStorage.setItem('ol_email_dismissed', '1');
           emailGateBtn.textContent = 'Processing...';
           proceedToCheckout();
@@ -752,6 +753,7 @@
       trackEvent('email_signup');
       form.style.display = 'none';
       success.style.display = '';
+      localStorage.setItem('ol_email_collected', '1');
       localStorage.setItem('ol_email_dismissed', '1');
 
       setTimeout(hideBar, 6000);
