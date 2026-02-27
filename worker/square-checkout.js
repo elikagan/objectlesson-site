@@ -106,6 +106,16 @@ async function handleWebhook(request, env) {
       if (payment?.status === 'COMPLETED' && payment.note?.startsWith('Object Lesson |')) {
         const amount = (payment.amount_money?.amount || 0) / 100;
         const itemInfo = payment.note.replace('Object Lesson | ', '');
+
+        // Extract item ID from note format: "Object Lesson | Title (itemId)"
+        const idMatch = payment.note.match(/\(([^)]+)\)$/);
+        const itemId = idMatch ? idMatch[1] : null;
+
+        // Auto-mark as sold in inventory
+        if (itemId && env.GITHUB_TOKEN) {
+          await markAsSold(env, itemId);
+        }
+
         await sendSMS(env, `Sale: ${itemInfo} — $${amount.toLocaleString()}. Check Square for details.`);
       }
     }
@@ -113,6 +123,59 @@ async function handleWebhook(request, env) {
     return new Response('OK', { status: 200 });
   } catch {
     return new Response('Error', { status: 500 });
+  }
+}
+
+async function markAsSold(env, itemId) {
+  const owner = 'elikagan';
+  const repo = 'objectlesson-site';
+  const path = 'inventory.json';
+  const ghApi = 'https://api.github.com';
+
+  try {
+    // Fetch current inventory
+    const fileRes = await fetch(`${ghApi}/repos/${owner}/${repo}/contents/${path}?ref=main`, {
+      headers: {
+        'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'ol-checkout-worker'
+      }
+    });
+    if (!fileRes.ok) return;
+
+    const fileData = await fileRes.json();
+    const content = atob(fileData.content.replace(/\n/g, ''));
+    const items = JSON.parse(content);
+
+    // Find and mark item as sold
+    const item = items.find(i => i.id === itemId);
+    if (!item || item.isSold) return;
+
+    item.isSold = true;
+    item.isNew = false;
+    item.isHold = false;
+
+    // Commit updated inventory
+    const updated = JSON.stringify(items, null, 2);
+    const encoded = btoa(unescape(encodeURIComponent(updated)));
+
+    await fetch(`${ghApi}/repos/${owner}/${repo}/contents/${path}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'ol-checkout-worker'
+      },
+      body: JSON.stringify({
+        message: `Mark ${item.title || itemId} as sold`,
+        content: encoded,
+        sha: fileData.sha,
+        branch: 'main'
+      })
+    });
+  } catch {
+    // Don't fail the webhook if GitHub update fails
   }
 }
 

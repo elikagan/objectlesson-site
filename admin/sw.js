@@ -1,4 +1,4 @@
-const CACHE = 'ol-admin-v22';
+const CACHE = 'ol-admin-v23';
 const SHELL = [
   '/admin/',
   '/admin/style.css',

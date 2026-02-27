@@ -406,9 +406,16 @@
       return;
     }
 
-    itemList.innerHTML = items.map(item => {
+    const active = items.filter(i => !i.isSold);
+    const sold = items.filter(i => i.isSold);
+
+    function itemRowHtml(item) {
       const thumb = item.heroImage || (item.images && item.images[0]) || '';
       const imgHtml = thumb ? `<img src="https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${thumb}" alt="">` : '';
+      let badge = '';
+      if (item.isSold) badge = '<span class="item-sold">Sold</span>';
+      else if (item.isHold) badge = '<span class="item-hold">Hold</span>';
+      else if (item.isNew) badge = '<span class="item-new">New</span>';
       return `
         <div class="swipe-wrap" data-id="${item.id}">
           <div class="swipe-behind">
@@ -425,12 +432,32 @@
               <div class="item-name">${esc(item.title || 'Untitled')}</div>
               <div class="item-meta"><span class="item-id">${formatId(item.id)}</span> · $${Number(item.price || 0).toLocaleString()}</div>
             </div>
-            ${item.isSold ? '<span class="item-sold">Sold</span>' : item.isNew ? '<span class="item-new">New</span>' : ''}
+            ${badge}
             <span class="item-category">${esc(item.category || '')}</span>
           </div>
         </div>
       `;
-    }).join('');
+    }
+
+    let html = active.map(itemRowHtml).join('');
+    if (sold.length) {
+      html += `<div class="archive-header" id="archive-header">
+        <span>Archive</span>
+        <span class="archive-count">${sold.length}</span>
+        <svg class="archive-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>`;
+      html += `<div class="archive-items" id="archive-items">${sold.map(itemRowHtml).join('')}</div>`;
+    }
+    itemList.innerHTML = html;
+
+    // Archive toggle
+    const archiveHeader = document.getElementById('archive-header');
+    if (archiveHeader) {
+      archiveHeader.addEventListener('click', () => {
+        archiveHeader.classList.toggle('collapsed');
+        document.getElementById('archive-items').classList.toggle('collapsed');
+      });
+    }
 
     // Sortable
     if (sortable) sortable.destroy();
@@ -584,6 +611,7 @@
       document.getElementById('field-category').value = item.category || '';
       document.getElementById('field-dealer').value = item.dealerCode || '';
       document.getElementById('field-new').checked = !!item.isNew;
+      document.getElementById('field-hold').checked = !!item.isHold;
       document.getElementById('field-sold').checked = !!item.isSold;
 
       // Load existing images — hero is first, so put it first
@@ -606,6 +634,7 @@
       document.getElementById('field-category').value = '';
       document.getElementById('field-dealer').value = '';
       document.getElementById('field-new').checked = true;
+      document.getElementById('field-hold').checked = false;
       document.getElementById('field-sold').checked = false;
     }
 
@@ -925,6 +954,7 @@
     const category = document.getElementById('field-category').value;
     const dc = document.getElementById('field-dealer').value.trim();
     const isNew = document.getElementById('field-new').checked;
+    const isHold = document.getElementById('field-hold').checked;
     const isSold = document.getElementById('field-sold').checked;
 
     if (!title) { toast('Title is required'); return; }
@@ -964,6 +994,7 @@
         category,
         dealerCode: dc,
         isNew: isSold ? false : isNew,
+        isHold: isSold ? false : isHold,
         isSold,
         images: uploadedImages,
         heroImage: uploadedImages[0] || '',

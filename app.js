@@ -132,10 +132,11 @@
         : '';
 
       const newBadge = item.isNew && !isSold ? '<span class="card-new">New</span>' : '';
+      const holdBadge = item.isHold && !isSold ? '<span class="card-hold">On Hold</span>' : '';
       const soldBadge = isSold ? '<span class="card-sold">Sold</span>' : '';
 
       card.innerHTML = `
-        <div class="card-image">${imgHtml}${newBadge}${soldBadge}</div>
+        <div class="card-image">${imgHtml}${newBadge}${holdBadge}${soldBadge}</div>
         <div class="card-title">${esc(item.title)}</div>
         <div class="card-price">$${Number(item.price).toLocaleString()}</div>
       `;
@@ -189,8 +190,9 @@
     document.getElementById('detail-desc').textContent = item.description || '';
     document.getElementById('detail-id').textContent = formatId(item.id);
 
-    // Sold state + Buy Now
+    // Sold / Hold / Buy Now state
     const soldEl = document.getElementById('detail-sold');
+    const holdEl = document.getElementById('detail-hold');
     const inquireEl = document.getElementById('detail-inquire');
     const buyEl = document.getElementById('detail-buy');
     const shippingEl = document.getElementById('detail-shipping');
@@ -198,11 +200,21 @@
 
     if (item.isSold) {
       soldEl.style.display = '';
+      holdEl.style.display = 'none';
       inquireEl.style.display = 'none';
       buyEl.style.display = 'none';
       shippingEl.style.display = 'none';
+    } else if (item.isHold) {
+      soldEl.style.display = 'none';
+      holdEl.style.display = '';
+      buyEl.style.display = 'none';
+      shippingEl.style.display = 'none';
+      inquireEl.style.display = '';
+      inquireEl.href = buyLink(item);
+      inquireEl.onclick = () => trackEvent('inquire', id);
     } else {
       soldEl.style.display = 'none';
+      holdEl.style.display = 'none';
       inquireEl.style.display = '';
       inquireEl.href = buyLink(item);
       inquireEl.onclick = () => trackEvent('inquire', id);
@@ -262,9 +274,9 @@
       }
     };
 
-    // New badge (don't show on sold items)
+    // New badge (don't show on sold or hold items)
     const newEl = document.getElementById('detail-new');
-    newEl.style.display = item.isNew && !item.isSold ? '' : 'none';
+    newEl.style.display = item.isNew && !item.isSold && !item.isHold ? '' : 'none';
 
     // Thumbnails
     const thumbStrip = document.getElementById('detail-thumbs');

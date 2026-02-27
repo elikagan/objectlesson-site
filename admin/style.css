@@ -592,6 +592,62 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   flex-shrink: 0;
 }
 
+.item-hold {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #b8860b;
+  background: #fdf6e3;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* --- Archive section --- */
+
+.archive-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--light);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.archive-count {
+  font-weight: 400;
+  color: var(--text);
+  font-size: 11px;
+}
+
+.archive-chevron {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+  color: var(--light);
+}
+
+.archive-header.collapsed .archive-chevron {
+  transform: rotate(-90deg);
+}
+
+.archive-items.collapsed {
+  display: none;
+}
+
+.archive-items .item-row {
+  opacity: 0.6;
+}
+
 /* --- Hamburger Menu --- */
 
 .menu-wrap {
