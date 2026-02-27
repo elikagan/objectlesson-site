@@ -149,7 +149,7 @@
   },
   {
     "id": "000008",
-    "title": "Inlaid Wood Playter",
+    "title": "Inlaid Wood Platter",
     "description": "Constructed from diverse light and dark wood segments in a detailed geometric pattern, resting on a coordinated wooden pedestal.",
     "price": 295,
     "size": "",
@@ -157,12 +157,12 @@
     "dealerCode": "14EK",
     "isNew": true,
     "images": [
+      "images/products/000008/3.jpg",
       "images/products/000008/0.jpg",
       "images/products/000008/1.jpg",
-      "images/products/000008/2.jpg",
-      "images/products/000008/3.jpg"
+      "images/products/000008/2.jpg"
     ],
-    "heroImage": "images/products/000008/0.jpg",
+    "heroImage": "images/products/000008/3.jpg",
     "order": 0,
     "createdAt": "2026-02-27T00:38:05.143Z"
   }
