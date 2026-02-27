@@ -1,6 +1,7 @@
 (function () {
   const PHONE = '3104985138';
   const EMAIL = 'eli@objectlesson.la';
+  const CHECKOUT_URL = 'https://ol-checkout.objectlesson.workers.dev/checkout';
 
   // --- Analytics (Supabase) ---
   const SUPA_URL = 'https://gjlwoibtdgxlhtfswdkk.supabase.co';
@@ -188,17 +189,61 @@
     document.getElementById('detail-desc').textContent = item.description || '';
     document.getElementById('detail-id').textContent = formatId(item.id);
 
-    // Sold state
+    // Sold state + Buy Now
     const soldEl = document.getElementById('detail-sold');
     const inquireEl = document.getElementById('detail-inquire');
+    const buyEl = document.getElementById('detail-buy');
+    const shippingEl = document.getElementById('detail-shipping');
+    const hasPrice = Number(item.price) > 0;
+
     if (item.isSold) {
       soldEl.style.display = '';
       inquireEl.style.display = 'none';
+      buyEl.style.display = 'none';
+      shippingEl.style.display = 'none';
     } else {
       soldEl.style.display = 'none';
       inquireEl.style.display = '';
       inquireEl.href = buyLink(item);
       inquireEl.onclick = () => trackEvent('inquire', id);
+
+      if (hasPrice) {
+        buyEl.style.display = '';
+        shippingEl.style.display = '';
+        buyEl.textContent = 'Buy Now';
+        buyEl.disabled = false;
+        buyEl.onclick = async () => {
+          buyEl.textContent = 'Processing...';
+          buyEl.disabled = true;
+          trackEvent('buy_now', id);
+          try {
+            const res = await fetch(CHECKOUT_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                title: item.title,
+                price: Number(item.price),
+                itemId: item.id
+              })
+            });
+            const data = await res.json();
+            if (data.url) {
+              window.location.href = data.url;
+            } else {
+              alert('Checkout unavailable. Please inquire directly.');
+              buyEl.textContent = 'Buy Now';
+              buyEl.disabled = false;
+            }
+          } catch {
+            alert('Checkout unavailable. Please inquire directly.');
+            buyEl.textContent = 'Buy Now';
+            buyEl.disabled = false;
+          }
+        };
+      } else {
+        buyEl.style.display = 'none';
+        shippingEl.style.display = 'none';
+      }
     }
 
     // Share button
