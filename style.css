@@ -3,8 +3,8 @@
 :root {
   --black: #1a1a1a;
   --gray: #888;
-  --light: #ccc;
-  --border: #e8e8e8;
+  --light: #aaa;
+  --border: #d4d4d4;
   --bg: #fff;
   --font: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
@@ -616,7 +616,6 @@ footer {
   .footer-copy { font-size: 11px; }
   .footer-links a { font-size: 11px; }
   .about-body { padding: 60px 20px 80px; }
-  .about-logo { width: 140px; }
   .about-tagline { font-size: 17px; }
   .notfound-body { padding: 80px 20px; }
 }
@@ -656,13 +655,6 @@ footer {
   margin: 0 auto;
   padding: 80px 24px 120px;
   text-align: center;
-}
-
-.about-logo {
-  width: 160px;
-  height: auto;
-  display: block;
-  margin: 0 auto 32px;
 }
 
 .about-tagline {
