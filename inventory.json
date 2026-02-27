@@ -211,7 +211,8 @@
     "size": "",
     "category": "wall-art",
     "dealerCode": "EK14",
-    "isNew": true,
+    "isNew": false,
+    "isSold": false,
     "images": [
       "images/products/000001/0.jpg",
       "images/products/000001/1.jpg",
