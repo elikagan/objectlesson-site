@@ -305,7 +305,7 @@
 
   function isMobile() { return window.innerWidth <= 559; }
   function isTablet() { return window.innerWidth > 559 && window.innerWidth <= 959; }
-  function visibleCells() { return isMobile() ? 12 : isTablet() ? 12 : 18; }
+  function visibleCells() { return isMobile() ? 6 : isTablet() ? 12 : 18; }
   function flipBase() { return isMobile() ? MOBILE_FLIPS : DESKTOP_FLIPS; }
 
   function initMosaic() {

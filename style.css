@@ -499,11 +499,11 @@ footer {
   .filter-btn { font-size: 10px; padding: 6px 12px; }
   .filter-icon { width: 14px; height: 14px; }
   .mosaic {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 2px;
     padding: 0 0 24px;
   }
-  .mosaic-cell:nth-child(n+13) { display: block; }
+  .mosaic-cell:nth-child(n+7) { display: none; }
   main { padding: 0 16px 60px; }
   .grid { gap: 20px 12px; }
   .card-title { font-size: 13px; }
