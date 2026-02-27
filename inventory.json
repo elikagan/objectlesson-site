@@ -1,5 +1,23 @@
 [
   {
+    "id": "000014",
+    "title": "Cusco Painting of St. Christopher",
+    "description": "Aged oil on canvas depicts Saint Christopher wading through water with the Christ Child, likely 18th-century Colonial art.",
+    "price": 1495,
+    "size": "",
+    "category": "wall-art",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/000014/1.jpg",
+      "images/products/000014/0.jpg",
+      "images/products/000014/2.jpg"
+    ],
+    "heroImage": "images/products/000014/1.jpg",
+    "order": 0,
+    "createdAt": "2026-02-27T01:26:53.714Z"
+  },
+  {
     "id": "000013",
     "title": "Marcelo Bonevardi Wall Art",
     "description": "Features a reddish-brown surface with an embedded abstract blue object, structured on a base of rough, painted wood blocks.",
@@ -256,23 +274,5 @@
     "heroImage": "images/products/000008/3.jpg",
     "order": 14,
     "createdAt": "2026-02-27T00:38:05.143Z"
-  },
-  {
-    "id": "000014",
-    "title": "Cusco Painting of St. Christopher",
-    "description": "Aged oil on canvas depicts Saint Christopher wading through water with the Christ Child, likely 18th-century Colonial art.",
-    "price": 1495,
-    "size": "",
-    "category": "wall-art",
-    "dealerCode": "14EK",
-    "isNew": true,
-    "images": [
-      "images/products/000014/0.jpg",
-      "images/products/000014/1.jpg",
-      "images/products/000014/2.jpg"
-    ],
-    "heroImage": "images/products/000014/0.jpg",
-    "order": 0,
-    "createdAt": "2026-02-27T01:26:53.714Z"
   }
 ]
