@@ -15,7 +15,7 @@
       "images/products/000005/3.jpg"
     ],
     "heroImage": "images/products/000005/0.jpg",
-    "order": 0,
+    "order": 1,
     "createdAt": "2026-02-27T00:23:14.346Z"
   },
   {
@@ -34,7 +34,7 @@
       "images/products/000004/3.jpg"
     ],
     "heroImage": "images/products/000004/0.jpg",
-    "order": 1,
+    "order": 2,
     "createdAt": "2026-02-26T23:14:42.025Z"
   },
   {
@@ -53,7 +53,7 @@
       "images/products/mm3pl1ta/4.jpg"
     ],
     "heroImage": "images/products/mm3pl1ta/0.jpg",
-    "order": 2,
+    "order": 3,
     "createdAt": "2026-02-26T17:00:13.166Z"
   },
   {
@@ -71,7 +71,7 @@
       "images/products/000001/3.jpg"
     ],
     "heroImage": "images/products/000001/0.jpg",
-    "order": 3,
+    "order": 4,
     "createdAt": "2026-02-26T18:23:47.895Z"
   },
   {
@@ -89,7 +89,7 @@
       "images/products/000002/3.jpg"
     ],
     "heroImage": "images/products/000002/0.jpg",
-    "order": 4,
+    "order": 5,
     "createdAt": "2026-02-26T22:10:31.688Z"
   },
   {
@@ -107,7 +107,26 @@
       "images/products/000003/3.jpg"
     ],
     "heroImage": "images/products/000003/0.jpg",
-    "order": 5,
+    "order": 6,
     "createdAt": "2026-02-26T22:19:26.952Z"
+  },
+  {
+    "id": "000006",
+    "title": "Joel Stearns Painting",
+    "description": "Features a vibrant pattern of interlocking spirals and squares on a canvas using acrylic paints.",
+    "price": 1500,
+    "size": "",
+    "category": "wall-art",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/000006/0.jpg",
+      "images/products/000006/1.jpg",
+      "images/products/000006/2.jpg",
+      "images/products/000006/3.jpg"
+    ],
+    "heroImage": "images/products/000006/0.jpg",
+    "order": 0,
+    "createdAt": "2026-02-27T00:27:43.671Z"
   }
 ]
