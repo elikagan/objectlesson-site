@@ -278,7 +278,7 @@
         emailGate.style.display = 'none';
         emailGateInput.value = '';
         emailGateBtn.disabled = false;
-        emailGateBtn.textContent = 'Continue';
+        emailGateBtn.textContent = 'Continue to Checkout';
 
         async function proceedToCheckout() {
           buyEl.textContent = 'Processing...';
@@ -311,7 +311,9 @@
           }
         }
 
+        const actionsEl = document.getElementById('detail-actions');
         buyEl.onclick = () => {
+          actionsEl.style.display = 'none';
           emailGate.style.display = '';
           emailGateInput.focus();
         };
@@ -337,7 +339,7 @@
             });
           } catch {}
           localStorage.setItem('ol_email_dismissed', '1');
-          emailGate.style.display = 'none';
+          emailGateBtn.textContent = 'Processing...';
           proceedToCheckout();
         };
 
