@@ -1,5 +1,22 @@
 [
   {
+    "id": "000015",
+    "title": "Vollard Litho",
+    "description": "Graphic print on paper, published by Ambroise Vollard in Paris in 1973, featuring abstract figures.",
+    "price": 1800,
+    "size": "",
+    "category": "wall-art",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "images": [
+      "images/products/000015/0.jpg",
+      "images/products/000015/1.jpg"
+    ],
+    "heroImage": "images/products/000015/0.jpg",
+    "order": 0,
+    "createdAt": "2026-02-27T01:29:34.448Z"
+  },
+  {
     "id": "000014",
     "title": "Cusco Painting of St. Christopher",
     "description": "Aged oil on canvas depicts Saint Christopher wading through water with the Christ Child, likely 18th-century Colonial art.",
@@ -241,7 +258,7 @@
   },
   {
     "id": "000007",
-    "title": "Minoru Ohira",
+    "title": "Minoru Ohira Sculpture",
     "description": "Black polished spheres rise from a light wood cube.",
     "price": 3400,
     "size": "",
@@ -275,22 +292,5 @@
     "heroImage": "images/products/000008/3.jpg",
     "order": 15,
     "createdAt": "2026-02-27T00:38:05.143Z"
-  },
-  {
-    "id": "000015",
-    "title": "Vollard Litho",
-    "description": "Graphic print on paper, published by Ambroise Vollard in Paris in 1973, featuring abstract figures.",
-    "price": 1800,
-    "size": "",
-    "category": "wall-art",
-    "dealerCode": "14EK",
-    "isNew": true,
-    "images": [
-      "images/products/000015/0.jpg",
-      "images/products/000015/1.jpg"
-    ],
-    "heroImage": "images/products/000015/0.jpg",
-    "order": 0,
-    "createdAt": "2026-02-27T01:29:34.448Z"
   }
 ]
