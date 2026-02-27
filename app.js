@@ -271,7 +271,16 @@
         discountEl.style.display = '';
         buyEl.textContent = 'Buy Now';
         buyEl.disabled = false;
-        buyEl.onclick = async () => {
+
+        const emailGate = document.getElementById('detail-email-gate');
+        const emailGateInput = document.getElementById('email-gate-input');
+        const emailGateBtn = document.getElementById('email-gate-btn');
+        emailGate.style.display = 'none';
+        emailGateInput.value = '';
+        emailGateBtn.disabled = false;
+        emailGateBtn.textContent = 'Continue';
+
+        async function proceedToCheckout() {
           buyEl.textContent = 'Processing...';
           buyEl.disabled = true;
           trackEvent('buy_now', id);
@@ -300,7 +309,41 @@
             buyEl.textContent = 'Buy Now';
             buyEl.disabled = false;
           }
+        }
+
+        buyEl.onclick = () => {
+          emailGate.style.display = '';
+          emailGateInput.focus();
         };
+
+        emailGateBtn.onclick = async () => {
+          const email = emailGateInput.value.trim();
+          if (!email || !emailGateInput.checkValidity()) {
+            emailGateInput.reportValidity();
+            return;
+          }
+          emailGateBtn.disabled = true;
+          emailGateBtn.textContent = '...';
+          try {
+            await fetch(`${SUPA_URL}/rest/v1/emails`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPA_ANON,
+                'Authorization': 'Bearer ' + SUPA_ANON,
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify({ email, source: 'purchase' })
+            });
+          } catch {}
+          localStorage.setItem('ol_email_dismissed', '1');
+          emailGate.style.display = 'none';
+          proceedToCheckout();
+        };
+
+        emailGateInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); emailGateBtn.click(); }
+        });
       } else {
         buyEl.style.display = 'none';
         shippingEl.style.display = 'none';
@@ -668,8 +711,9 @@
       setTimeout(() => { bar.style.display = 'none'; }, 400);
     }
 
-    if (!localStorage.getItem('ol_email_dismissed')) {
-      setTimeout(showBar, 5000);
+    const justPurchasedParam = new URLSearchParams(window.location.search).has('purchased');
+    if (!localStorage.getItem('ol_email_dismissed') && !justPurchasedParam) {
+      showBar();
     }
 
     closeBtn.addEventListener('click', () => {
