@@ -194,8 +194,15 @@
     // Keys in IndexedDB — go straight to inventory
     if (ghToken && geminiKey) {
       if (currentPin) backupConfig(currentPin).catch(() => {});
-      showView('list');
       loadInventory();
+      // Restore view from hash (e.g. #analytics)
+      const hash = location.hash.slice(1);
+      if (hash === 'analytics') {
+        showView('analytics');
+        loadAnalytics();
+      } else {
+        showView('list');
+      }
       return;
     }
 
@@ -281,11 +288,13 @@
 
   document.getElementById('menu-analytics').addEventListener('click', () => {
     menuDropdown.classList.add('hidden');
+    location.hash = 'analytics';
     showView('analytics');
     loadAnalytics();
   });
 
   document.getElementById('btn-analytics-back').addEventListener('click', () => {
+    history.replaceState(null, '', location.pathname);
     showView('list');
   });
 
