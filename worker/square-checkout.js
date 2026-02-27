@@ -53,7 +53,7 @@ async function handleCheckout(request, env) {
           location_id: env.SQUARE_LOCATION_ID
         },
         checkout_options: {
-          redirect_url: `https://objectlesson.la/#${itemId}`,
+          redirect_url: `https://objectlesson.la/?purchased=1#${itemId}`,
           ask_for_shipping_address: true
         },
         payment_note: `Object Lesson | ${title} (${itemId})`

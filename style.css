@@ -570,6 +570,37 @@ main {
   margin-top: 16px;
 }
 
+.detail-purchased {
+  margin-top: 24px;
+  padding: 20px;
+  background: #f8f8f8;
+  border-radius: 12px;
+}
+
+.purchased-thanks {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--black);
+  margin: 0 0 10px;
+}
+
+.purchased-info {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--gray);
+  margin: 0 0 8px;
+}
+
+.purchased-info:last-child {
+  margin-bottom: 0;
+}
+
+.purchased-info a {
+  color: var(--black);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .detail-share {
   width: 42px;
   height: 42px;

@@ -3,6 +3,14 @@
   const EMAIL = 'eli@objectlesson.la';
   const CHECKOUT_URL = 'https://ol-checkout.objectlesson.workers.dev/checkout';
 
+  // Detect return from Square checkout
+  const urlParams = new URLSearchParams(location.search);
+  let justPurchased = urlParams.get('purchased') === '1' ? location.hash.slice(1) : null;
+  if (justPurchased) {
+    // Clean URL but keep hash
+    history.replaceState(null, '', location.pathname + location.hash);
+  }
+
   // --- Analytics (Supabase) ---
   const SUPA_URL = 'https://gjlwoibtdgxlhtfswdkk.supabase.co';
   const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqbHdvaWJ0ZGd4bGh0ZnN3ZGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNTYzODgsImV4cCI6MjA4NzczMjM4OH0.4QSS1BBMBuqbMtLjo_Tr0_WVTS48YYNsNYvtEMTf33U';
@@ -196,25 +204,37 @@
     const inquireEl = document.getElementById('detail-inquire');
     const buyEl = document.getElementById('detail-buy');
     const shippingEl = document.getElementById('detail-shipping');
+    const purchasedEl = document.getElementById('detail-purchased');
     const hasPrice = Number(item.price) > 0;
+    const wasPurchased = justPurchased === id;
+    if (wasPurchased) justPurchased = null; // clear so it doesn't persist on hash nav
 
-    if (item.isSold) {
+    if (wasPurchased || item.isSold) {
       soldEl.style.display = '';
       holdEl.style.display = 'none';
       inquireEl.style.display = 'none';
       buyEl.style.display = 'none';
       shippingEl.style.display = 'none';
+      if (wasPurchased) {
+        purchasedEl.style.display = '';
+        const smsBody = encodeURIComponent(`Hi! I just purchased "${item.title}" from Object Lesson. `);
+        document.getElementById('purchased-sms').href = `sms:${PHONE}?body=${smsBody}`;
+      } else {
+        purchasedEl.style.display = 'none';
+      }
     } else if (item.isHold) {
       soldEl.style.display = 'none';
       holdEl.style.display = '';
       buyEl.style.display = 'none';
       shippingEl.style.display = 'none';
+      purchasedEl.style.display = 'none';
       inquireEl.style.display = '';
       inquireEl.href = buyLink(item);
       inquireEl.onclick = () => trackEvent('inquire', id);
     } else {
       soldEl.style.display = 'none';
       holdEl.style.display = 'none';
+      purchasedEl.style.display = 'none';
       inquireEl.style.display = '';
       inquireEl.href = buyLink(item);
       inquireEl.onclick = () => trackEvent('inquire', id);
