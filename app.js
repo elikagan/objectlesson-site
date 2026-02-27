@@ -3,8 +3,8 @@
   const EMAIL = 'eli@objectlesson.la';
 
   // --- Analytics (Supabase) ---
-  const SUPA_URL = '';   // e.g. 'https://xyz.supabase.co'
-  const SUPA_ANON = '';  // anon/public key (safe to expose — RLS restricts to INSERT only)
+  const SUPA_URL = 'https://gjlwoibtdgxlhtfswdkk.supabase.co';
+  const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqbHdvaWJ0ZGd4bGh0ZnN3ZGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNTYzODgsImV4cCI6MjA4NzczMjM4OH0.4QSS1BBMBuqbMtLjo_Tr0_WVTS48YYNsNYvtEMTf33U';
 
   function getSessionId() {
     let sid = sessionStorage.getItem('ol_sid');
