@@ -103,7 +103,7 @@ header {
 .filter-dropdown {
   position: absolute;
   top: calc(100% + 6px);
-  right: 0;
+  left: 0;
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 12px;
