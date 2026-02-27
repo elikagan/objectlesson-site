@@ -911,7 +911,11 @@ footer {
 /* --- Discount Code --- */
 
 .detail-discount {
-  margin-top: 16px;
+  margin-top: 20px;
+  margin-bottom: 16px;
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 14px 16px;
 }
 
 .discount-input-wrap {
@@ -926,10 +930,11 @@ footer {
   padding: 8px 14px;
   border: 1px solid var(--border);
   border-radius: 100px;
-  background: none;
+  background: #fff;
   color: var(--black);
   outline: none;
-  width: 160px;
+  flex: 1;
+  min-width: 0;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   transition: border-color 0.15s ease;
@@ -952,6 +957,7 @@ footer {
   background: none;
   color: var(--black);
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.15s ease;
 }
 .discount-apply:hover { background: var(--black); color: #fff; }
@@ -967,7 +973,7 @@ footer {
   font-size: 13px;
   font-weight: 500;
   color: #2d7d46;
-  background: #eef7f0;
+  background: #e2f0e5;
   padding: 6px 12px;
   border-radius: 100px;
   letter-spacing: 0.02em;
