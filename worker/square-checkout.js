@@ -100,9 +100,11 @@ async function handleWebhook(request, env) {
     }
 
     const event = JSON.parse(body);
+    console.log('Webhook event:', event.type);
 
     if (event.type === 'payment.updated') {
       const payment = event.data?.object?.payment;
+      console.log('Payment status:', payment?.status, 'Note:', payment?.note);
       if (payment?.status === 'COMPLETED') {
         // Check for our payment note — may be on payment.note or order note
         const note = payment.note || '';
@@ -114,13 +116,20 @@ async function handleWebhook(request, env) {
 
           // Auto-mark as sold — don't let failure block SMS
           if (itemId && env.GITHUB_TOKEN) {
-            try { await markAsSold(env, itemId); } catch {}
+            try {
+              await markAsSold(env, itemId);
+              console.log('Marked sold:', itemId);
+            } catch (e) {
+              console.error('markAsSold failed:', e.message);
+            }
           }
 
           // Send SMS alert — don't let failure block webhook response
           try {
             await sendSMS(env, `Sale: ${itemInfo} — $${amount.toLocaleString()}. Check Square for details.`);
-          } catch {}
+          } catch (e) {
+            console.error('sendSMS failed:', e.message);
+          }
         }
       }
     }
@@ -185,10 +194,20 @@ async function markAsSold(env, itemId) {
 }
 
 async function sendSMS(env, message) {
+  if (!env.TWILIO_ACCOUNT_SID || !env.TWILIO_AUTH_TOKEN || !env.TWILIO_FROM_NUMBER || !env.ALERT_PHONE_NUMBER) {
+    console.error('SMS: Missing Twilio env vars', {
+      hasSid: !!env.TWILIO_ACCOUNT_SID,
+      hasToken: !!env.TWILIO_AUTH_TOKEN,
+      hasFrom: !!env.TWILIO_FROM_NUMBER,
+      hasTo: !!env.ALERT_PHONE_NUMBER
+    });
+    return;
+  }
+
   const url = `https://api.twilio.com/2010-04-01/Accounts/${env.TWILIO_ACCOUNT_SID}/Messages.json`;
   const auth = btoa(`${env.TWILIO_ACCOUNT_SID}:${env.TWILIO_AUTH_TOKEN}`);
 
-  await fetch(url, {
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Authorization': `Basic ${auth}`,
@@ -200,4 +219,11 @@ async function sendSMS(env, message) {
       Body: message
     }).toString()
   });
+
+  const data = await res.json();
+  if (!res.ok) {
+    console.error('SMS failed:', res.status, JSON.stringify(data));
+    throw new Error(`Twilio error ${res.status}: ${data.message || JSON.stringify(data)}`);
+  }
+  console.log('SMS sent:', data.sid);
 }
