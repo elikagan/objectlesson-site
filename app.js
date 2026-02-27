@@ -313,9 +313,13 @@
 
         const actionsEl = document.getElementById('detail-actions');
         buyEl.onclick = () => {
-          actionsEl.style.display = 'none';
-          emailGate.style.display = '';
-          emailGateInput.focus();
+          if (localStorage.getItem('ol_email_dismissed')) {
+            proceedToCheckout();
+          } else {
+            actionsEl.style.display = 'none';
+            emailGate.style.display = '';
+            emailGateInput.focus();
+          }
         };
 
         emailGateBtn.onclick = async () => {
