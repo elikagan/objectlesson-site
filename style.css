@@ -439,6 +439,12 @@ main {
   margin-bottom: 24px;
 }
 
+.detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .detail-inquire {
   display: inline-block;
   font-family: var(--font);
@@ -454,6 +460,29 @@ main {
 .detail-inquire:hover {
   background: var(--black);
   color: #fff;
+}
+
+.detail-share {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: none;
+  color: var(--gray);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.detail-share:hover {
+  border-color: var(--black);
+  color: var(--black);
+}
+.detail-share.copied {
+  border-color: var(--black);
+  color: var(--black);
 }
 
 .detail-id {

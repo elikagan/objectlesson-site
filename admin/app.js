@@ -47,6 +47,8 @@
   // --- State ---
   let ghToken = '';
   let geminiKey = '';
+  let supaUrl = '';
+  let supaKey = '';
   let currentPin = null;
   let items = [];
   let inventorySha = '';
@@ -92,7 +94,7 @@
 
   async function backupConfig(pin) {
     if (!ghToken || !geminiKey) return;
-    const encrypted = await encryptConfig(pin, { g: ghToken, m: geminiKey });
+    const encrypted = await encryptConfig(pin, { g: ghToken, m: geminiKey, s: supaUrl, k: supaKey });
     const path = 'admin/config.enc';
     let sha;
     try {
@@ -118,6 +120,7 @@
   const viewSetup = document.getElementById('view-setup');
   const viewList = document.getElementById('view-list');
   const viewEditor = document.getElementById('view-editor');
+  const viewAnalytics = document.getElementById('view-analytics');
   const itemList = document.getElementById('item-list');
   const photoGrid = document.getElementById('photo-grid');
   const photoInput = document.getElementById('photo-input');
@@ -178,6 +181,8 @@
 
     ghToken = await load('ol_gh_token');
     geminiKey = await load('ol_gemini_key');
+    supaUrl = await load('ol_supa_url');
+    supaKey = await load('ol_supa_key');
     const unlocked = await load('ol_unlocked');
 
     // Not unlocked and no PIN entered — show lock screen
@@ -203,8 +208,12 @@
           const config = await decryptConfig(currentPin, blob.trim());
           ghToken = config.g;
           geminiKey = config.m;
+          supaUrl = config.s || '';
+          supaKey = config.k || '';
           await store('ol_gh_token', ghToken);
           await store('ol_gemini_key', geminiKey);
+          if (supaUrl) await store('ol_supa_url', supaUrl);
+          if (supaKey) await store('ol_supa_key', supaKey);
           showView('list');
           loadInventory();
           return;
@@ -233,23 +242,51 @@
   document.getElementById('btn-save-setup').addEventListener('click', async () => {
     ghToken = document.getElementById('input-gh-token').value.trim();
     geminiKey = document.getElementById('input-gemini-key').value.trim();
-    if (!ghToken || !geminiKey) { toast('Both keys are required'); return; }
+    supaUrl = document.getElementById('input-supa-url').value.trim().replace(/\/+$/, '');
+    supaKey = document.getElementById('input-supa-key').value.trim();
+    if (!ghToken || !geminiKey) { toast('GitHub + Gemini keys are required'); return; }
     await store('ol_gh_token', ghToken);
     await store('ol_gemini_key', geminiKey);
+    if (supaUrl) await store('ol_supa_url', supaUrl);
+    if (supaKey) await store('ol_supa_key', supaKey);
     // Backup encrypted config to repo so phone never needs key entry
     if (currentPin) backupConfig(currentPin).catch(() => {});
     showView('list');
     loadInventory();
   });
 
-  document.getElementById('btn-settings').addEventListener('click', () => {
+  // --- Hamburger menu ---
+  const menuDropdown = document.getElementById('menu-dropdown');
+
+  document.getElementById('btn-menu').addEventListener('click', (e) => {
+    e.stopPropagation();
+    menuDropdown.classList.toggle('hidden');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.menu-wrap')) menuDropdown.classList.add('hidden');
+  });
+
+  document.getElementById('menu-settings').addEventListener('click', () => {
+    menuDropdown.classList.add('hidden');
     document.getElementById('input-gh-token').value = ghToken;
     document.getElementById('input-gemini-key').value = geminiKey;
-    // Show back nav, hide logo/intro text (settings mode, not first-time setup)
+    document.getElementById('input-supa-url').value = supaUrl;
+    document.getElementById('input-supa-key').value = supaKey;
     document.getElementById('setup-topbar').style.display = '';
     document.getElementById('setup-logo').style.display = 'none';
     document.getElementById('setup-text').style.display = 'none';
     showView('setup');
+  });
+
+  document.getElementById('menu-analytics').addEventListener('click', () => {
+    menuDropdown.classList.add('hidden');
+    showView('analytics');
+    loadAnalytics();
+  });
+
+  document.getElementById('btn-analytics-back').addEventListener('click', () => {
+    showView('list');
   });
 
   document.getElementById('btn-cancel-setup').addEventListener('click', () => {
@@ -259,8 +296,8 @@
   // --- Navigation ---
 
   function showView(name) {
-    [viewLock, viewSetup, viewList, viewEditor].forEach(v => v.classList.add('hidden'));
-    const v = { lock: viewLock, setup: viewSetup, list: viewList, editor: viewEditor }[name];
+    [viewLock, viewSetup, viewList, viewEditor, viewAnalytics].forEach(v => v.classList.add('hidden'));
+    const v = { lock: viewLock, setup: viewSetup, list: viewList, editor: viewEditor, analytics: viewAnalytics }[name];
     if (v) v.classList.remove('hidden');
   }
 
@@ -918,6 +955,202 @@
 
     btn.disabled = false;
     btn.textContent = 'Save';
+  }
+
+  // --- Analytics ---
+
+  async function supaQuery(query) {
+    if (!supaUrl || !supaKey) return null;
+    const res = await fetch(`${supaUrl}/rest/v1/rpc/analytics_query`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supaKey,
+        'Authorization': 'Bearer ' + supaKey
+      },
+      body: JSON.stringify({ q: query })
+    });
+    if (!res.ok) return null;
+    return res.json();
+  }
+
+  // Direct REST API queries (no RPC needed)
+  async function supaSelect(params) {
+    if (!supaUrl || !supaKey) return [];
+    const url = `${supaUrl}/rest/v1/events?${params}`;
+    const res = await fetch(url, {
+      headers: {
+        'apikey': supaKey,
+        'Authorization': 'Bearer ' + supaKey
+      }
+    });
+    if (!res.ok) return [];
+    return res.json();
+  }
+
+  async function loadAnalytics() {
+    const body = document.getElementById('analytics-body');
+    const loading = document.getElementById('analytics-loading');
+
+    if (!supaUrl || !supaKey) {
+      body.innerHTML = '<div class="analytics-empty">Add your Supabase URL and Service Key in Settings to enable analytics.</div>';
+      return;
+    }
+
+    loading.style.display = '';
+
+    try {
+      const now = new Date();
+      const todayStr = now.toISOString().slice(0, 10);
+      // Monday of current week
+      const day = now.getDay();
+      const mon = new Date(now);
+      mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+      const weekStr = mon.toISOString().slice(0, 10);
+
+      // Fetch all event data we need in parallel
+      const [todayData, weekData, topItems, inquiryCount, sourceData, deviceData] = await Promise.all([
+        // Today's views + uniques
+        supaSelect(`select=session_id,event&event=eq.page_view&created_at=gte.${todayStr}T00:00:00Z`),
+        // This week's views + uniques
+        supaSelect(`select=session_id,event&event=eq.page_view&created_at=gte.${weekStr}T00:00:00Z`),
+        // Top items (last 30 days)
+        supaSelect(`select=item_id,event&event=in.(item_view,inquire)&created_at=gte.${thirtyDaysAgo()}&item_id=not.is.null`),
+        // Total inquiries (last 30 days)
+        supaSelect(`select=id&event=eq.inquire&created_at=gte.${thirtyDaysAgo()}`),
+        // Traffic sources (last 30 days)
+        supaSelect(`select=referrer,utm_source&event=eq.page_view&created_at=gte.${thirtyDaysAgo()}`),
+        // Device split (last 30 days)
+        supaSelect(`select=ua_mobile&event=eq.page_view&created_at=gte.${thirtyDaysAgo()}`)
+      ]);
+
+      // Process data
+      const todayViews = todayData.length;
+      const todayUniques = new Set(todayData.map(r => r.session_id)).size;
+      const weekViews = weekData.length;
+      const weekUniques = new Set(weekData.map(r => r.session_id)).size;
+      const inquiries = inquiryCount.length;
+
+      // Top items by views
+      const itemViews = {};
+      const itemInquiries = {};
+      topItems.forEach(r => {
+        if (r.event === 'item_view') itemViews[r.item_id] = (itemViews[r.item_id] || 0) + 1;
+        if (r.event === 'inquire') itemInquiries[r.item_id] = (itemInquiries[r.item_id] || 0) + 1;
+      });
+      const topItemList = Object.entries(itemViews)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([id, views]) => ({
+          id,
+          views,
+          inquiries: itemInquiries[id] || 0,
+          item: items.find(i => i.id === id)
+        }));
+
+      // Traffic sources
+      const sources = {};
+      sourceData.forEach(r => {
+        let src = 'Direct';
+        if (r.utm_source) {
+          src = r.utm_source.charAt(0).toUpperCase() + r.utm_source.slice(1);
+        } else if (r.referrer) {
+          try {
+            const host = new URL(r.referrer).hostname.replace('www.', '').replace('.com', '').replace('.co', '');
+            src = host.charAt(0).toUpperCase() + host.slice(1);
+          } catch { src = 'Other'; }
+        }
+        sources[src] = (sources[src] || 0) + 1;
+      });
+      const totalSources = sourceData.length || 1;
+      const sortedSources = Object.entries(sources).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+      // Device split
+      const mobileCount = deviceData.filter(r => r.ua_mobile).length;
+      const desktopCount = deviceData.length - mobileCount;
+      const totalDevices = deviceData.length || 1;
+
+      // Render
+      body.innerHTML = `
+        <div class="analytics-cards">
+          <div class="analytics-card">
+            <div class="analytics-card-label">Today</div>
+            <div class="analytics-card-value">${todayViews}</div>
+            <div class="analytics-card-sub">${todayUniques} unique${todayUniques !== 1 ? 's' : ''}</div>
+          </div>
+          <div class="analytics-card">
+            <div class="analytics-card-label">This Week</div>
+            <div class="analytics-card-value">${weekViews}</div>
+            <div class="analytics-card-sub">${weekUniques} unique${weekUniques !== 1 ? 's' : ''}</div>
+          </div>
+        </div>
+
+        <div class="analytics-card analytics-card-full">
+          <div class="analytics-card-label">Inquiries</div>
+          <div class="analytics-card-value">${inquiries}</div>
+          <div class="analytics-card-sub">last 30 days</div>
+        </div>
+
+        ${topItemList.length > 0 ? `
+        <div class="analytics-section">
+          <div class="analytics-section-title">Most Viewed <span class="analytics-dim">30 days</span></div>
+          ${topItemList.map(t => {
+            const thumb = t.item ? (t.item.heroImage || (t.item.images && t.item.images[0]) || '') : '';
+            const imgHtml = thumb ? `<img src="https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${thumb}" alt="">` : '';
+            const title = t.item ? esc(t.item.title || 'Untitled') : formatId(t.id);
+            return `
+              <div class="analytics-item">
+                <div class="item-thumb">${imgHtml}</div>
+                <div class="analytics-item-info">
+                  <div class="analytics-item-title">${title}</div>
+                  <div class="analytics-item-stats">${t.views} view${t.views !== 1 ? 's' : ''}${t.inquiries > 0 ? ` · ${t.inquiries} inq` : ''}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        ` : ''}
+
+        <div class="analytics-section">
+          <div class="analytics-section-title">Traffic Sources <span class="analytics-dim">30 days</span></div>
+          ${sortedSources.length > 0 ? sortedSources.map(([src, count]) => `
+            <div class="analytics-bar-row">
+              <span class="analytics-bar-label">${esc(src)}</span>
+              <div class="analytics-bar-track">
+                <div class="analytics-bar-fill" style="width:${Math.round(count / totalSources * 100)}%"></div>
+              </div>
+              <span class="analytics-bar-pct">${Math.round(count / totalSources * 100)}%</span>
+            </div>
+          `).join('') : '<div class="analytics-empty-small">No data yet</div>'}
+        </div>
+
+        <div class="analytics-section">
+          <div class="analytics-section-title">Devices <span class="analytics-dim">30 days</span></div>
+          <div class="analytics-bar-row">
+            <span class="analytics-bar-label">Mobile</span>
+            <div class="analytics-bar-track">
+              <div class="analytics-bar-fill" style="width:${Math.round(mobileCount / totalDevices * 100)}%"></div>
+            </div>
+            <span class="analytics-bar-pct">${Math.round(mobileCount / totalDevices * 100)}%</span>
+          </div>
+          <div class="analytics-bar-row">
+            <span class="analytics-bar-label">Desktop</span>
+            <div class="analytics-bar-track">
+              <div class="analytics-bar-fill" style="width:${Math.round(desktopCount / totalDevices * 100)}%"></div>
+            </div>
+            <span class="analytics-bar-pct">${Math.round(desktopCount / totalDevices * 100)}%</span>
+          </div>
+        </div>
+      `;
+    } catch (e) {
+      body.innerHTML = `<div class="analytics-empty">Error loading analytics: ${esc(e.message)}</div>`;
+    }
+  }
+
+  function thirtyDaysAgo() {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().slice(0, 10) + 'T00:00:00Z';
   }
 
   // --- Utils ---

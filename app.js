@@ -2,6 +2,52 @@
   const PHONE = '3104985138';
   const EMAIL = 'eli@objectlesson.la';
 
+  // --- Analytics (Supabase) ---
+  const SUPA_URL = '';   // e.g. 'https://xyz.supabase.co'
+  const SUPA_ANON = '';  // anon/public key (safe to expose — RLS restricts to INSERT only)
+
+  function getSessionId() {
+    let sid = sessionStorage.getItem('ol_sid');
+    if (!sid) {
+      sid = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      sessionStorage.setItem('ol_sid', sid);
+    }
+    return sid;
+  }
+
+  function getUtmSource() {
+    try {
+      const params = new URLSearchParams(location.search);
+      return params.get('utm_source') || null;
+    } catch { return null; }
+  }
+
+  const _utmSource = getUtmSource();
+
+  function trackEvent(event, itemId) {
+    if (!SUPA_URL || !SUPA_ANON) return;
+    if (/bot|crawl|spider|slurp/i.test(navigator.userAgent)) return;
+    const body = {
+      event,
+      item_id: itemId || null,
+      session_id: getSessionId(),
+      referrer: document.referrer || null,
+      utm_source: _utmSource,
+      ua_mobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
+      path: location.hash || '/'
+    };
+    fetch(`${SUPA_URL}/rest/v1/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_ANON,
+        'Authorization': 'Bearer ' + SUPA_ANON,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(body)
+    }).catch(() => {});
+  }
+
   let items = [];
   let activeCategory = 'all';
   let detailImages = [];
@@ -37,6 +83,7 @@
     initMosaic();
     renderGrid();
     handleHash();
+    trackEvent('page_view');
   }
 
   // --- Grid render ---
@@ -102,6 +149,8 @@
     const item = items.find(i => i.id === id);
     if (!item) return;
 
+    trackEvent('item_view', id);
+
     detailImages = (item.images || []).map(imgUrl);
     const hero = imgUrl(item.heroImage) || detailImages[0] || '';
     detailIndex = detailImages.indexOf(hero);
@@ -120,7 +169,25 @@
     sizeEl.style.display = item.size ? '' : 'none';
     document.getElementById('detail-desc').textContent = item.description || '';
     document.getElementById('detail-id').textContent = formatId(item.id);
-    document.getElementById('detail-inquire').href = buyLink(item);
+    const inquireEl = document.getElementById('detail-inquire');
+    inquireEl.href = buyLink(item);
+    inquireEl.onclick = () => trackEvent('inquire', id);
+
+    // Share button
+    document.getElementById('detail-share').onclick = async () => {
+      const shareUrl = location.origin + location.pathname + '#' + id;
+      const shareData = { title: item.title, text: `${item.title} — $${Number(item.price).toLocaleString()}`, url: shareUrl };
+      if (navigator.share) {
+        try { await navigator.share(shareData); } catch {}
+      } else {
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          const btn = document.getElementById('detail-share');
+          btn.classList.add('copied');
+          setTimeout(() => btn.classList.remove('copied'), 1500);
+        } catch {}
+      }
+    };
 
     // New badge
     const newEl = document.getElementById('detail-new');
@@ -183,6 +250,7 @@
     filterDropdown.querySelector('.active')?.classList.remove('active');
     opt.classList.add('active');
     filterDropdown.classList.remove('open');
+    trackEvent('filter');
     renderGrid();
   });
 
