@@ -286,7 +286,8 @@
     "category": "object",
     "dealerCode": "14EK",
     "isNew": false,
-    "isSold": true,
+    "isHold": false,
+    "isSold": false,
     "images": [
       "images/products/000008/3.jpg",
       "images/products/000008/0.jpg",
@@ -295,7 +296,6 @@
     ],
     "heroImage": "images/products/000008/3.jpg",
     "order": 15,
-    "createdAt": "2026-02-27T00:38:05.143Z",
-    "isHold": false
+    "createdAt": "2026-02-27T00:38:05.143Z"
   }
 ]
