@@ -281,11 +281,12 @@
     "id": "000008",
     "title": "Inlaid Wood Platter",
     "description": "Constructed from diverse light and dark wood segments in a detailed geometric pattern, resting on a coordinated wooden pedestal.",
-    "price": 295,
+    "price": 2,
     "size": "",
     "category": "object",
     "dealerCode": "14EK",
     "isNew": true,
+    "isSold": false,
     "images": [
       "images/products/000008/3.jpg",
       "images/products/000008/0.jpg",
