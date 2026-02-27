@@ -643,6 +643,8 @@
       document.getElementById('field-price').value = item.price != null ? item.price : '';
       document.getElementById('field-size').value = item.size || '';
       document.getElementById('field-category').value = item.category || '';
+      document.getElementById('field-maker').value = item.maker || '';
+      document.getElementById('field-condition').value = item.condition || '';
       document.getElementById('field-dealer').value = item.dealerCode || '';
       document.getElementById('field-new').checked = !!item.isNew;
       document.getElementById('field-hold').checked = !!item.isHold;
@@ -666,6 +668,8 @@
       document.getElementById('field-price').value = '';
       document.getElementById('field-size').value = '';
       document.getElementById('field-category').value = '';
+      document.getElementById('field-maker').value = '';
+      document.getElementById('field-condition').value = '';
       document.getElementById('field-dealer').value = '';
       document.getElementById('field-new').checked = true;
       document.getElementById('field-hold').checked = false;
@@ -839,6 +843,12 @@
         if (suggestions.description && !document.getElementById('field-desc').value) {
           document.getElementById('field-desc').value = suggestions.description;
         }
+        if (suggestions.maker && !document.getElementById('field-maker').value) {
+          document.getElementById('field-maker').value = suggestions.maker;
+        }
+        if (suggestions.condition && !document.getElementById('field-condition').value) {
+          document.getElementById('field-condition').value = suggestions.condition;
+        }
         if (suggestions.category && !document.getElementById('field-category').value) {
           document.getElementById('field-category').value = suggestions.category;
         }
@@ -958,7 +968,7 @@
   async function geminiSuggest(dataUrls) {
     const thumbs = await Promise.all(dataUrls.slice(0, 4).map(url => resizeImage(url, 768)));
     const parts = [
-      { text: 'You are cataloging items for an antique gallery. Based on these photos, provide: a short title (2-5 words, title case, just what the object is), a description that flows naturally from the title as a continuation (1 simple descriptive sentence — materials, era, origin if obvious. Do NOT repeat the title. Do NOT start with "This" or "A" or "An". No flowery language, no marketing speak), and a category (exactly one of: wall-art, object, ceramic, furniture, light, sculpture, misc). Return ONLY valid JSON: {"title": "string", "description": "string", "category": "string"}' }
+      { text: 'You are cataloging items for an antique gallery. Based on these photos, provide: a short title (2-5 words, title case, just what the object is), a description that flows naturally from the title as a continuation (1 simple descriptive sentence — materials, era, origin if obvious. Do NOT repeat the title. Do NOT start with "This" or "A" or "An". No flowery language, no marketing speak), a category (exactly one of: wall-art, object, ceramic, furniture, light, sculpture, misc), a maker or brand if identifiable (empty string if unknown), and condition (exactly one of: excellent, good, fair, as-is — judge from visible wear, patina, damage in photos). Return ONLY valid JSON: {"title": "string", "description": "string", "category": "string", "maker": "string", "condition": "string"}' }
     ];
     for (const url of thumbs) {
       parts.push({ inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(url) } });
@@ -986,6 +996,8 @@
     const price = parseFloat(document.getElementById('field-price').value) || 0;
     const size = document.getElementById('field-size').value.trim();
     const category = document.getElementById('field-category').value;
+    const maker = document.getElementById('field-maker').value.trim();
+    const condition = document.getElementById('field-condition').value;
     const dc = document.getElementById('field-dealer').value.trim();
     const isNew = document.getElementById('field-new').checked;
     const isHold = document.getElementById('field-hold').checked;
@@ -1026,6 +1038,8 @@
         price,
         size,
         category,
+        maker,
+        condition,
         dealerCode: dc,
         isNew: isSold ? false : isNew,
         isHold: isSold ? false : isHold,

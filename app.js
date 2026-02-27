@@ -211,6 +211,20 @@
     sizeEl.textContent = item.size || '';
     sizeEl.style.display = item.size ? '' : 'none';
     document.getElementById('detail-desc').textContent = item.description || '';
+
+    // Maker & Condition
+    const metaEl = document.getElementById('detail-meta');
+    const makerEl = document.getElementById('detail-maker');
+    const condEl = document.getElementById('detail-condition');
+    const hasMaker = !!item.maker;
+    const hasCond = !!item.condition;
+    metaEl.style.display = (hasMaker || hasCond) ? '' : 'none';
+    makerEl.textContent = item.maker || '';
+    makerEl.style.display = hasMaker ? '' : 'none';
+    const condLabels = { 'excellent': 'Excellent', 'good': 'Good', 'fair': 'Fair', 'as-is': 'As-Is' };
+    condEl.textContent = condLabels[item.condition] || '';
+    condEl.style.display = hasCond ? '' : 'none';
+
     document.getElementById('detail-id').textContent = formatId(item.id);
 
     // Sold / Hold / Buy Now state

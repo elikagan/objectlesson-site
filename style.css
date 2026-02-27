@@ -554,7 +554,23 @@ main {
 .detail-size {
   font-size: 14px;
   color: var(--light);
+  margin-bottom: 8px;
+}
+
+.detail-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--gray);
   margin-bottom: 16px;
+}
+
+.detail-maker {
+  font-style: italic;
+}
+
+.detail-condition {
+  text-transform: capitalize;
 }
 
 .detail-desc {
