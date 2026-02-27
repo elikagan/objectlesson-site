@@ -900,8 +900,7 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   border-radius: 50%;
   flex-shrink: 0;
 }
-.activity-dot.view { background: var(--border); }
-.activity-dot.item { background: var(--text); }
+.activity-dot.item { background: var(--light); }
 .activity-dot.inquire { background: var(--black); }
 .activity-text {
   flex: 1;

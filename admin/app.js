@@ -1063,7 +1063,7 @@
       const [pageViews, itemEvents, recentEvents] = await Promise.all([
         supaSelect(`select=session_id,created_at,referrer,utm_source,ua_mobile&event=eq.page_view&created_at=gte.${daysAgoStr(pvDays)}&order=created_at.asc&limit=50000`),
         supaSelect(`select=item_id,event&event=in.(item_view,inquire)&created_at=gte.${daysAgoStr(range)}&item_id=not.is.null&limit=50000`),
-        supaSelect(`select=event,item_id,created_at&order=created_at.desc&limit=15`)
+        supaSelect(`select=event,item_id,created_at&event=in.(item_view,inquire)&order=created_at.desc&limit=15`)
       ]);
 
       // Pre-process timestamps
@@ -1154,21 +1154,12 @@
       const desk = rangePV.length - mob;
       const totalDev = rangePV.length || 1;
 
-      // Activity feed
+      // Activity feed (item views + inquiries only)
       const feedHtml = recentEvents.map(r => {
-        let dot, text;
-        if (r.event === 'inquire') {
-          dot = 'inquire'; const it = items.find(i => i.id === r.item_id);
-          text = 'Inquired ' + (it ? esc(it.title) : formatId(r.item_id || ''));
-        } else if (r.event === 'item_view') {
-          dot = 'item'; const it = items.find(i => i.id === r.item_id);
-          text = 'Viewed ' + (it ? esc(it.title) : formatId(r.item_id || ''));
-        } else if (r.event === 'page_view') {
-          dot = 'view'; text = 'Page visit';
-        } else {
-          dot = 'view'; text = r.event;
-        }
-        return `<div class="activity-row"><span class="activity-dot ${dot}"></span><span class="activity-text">${text}</span><span class="activity-time">${timeAgo(r.created_at)}</span></div>`;
+        const it = items.find(i => i.id === r.item_id);
+        const name = it ? esc(it.title) : formatId(r.item_id || '');
+        const isInq = r.event === 'inquire';
+        return `<div class="activity-row"><span class="activity-dot ${isInq ? 'inquire' : 'item'}"></span><span class="activity-text">${isInq ? 'Inquired' : 'Viewed'} ${name}</span><span class="activity-time">${timeAgo(r.created_at)}</span></div>`;
       }).join('');
 
       const rl = range + 'd';
