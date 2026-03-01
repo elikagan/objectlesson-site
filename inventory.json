@@ -13,13 +13,13 @@
     "isHold": false,
     "isSold": false,
     "images": [
+      "images/products/000024/4.jpg",
       "images/products/000024/0.jpg",
       "images/products/000024/1.jpg",
       "images/products/000024/2.jpg",
-      "images/products/000024/3.jpg",
-      "images/products/000024/4.jpg"
+      "images/products/000024/3.jpg"
     ],
-    "heroImage": "images/products/000024/0.jpg",
+    "heroImage": "images/products/000024/4.jpg",
     "order": 0,
     "createdAt": "2026-03-01T20:26:32.744Z"
   },
