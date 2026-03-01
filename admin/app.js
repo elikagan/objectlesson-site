@@ -745,7 +745,14 @@
         <button class="photo-remove" data-index="${i}">&times;</button>
         ${!p.processed ? `<button class="photo-ai ${p.aiProcess !== false ? 'active' : ''}" data-index="${i}" title="AI processing">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z"/></svg>
-        </button>` : ''}
+        </button>` : `<button class="photo-reprocess" data-index="${i}" title="Reprocess">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        </button>`}
+        <div class="photo-reprocess-menu hidden" data-index="${i}">
+          <button class="reprocess-opt" data-index="${i}" data-mode="lighting">Better lighting</button>
+          <button class="reprocess-opt" data-index="${i}" data-mode="background">Better background removal</button>
+          <button class="reprocess-opt" data-index="${i}" data-mode="shadow">Better shadow</button>
+        </div>
       </div>
     `).join('');
 
@@ -760,6 +767,28 @@
       });
     });
 
+    photoGrid.querySelectorAll('.photo-reprocess').forEach(b => {
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        const menu = b.nextElementSibling;
+        // Close any other open menus
+        photoGrid.querySelectorAll('.photo-reprocess-menu').forEach(m => {
+          if (m !== menu) m.classList.add('hidden');
+        });
+        menu.classList.toggle('hidden');
+      });
+    });
+
+    photoGrid.querySelectorAll('.reprocess-opt').forEach(b => {
+      b.addEventListener('click', async e => {
+        e.stopPropagation();
+        const idx = +b.dataset.index;
+        const mode = b.dataset.mode;
+        b.closest('.photo-reprocess-menu').classList.add('hidden');
+        await reprocessImage(idx, mode);
+      });
+    });
+
     photoGrid.querySelectorAll('.photo-ai').forEach(b => {
       b.addEventListener('click', e => {
         e.stopPropagation();
@@ -768,6 +797,11 @@
         b.classList.toggle('active');
       });
     });
+
+    // Close reprocess menus when clicking outside
+    document.addEventListener('click', () => {
+      photoGrid.querySelectorAll('.photo-reprocess-menu').forEach(m => m.classList.add('hidden'));
+    }, { once: true });
 
     // Defer Sortable init until images have rendered
     requestAnimationFrame(() => {
@@ -882,6 +916,56 @@
     status.innerHTML = msg
       ? '<span class="spinner"></span>' + esc(msg)
       : '';
+  }
+
+  // --- Reprocess single image ---
+
+  const reprocessPrompts = {
+    lighting: 'This product photo has been processed but the lighting needs improvement. Significantly improve the lighting and color balance — make it look bright, clean, and professionally lit. Keep the pure white background, the exact same composition and crop, and any existing shadows. Only change the lighting on the object itself. Return only the edited image.',
+    background: 'This product photo has been processed but still has background artifacts or an imperfect background. Completely remove all background elements and replace with pure white (#FFFFFF). Keep the exact same composition, crop, angle, scale, lighting, and shadows on the object. Only fix the background. Return only the edited image.',
+    shadow: 'This product photo has been processed but the shadow needs improvement. Add a more natural, subtle shadow: for objects that sit on a surface, add a soft contact shadow directly beneath; for wall art or flat items, add a faint drop shadow behind as if wall-mounted. Remove any existing harsh, unnatural, or misplaced shadows first. Keep the white background and exact same composition. Return only the edited image.'
+  };
+
+  async function reprocessImage(idx, mode) {
+    const photo = photos[idx];
+    if (!photo || !geminiKey) return;
+
+    const prompt = reprocessPrompts[mode];
+    if (!prompt) return;
+
+    setStatus(`Reprocessing: ${mode}...`);
+    const btn = document.getElementById('btn-process');
+    btn.disabled = true;
+
+    try {
+      const resized = await resizeImage(photo.dataUrl, 1536);
+      const result = await geminiCall('gemini-2.5-flash-image', [{
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(resized) } }
+        ]
+      }], { responseModalities: ['IMAGE', 'TEXT'] });
+
+      const parts = result.candidates[0].content.parts;
+      const imgPart = parts.find(p => p.inlineData);
+      if (imgPart) {
+        if (photo.blobUrl) URL.revokeObjectURL(photo.blobUrl);
+        photo.dataUrl = `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
+        photo.blobUrl = toBlobUrl(photo.dataUrl);
+        photo.remotePath = null; // force re-upload on save
+        renderPhotos();
+        setStatus('Done.');
+      } else {
+        toast('Reprocess failed — no image returned');
+        setStatus('');
+      }
+    } catch (e) {
+      toast('Reprocess error: ' + e.message);
+      setStatus('');
+    }
+
+    btn.disabled = false;
+    setTimeout(() => setStatus(''), 2000);
   }
 
   // --- Gemini API ---

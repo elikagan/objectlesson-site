@@ -402,6 +402,55 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   color: #fff;
 }
 
+.photo-reprocess {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.photo-reprocess-menu {
+  position: absolute;
+  bottom: 34px;
+  right: 4px;
+  background: #222;
+  border-radius: 8px;
+  padding: 4px 0;
+  z-index: 10;
+  min-width: 180px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.photo-reprocess-menu.hidden {
+  display: none;
+}
+
+.reprocess-opt {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  color: #fff;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.reprocess-opt:active {
+  background: rgba(255,255,255,0.1);
+}
+
 .photo-ghost {
   opacity: 0.3;
 }
