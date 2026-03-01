@@ -816,24 +816,39 @@
         }
       }
 
-      // 2. Background removal on unprocessed product photos (skip ai-exempt)
+      // 2. Auto-detect tape measure and estimate dimensions
+      if (photos.some(p => !p.processed) && !document.getElementById('field-size').value) {
+        setStatus('Checking for tape measure...');
+        const sizeEstimate = await geminiDetectTapeMeasure(photos.filter(p => !p.processed).map(p => p.dataUrl));
+        if (sizeEstimate) {
+          document.getElementById('field-size').value = sizeEstimate;
+        }
+      }
+
+      // 3. Background removal on unprocessed product photos (skip ai-exempt)
       const unprocessed = photos.filter(p => !p.processed && p.aiProcess !== false);
       if (unprocessed.length > 0) {
+        let failed = 0;
         for (let i = 0; i < unprocessed.length; i++) {
           setStatus(`Processing image ${i + 1} of ${unprocessed.length}...`);
           const cleaned = await geminiRemoveBackground(unprocessed[i].dataUrl);
           if (cleaned) {
-            // Revoke old blob URL before replacing
             if (unprocessed[i].blobUrl) URL.revokeObjectURL(unprocessed[i].blobUrl);
             unprocessed[i].dataUrl = cleaned;
             unprocessed[i].blobUrl = toBlobUrl(cleaned);
             unprocessed[i].processed = true;
+          } else {
+            failed++;
+            console.error(`Image ${i + 1} failed background removal after retries`);
           }
         }
         renderPhotos();
+        if (failed > 0) {
+          toast(`${failed} image${failed > 1 ? 's' : ''} failed processing — try again`);
+        }
       }
 
-      // 3. Suggest title, description, category
+      // 4. Suggest title, description, category, maker, condition
       if (photos.length > 0) {
         setStatus('Analyzing item...');
         const suggestions = await geminiSuggest(photos.map(p => p.dataUrl));
@@ -946,29 +961,56 @@
     }
   }
 
+  async function geminiDetectTapeMeasure(dataUrls) {
+    const thumbs = await Promise.all(dataUrls.slice(0, 4).map(url => resizeImage(url, 768)));
+    const parts = [
+      { text: `Look at these photos of an item for sale. Is there a tape measure, ruler, or measuring tool visible in any of them? If yes, use it to estimate the dimensions of the object. Give a concise size string like: 14" H × 8" W or roughly 24" tall or 12" diameter. If no measuring tool is visible, return empty string. Return ONLY valid JSON: {"size": "string"}` }
+    ];
+    for (const url of thumbs) {
+      parts.push({ inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(url) } });
+    }
+    const result = await geminiCall('gemini-2.5-flash', [{ parts }], {
+      responseMimeType: 'application/json'
+    });
+    try {
+      const text = result.candidates[0].content.parts[0].text;
+      const parsed = JSON.parse(text);
+      return parsed.size || '';
+    } catch {
+      return '';
+    }
+  }
+
   async function geminiRemoveBackground(dataUrl) {
     const resized = await resizeImage(dataUrl, 1536);
-    const result = await geminiCall('gemini-2.5-flash-image', [{
-      parts: [
-        { text: 'Prepare this photo for an art gallery product listing. Remove the background and replace it with pure white (#FFFFFF). Do NOT move, resize, reposition, or re-center the object — keep the exact same composition, crop, angle, and scale as the original photo. Improve the lighting and color balance on the object so it looks clean and professional. Add a very subtle, barely noticeable shadow appropriate to the object: for objects that rest on a surface (like a vase or sculpture), a faint contact shadow beneath; for wall-hanging items (like a painting or wall art), a faint shadow behind as if mounted on a wall — never a floor shadow for wall art. Return only the edited image.' },
-        { inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(resized) } }
-      ]
-    }], { responseModalities: ['IMAGE', 'TEXT'] });
 
-    try {
-      const parts = result.candidates[0].content.parts;
-      const imgPart = parts.find(p => p.inlineData);
-      if (imgPart) {
-        return `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
+    // Retry up to 2 times — Gemini image generation can be flaky
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const result = await geminiCall('gemini-2.5-flash-image', [{
+          parts: [
+            { text: 'Edit this product photo for an art gallery e-commerce listing. ALWAYS output an edited image, even if the background is already white or light. Instructions: 1) Replace the entire background with pure white (#FFFFFF). 2) Keep the exact same composition, crop, angle, and scale — do NOT move, resize, or re-center the object. 3) Clean up the lighting and color balance so the object looks professional. 4) Add a very subtle shadow: contact shadow beneath for tabletop objects, wall shadow behind for wall art. Return only the edited image.' },
+            { inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(resized) } }
+          ]
+        }], { responseModalities: ['IMAGE', 'TEXT'] });
+
+        const parts = result.candidates[0].content.parts;
+        const imgPart = parts.find(p => p.inlineData);
+        if (imgPart) {
+          return `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
+        }
+        console.warn(`BG removal attempt ${attempt + 1}: no image in response`);
+      } catch (e) {
+        console.warn(`BG removal attempt ${attempt + 1} failed:`, e.message);
       }
-    } catch { /* ignore */ }
+    }
     return null;
   }
 
   async function geminiSuggest(dataUrls) {
     const thumbs = await Promise.all(dataUrls.slice(0, 4).map(url => resizeImage(url, 768)));
     const parts = [
-      { text: 'You are cataloging items for an antique gallery. Based on these photos, provide: a short title (2-5 words, title case, just what the object is), a description that flows naturally from the title as a continuation (1 simple descriptive sentence — materials, era, origin if obvious. Do NOT repeat the title. Do NOT start with "This" or "A" or "An". No flowery language, no marketing speak), a category (exactly one of: wall-art, object, ceramic, furniture, light, sculpture, misc), a maker or brand if identifiable (empty string if unknown), and condition (brief freeform description of condition based on visible wear, patina, damage — e.g. "Excellent", "Good, minor wear to edges", "Fair, chip on base" — empty string if can\'t determine). Return ONLY valid JSON: {"title": "string", "description": "string", "category": "string", "maker": "string", "condition": "string"}' }
+      { text: 'You are cataloging items for a vintage/antique shop. Based on these photos, provide: a short title (2-5 words, title case, just what the object is), a description (one short factual sentence — material, color, era, style. Write it like a search-friendly label, e.g. "Small red ceramic vase" or "Mid-century walnut side table with tapered legs." Do NOT start with "This" or "A" or "An" or "Looks like" or "Features" or "Appears to be". No AI-sounding language. No marketing.), a category (exactly one of: wall-art, object, ceramic, furniture, light, sculpture, misc), a maker or brand if identifiable (empty string if unknown), and condition (brief description of visible wear — e.g. "Excellent", "Good, minor wear to edges" — empty string if can\'t tell). Return ONLY valid JSON: {"title": "string", "description": "string", "category": "string", "maker": "string", "condition": "string"}' }
     ];
     for (const url of thumbs) {
       parts.push({ inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(url) } });
