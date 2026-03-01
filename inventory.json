@@ -14,8 +14,7 @@
     "isSold": false,
     "images": [
       "images/products/000021/0.jpg",
-      "images/products/000021/1.jpg",
-      "images/products/000021/2.jpg"
+      "images/products/000021/1.jpg"
     ],
     "heroImage": "images/products/000021/0.jpg",
     "order": 0,
