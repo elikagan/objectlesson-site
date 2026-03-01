@@ -167,7 +167,15 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
 
 .topbar-actions {
   display: flex;
+  align-items: center;
   gap: 4px;
+}
+
+.version-label {
+  font-size: 10px;
+  color: var(--text);
+  opacity: 0.5;
+  letter-spacing: 0.5px;
 }
 
 /* --- Item List --- */

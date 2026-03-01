@@ -2,6 +2,7 @@
   'use strict';
 
   // --- Config ---
+  const APP_VERSION = 'v32';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -127,6 +128,10 @@
   const photoInput = document.getElementById('photo-input');
   const status = document.getElementById('processing-status');
   const toastEl = document.getElementById('toast');
+
+  // --- Version label ---
+  const versionLabel = document.getElementById('version-label');
+  if (versionLabel) versionLabel.textContent = APP_VERSION;
 
   // --- PIN Lock ---
 
