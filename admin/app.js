@@ -747,12 +747,12 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z"/></svg>
         </button>` : `<button class="photo-reprocess" data-index="${i}" title="Reprocess">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-        </button>`}
+        </button>
         <div class="photo-reprocess-menu hidden" data-index="${i}">
           <button class="reprocess-opt" data-index="${i}" data-mode="lighting">Better lighting</button>
           <button class="reprocess-opt" data-index="${i}" data-mode="background">Better background removal</button>
           <button class="reprocess-opt" data-index="${i}" data-mode="shadow">Better shadow</button>
-        </div>
+        </div>`}
       </div>
     `).join('');
 
@@ -812,7 +812,7 @@
         ghostClass: 'photo-ghost',
         delay: 150,
         delayOnTouchOnly: true,
-        filter: '.photo-remove',
+        filter: '.photo-remove, .photo-reprocess, .photo-reprocess-menu, .reprocess-opt, .photo-ai',
         onEnd: (evt) => {
           const moved = photos.splice(evt.oldIndex, 1)[0];
           photos.splice(evt.newIndex, 0, moved);
