@@ -1046,11 +1046,12 @@
   }
 
   async function geminiDetectTapeMeasure(dataUrls) {
-    const thumbs = await Promise.all(dataUrls.slice(0, 4).map(url => resizeImage(url, 768)));
+    // Use higher resolution so tape markings are legible
+    const imgs = await Promise.all(dataUrls.slice(0, 4).map(url => resizeImage(url, 1536)));
     const parts = [
-      { text: `Look at these photos of an item for sale. Is there a tape measure, ruler, or measuring tool visible in any of them? If yes, use it to estimate the dimensions of the object. Give a concise size string like: 14" H × 8" W or roughly 24" tall or 12" diameter. If no measuring tool is visible, return empty string. Return ONLY valid JSON: {"size": "string"}` }
+      { text: `These are photos of an item for sale. Check if any photo contains a tape measure, ruler, or measuring tool. If yes, READ THE ACTUAL NUMBERS AND MARKINGS on the measuring tool — do NOT estimate or guess. Look at where the tape measure starts and ends against the object, read the inch/cm markings at those points, and calculate the exact measurement shown. Report the dimensions you READ from the tool. Format as a concise size string, e.g.: 9.5" L × 4" W or 14" H or 12" diameter. If no measuring tool is visible, return empty string. Return ONLY valid JSON: {"size": "string"}` }
     ];
-    for (const url of thumbs) {
+    for (const url of imgs) {
       parts.push({ inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(url) } });
     }
     const result = await geminiCall('gemini-2.5-flash', [{ parts }], {
@@ -1068,12 +1069,12 @@
   async function geminiRemoveBackground(dataUrl) {
     const resized = await resizeImage(dataUrl, 1536);
 
-    // Retry up to 2 times — Gemini image generation can be flaky
-    for (let attempt = 0; attempt < 2; attempt++) {
+    // Retry up to 3 times — Gemini image generation can be flaky, especially on white backgrounds
+    for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const result = await geminiCall('gemini-2.5-flash-image', [{
           parts: [
-            { text: 'Edit this product photo for an art gallery e-commerce listing. ALWAYS output an edited image, even if the background is already white or light. Instructions: 1) Replace the entire background with pure white (#FFFFFF). 2) Keep the exact same composition, crop, angle, and scale — do NOT move, resize, or re-center the object. 3) Clean up the lighting and color balance so the object looks professional. 4) Add a very subtle shadow: contact shadow beneath for tabletop objects, wall shadow behind for wall art. Return only the edited image.' },
+            { text: 'You MUST output an edited image. Do NOT output only text. Edit this product photo: 1) Make the background pure white #FFFFFF — even if it already looks white, re-process it to ensure perfectly uniform white with zero artifacts, shadows on the background, or off-white areas. 2) Keep the EXACT same composition, crop, angle, and scale — do NOT move, resize, reposition, or re-center the object. 3) Improve the lighting and color balance on the object itself. 4) Add a subtle contact shadow beneath the object (for tabletop items) or a faint wall shadow behind it (for wall art). You MUST return the edited image.' },
             { inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(resized) } }
           ]
         }], { responseModalities: ['IMAGE', 'TEXT'] });
@@ -1083,7 +1084,9 @@
         if (imgPart) {
           return `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
         }
-        console.warn(`BG removal attempt ${attempt + 1}: no image in response`);
+        // Log what Gemini returned instead of an image
+        const textPart = parts.find(p => p.text);
+        console.warn(`BG removal attempt ${attempt + 1}: no image. Text response:`, textPart?.text || '(none)');
       } catch (e) {
         console.warn(`BG removal attempt ${attempt + 1} failed:`, e.message);
       }
