@@ -933,16 +933,25 @@
     const prompt = reprocessPrompts[mode];
     if (!prompt) return;
 
-    setStatus(`Reprocessing: ${mode}...`);
+    // Show spinner overlay on the photo
+    const cell = photoGrid.querySelector(`.photo-cell[data-index="${idx}"]`);
+    if (cell) {
+      const overlay = document.createElement('div');
+      overlay.className = 'photo-processing-overlay';
+      overlay.innerHTML = '<span class="photo-spinner"></span>';
+      cell.appendChild(overlay);
+    }
+
     const btn = document.getElementById('btn-process');
     btn.disabled = true;
 
     try {
       const resized = await resizeImage(photo.dataUrl, 1536);
+      const base64 = dataUrlToBase64(resized);
       const result = await geminiCall('gemini-2.5-flash-image', [{
         parts: [
           { text: prompt },
-          { inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(resized) } }
+          { inlineData: { mimeType: 'image/jpeg', data: base64 } }
         ]
       }], { responseModalities: ['IMAGE', 'TEXT'] });
 
@@ -954,18 +963,21 @@
         photo.blobUrl = toBlobUrl(photo.dataUrl);
         photo.remotePath = null; // force re-upload on save
         renderPhotos();
-        setStatus('Done.');
+        toast('Reprocessed.');
       } else {
-        toast('Reprocess failed — no image returned');
-        setStatus('');
+        const textPart = result.candidates[0].content.parts.find(p => p.text);
+        console.warn('Reprocess: no image returned. Response:', textPart?.text || '(none)');
+        toast('Reprocess failed — try again');
+        // Remove overlay
+        if (cell) { const o = cell.querySelector('.photo-processing-overlay'); if (o) o.remove(); }
       }
     } catch (e) {
-      toast('Reprocess error: ' + e.message);
-      setStatus('');
+      console.error('Reprocess error:', e.message);
+      toast('Reprocess error — try again');
+      if (cell) { const o = cell.querySelector('.photo-processing-overlay'); if (o) o.remove(); }
     }
 
     btn.disabled = false;
-    setTimeout(() => setStatus(''), 2000);
   }
 
   // --- Gemini API ---
@@ -996,6 +1008,7 @@
   function resizeImage(dataUrl, maxDim) {
     return new Promise(resolve => {
       const img = new Image();
+      img.crossOrigin = 'anonymous';
       img.onload = () => {
         const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
         const c = document.createElement('canvas');
@@ -1068,14 +1081,15 @@
 
   async function geminiRemoveBackground(dataUrl) {
     const resized = await resizeImage(dataUrl, 1536);
+    const base64 = dataUrlToBase64(resized);
 
-    // Retry up to 3 times — Gemini image generation can be flaky, especially on white backgrounds
+    // Retry up to 3 times
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const result = await geminiCall('gemini-2.5-flash-image', [{
           parts: [
-            { text: 'You MUST output an edited image. Do NOT output only text. Edit this product photo: 1) Make the background pure white #FFFFFF — even if it already looks white, re-process it to ensure perfectly uniform white with zero artifacts, shadows on the background, or off-white areas. 2) Keep the EXACT same composition, crop, angle, and scale — do NOT move, resize, reposition, or re-center the object. 3) Improve the lighting and color balance on the object itself. 4) Add a subtle contact shadow beneath the object (for tabletop items) or a faint wall shadow behind it (for wall art). You MUST return the edited image.' },
-            { inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(resized) } }
+            { text: 'Edit this photo. Output the edited image. Remove everything except the main object. Set the background to solid white. Keep the object in the same position and size. Improve the lighting on the object. Add a small soft shadow under the object.' },
+            { inlineData: { mimeType: 'image/jpeg', data: base64 } }
           ]
         }], { responseModalities: ['IMAGE', 'TEXT'] });
 
@@ -1084,9 +1098,8 @@
         if (imgPart) {
           return `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
         }
-        // Log what Gemini returned instead of an image
         const textPart = parts.find(p => p.text);
-        console.warn(`BG removal attempt ${attempt + 1}: no image. Text response:`, textPart?.text || '(none)');
+        console.warn(`BG removal attempt ${attempt + 1}: no image. Response:`, textPart?.text || '(none)');
       } catch (e) {
         console.warn(`BG removal attempt ${attempt + 1} failed:`, e.message);
       }
