@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v34';
+  const APP_VERSION = 'v35';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -835,7 +835,6 @@
   // --- AI Processing ---
 
   document.getElementById('btn-process').addEventListener('click', processWithAI);
-  document.getElementById('btn-test-pipeline').addEventListener('click', testPipelines);
 
   async function processWithAI() {
     if (photos.length === 0) { toast('Add photos first'); return; }
@@ -1188,63 +1187,6 @@
       return null;
     }
   }
-
-  // --- A/B Pipeline Test ---
-  async function testPipelines() {
-    if (photos.length === 0) { toast('Add a photo first'); return; }
-    if (!removeBgKey) { toast('Set remove.bg key in Settings first'); return; }
-
-    const src = photos[0].dataUrl;
-    const log = (msg) => { console.log(`[PIPELINE TEST] ${msg}`); setStatus(msg); };
-
-    // --- Pipeline A: Current Gemini-only ---
-    log('Pipeline A (Gemini only): starting...');
-    let t0 = performance.now();
-    const resultA = await geminiRemoveBackground(src);
-    const timeA = ((performance.now() - t0) / 1000).toFixed(1);
-    log(`Pipeline A done: ${timeA}s — ${resultA ? 'SUCCESS' : 'FAILED'}`);
-
-    // --- Pipeline B: remove.bg + Gemini lighting ---
-    log('Pipeline B (remove.bg + Gemini lighting): starting...');
-    t0 = performance.now();
-
-    log('Pipeline B step 1: remove.bg...');
-    const t1 = performance.now();
-    const cutout = await removeBgProcess(src);
-    const timeB1 = ((performance.now() - t1) / 1000).toFixed(1);
-    log(`Pipeline B step 1 done: ${timeB1}s`);
-
-    log('Pipeline B step 2: Canvas composite...');
-    const composited = await compositeOnWhite(cutout);
-
-    log('Pipeline B step 3: Gemini lighting...');
-    const t3 = performance.now();
-    const enhanced = await geminiEnhanceLighting(composited);
-    const timeB3 = ((performance.now() - t3) / 1000).toFixed(1);
-    log(`Pipeline B step 3 done: ${timeB3}s — ${enhanced ? 'SUCCESS' : 'FAILED (using Canvas fallback)'}`);
-
-    const resultB = enhanced || composited;
-    const timeB = ((performance.now() - t0) / 1000).toFixed(1);
-
-    // Show results
-    console.log(`\n=== PIPELINE TEST RESULTS ===`);
-    console.log(`Pipeline A (Gemini only): ${timeA}s — ${resultA ? 'got image' : 'FAILED'}`);
-    console.log(`Pipeline B (remove.bg→Gemini): ${timeB}s total (remove.bg: ${timeB1}s, lighting: ${timeB3}s)`);
-    console.log(`Pipeline B always produces output (Canvas fallback if Gemini fails)`);
-
-    // Replace first two photos with results for visual comparison
-    const origThumb = { dataUrl: src, blobUrl: toBlobUrl(src), processed: false, label: 'ORIGINAL' };
-    const aThumb = resultA ? { dataUrl: resultA, blobUrl: toBlobUrl(resultA), processed: true, label: 'A: Gemini' } : null;
-    const bThumb = { dataUrl: resultB, blobUrl: toBlobUrl(resultB), processed: true, label: 'B: remove.bg+Gemini' };
-
-    photos = [origThumb, aThumb, bThumb].filter(Boolean);
-    renderPhotos();
-
-    setStatus(`A: ${timeA}s ${resultA ? '✓' : '✗'} | B: ${timeB}s ✓ (remove.bg ${timeB1}s + lighting ${timeB3}s)`);
-  }
-
-  // Expose test button
-  window._testPipelines = testPipelines;
 
   async function geminiSuggest(dataUrls) {
     const thumbs = await Promise.all(dataUrls.slice(0, 4).map(url => resizeImage(url, 768)));
