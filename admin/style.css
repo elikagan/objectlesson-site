@@ -120,6 +120,20 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
 .btn-secondary:active { background: var(--bg2); }
 .btn-secondary:disabled { opacity: 0.3; cursor: default; }
 
+.btn-test-pipeline {
+  width: 100%;
+  padding: 8px;
+  margin-top: 6px;
+  font-size: 11px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  opacity: 0.6;
+}
+.btn-test-pipeline:active { background: var(--bg2); }
+
 .icon-btn {
   width: 36px;
   height: 36px;

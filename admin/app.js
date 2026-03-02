@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v32';
+  const APP_VERSION = 'v33';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -47,6 +47,7 @@
   // --- State ---
   let ghToken = '';
   let geminiKey = '';
+  let removeBgKey = '';
   let supaUrl = '';
   let supaKey = '';
   let currentPin = null;
@@ -195,6 +196,7 @@
 
     ghToken = await load('ol_gh_token');
     geminiKey = await load('ol_gemini_key');
+    removeBgKey = await load('ol_removebg_key') || '';
     supaUrl = await load('ol_supa_url');
     supaKey = await load('ol_supa_key');
     const unlocked = await load('ol_unlocked');
@@ -266,11 +268,13 @@
   document.getElementById('btn-save-setup').addEventListener('click', async () => {
     ghToken = document.getElementById('input-gh-token').value.trim();
     geminiKey = document.getElementById('input-gemini-key').value.trim();
+    removeBgKey = document.getElementById('input-removebg-key').value.trim();
     supaUrl = document.getElementById('input-supa-url').value.trim().replace(/\/+$/, '');
     supaKey = document.getElementById('input-supa-key').value.trim();
     if (!ghToken || !geminiKey) { toast('GitHub + Gemini keys are required'); return; }
     await store('ol_gh_token', ghToken);
     await store('ol_gemini_key', geminiKey);
+    if (removeBgKey) await store('ol_removebg_key', removeBgKey);
     if (supaUrl) await store('ol_supa_url', supaUrl);
     if (supaKey) await store('ol_supa_key', supaKey);
     // Backup encrypted config to repo so phone never needs key entry
@@ -295,6 +299,7 @@
     menuDropdown.classList.add('hidden');
     document.getElementById('input-gh-token').value = ghToken;
     document.getElementById('input-gemini-key').value = geminiKey;
+    document.getElementById('input-removebg-key').value = removeBgKey;
     document.getElementById('input-supa-url').value = supaUrl;
     document.getElementById('input-supa-key').value = supaKey;
     document.getElementById('setup-topbar').style.display = '';
@@ -830,6 +835,7 @@
   // --- AI Processing ---
 
   document.getElementById('btn-process').addEventListener('click', processWithAI);
+  document.getElementById('btn-test-pipeline').addEventListener('click', testPipelines);
 
   async function processWithAI() {
     if (photos.length === 0) { toast('Add photos first'); return; }
@@ -1111,6 +1117,142 @@
     }
     return null;
   }
+
+  // --- remove.bg background removal ---
+
+  async function removeBgProcess(dataUrl) {
+    if (!removeBgKey) throw new Error('remove.bg API key not set');
+    const resized = await resizeImage(dataUrl, 1536);
+    const base64 = dataUrlToBase64(resized);
+    const blob = await (await fetch(`data:image/jpeg;base64,${base64}`)).blob();
+
+    const form = new FormData();
+    form.append('image_file', blob, 'image.jpg');
+    form.append('size', 'auto');
+    form.append('format', 'png');
+
+    const res = await fetch('https://api.remove.bg/v1.0/removebg', {
+      method: 'POST',
+      headers: { 'X-Api-Key': removeBgKey },
+      body: form
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`remove.bg error ${res.status}: ${err}`);
+    }
+
+    const resultBlob = await res.blob();
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(resultBlob);
+    });
+  }
+
+  // Composite transparent PNG onto white bg with shadow using Canvas
+  function compositeOnWhite(transparentDataUrl) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = img.width;
+        c.height = img.height;
+        const ctx = c.getContext('2d');
+        // White background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        // Soft shadow
+        ctx.shadowColor = 'rgba(0,0,0,0.15)';
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 8;
+        ctx.drawImage(img, 0, 0);
+        resolve(c.toDataURL('image/jpeg', 0.92));
+      };
+      img.src = transparentDataUrl;
+    });
+  }
+
+  // Gemini lighting enhancement on already-cutout image
+  async function geminiEnhanceLighting(dataUrl) {
+    const base64 = dataUrlToBase64(dataUrl);
+    try {
+      const result = await geminiCall('gemini-2.5-flash-image', [{
+        parts: [
+          { text: 'This is a product photo on a white background. Improve the lighting to look like professional product photography — bright, clean, even lighting. Keep the white background pure white. Keep the exact same composition and object. Add a small soft natural shadow. Output the edited image.' },
+          { inlineData: { mimeType: 'image/jpeg', data: base64 } }
+        ]
+      }], { responseModalities: ['IMAGE', 'TEXT'] });
+
+      const parts = result.candidates[0].content.parts;
+      const imgPart = parts.find(p => p.inlineData);
+      if (imgPart) {
+        return `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  // --- A/B Pipeline Test ---
+  async function testPipelines() {
+    if (photos.length === 0) { toast('Add a photo first'); return; }
+    if (!removeBgKey) { toast('Set remove.bg key in Settings first'); return; }
+
+    const src = photos[0].dataUrl;
+    const log = (msg) => { console.log(`[PIPELINE TEST] ${msg}`); setStatus(msg); };
+
+    // --- Pipeline A: Current Gemini-only ---
+    log('Pipeline A (Gemini only): starting...');
+    let t0 = performance.now();
+    const resultA = await geminiRemoveBackground(src);
+    const timeA = ((performance.now() - t0) / 1000).toFixed(1);
+    log(`Pipeline A done: ${timeA}s — ${resultA ? 'SUCCESS' : 'FAILED'}`);
+
+    // --- Pipeline B: remove.bg + Gemini lighting ---
+    log('Pipeline B (remove.bg + Gemini lighting): starting...');
+    t0 = performance.now();
+
+    log('Pipeline B step 1: remove.bg...');
+    const t1 = performance.now();
+    const cutout = await removeBgProcess(src);
+    const timeB1 = ((performance.now() - t1) / 1000).toFixed(1);
+    log(`Pipeline B step 1 done: ${timeB1}s`);
+
+    log('Pipeline B step 2: Canvas composite...');
+    const composited = await compositeOnWhite(cutout);
+
+    log('Pipeline B step 3: Gemini lighting...');
+    const t3 = performance.now();
+    const enhanced = await geminiEnhanceLighting(composited);
+    const timeB3 = ((performance.now() - t3) / 1000).toFixed(1);
+    log(`Pipeline B step 3 done: ${timeB3}s — ${enhanced ? 'SUCCESS' : 'FAILED (using Canvas fallback)'}`);
+
+    const resultB = enhanced || composited;
+    const timeB = ((performance.now() - t0) / 1000).toFixed(1);
+
+    // Show results
+    console.log(`\n=== PIPELINE TEST RESULTS ===`);
+    console.log(`Pipeline A (Gemini only): ${timeA}s — ${resultA ? 'got image' : 'FAILED'}`);
+    console.log(`Pipeline B (remove.bg→Gemini): ${timeB}s total (remove.bg: ${timeB1}s, lighting: ${timeB3}s)`);
+    console.log(`Pipeline B always produces output (Canvas fallback if Gemini fails)`);
+
+    // Replace first two photos with results for visual comparison
+    const origThumb = { dataUrl: src, blobUrl: toBlobUrl(src), processed: false, label: 'ORIGINAL' };
+    const aThumb = resultA ? { dataUrl: resultA, blobUrl: toBlobUrl(resultA), processed: true, label: 'A: Gemini' } : null;
+    const bThumb = { dataUrl: resultB, blobUrl: toBlobUrl(resultB), processed: true, label: 'B: remove.bg+Gemini' };
+
+    photos = [origThumb, aThumb, bThumb].filter(Boolean);
+    renderPhotos();
+
+    setStatus(`A: ${timeA}s ${resultA ? '✓' : '✗'} | B: ${timeB}s ✓ (remove.bg ${timeB1}s + lighting ${timeB3}s)`);
+  }
+
+  // Expose test button
+  window._testPipelines = testPipelines;
 
   async function geminiSuggest(dataUrls) {
     const thumbs = await Promise.all(dataUrls.slice(0, 4).map(url => resizeImage(url, 768)));
