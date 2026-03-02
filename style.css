@@ -158,6 +158,31 @@ header {
   font-weight: 500;
 }
 
+/* --- Site Banner --- */
+
+.site-banner {
+  text-align: center;
+  padding: 10px 40px 10px 16px;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--black);
+  background: #f5f5f5;
+  position: relative;
+}
+
+.banner-close {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--gray);
+  cursor: pointer;
+  padding: 4px;
+}
+
 /* --- Mosaic --- */
 
 .mosaic {
