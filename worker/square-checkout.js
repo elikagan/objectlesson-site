@@ -299,6 +299,16 @@ async function handleWebhook(request, env) {
   }
 }
 
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const chunk = 8192;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
 async function handleRemoveBg(request, env) {
   try {
     const { imageBase64, apiKey } = await request.json();
@@ -307,7 +317,9 @@ async function handleRemoveBg(request, env) {
     }
 
     // Convert base64 to binary
-    const binary = Uint8Array.from(atob(imageBase64), c => c.charCodeAt(0));
+    const raw = atob(imageBase64);
+    const binary = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) binary[i] = raw.charCodeAt(i);
     const blob = new Blob([binary], { type: 'image/jpeg' });
 
     const form = new FormData();
@@ -327,7 +339,7 @@ async function handleRemoveBg(request, env) {
     }
 
     const resultBuf = await res.arrayBuffer();
-    const resultBase64 = btoa(String.fromCharCode(...new Uint8Array(resultBuf)));
+    const resultBase64 = arrayBufferToBase64(resultBuf);
 
     return new Response(JSON.stringify({ imageBase64: resultBase64 }), {
       status: 200,
