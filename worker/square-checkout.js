@@ -14,6 +14,10 @@ export default {
       return handleWebhook(request, env);
     }
 
+    if (url.pathname === '/removebg' && request.method === 'POST') {
+      return handleRemoveBg(request, env);
+    }
+
     return new Response('Not found', { status: 404 });
   }
 };
@@ -292,6 +296,45 @@ async function handleWebhook(request, env) {
   } catch (e) {
     console.error('🚨🚨🚨 WEBHOOK CRASHED:', e.message, e.stack);
     return new Response('Error', { status: 500 });
+  }
+}
+
+async function handleRemoveBg(request, env) {
+  try {
+    const { imageBase64, apiKey } = await request.json();
+    if (!imageBase64 || !apiKey) {
+      return jsonResponse({ error: 'Missing imageBase64 or apiKey' }, 400, request);
+    }
+
+    // Convert base64 to binary
+    const binary = Uint8Array.from(atob(imageBase64), c => c.charCodeAt(0));
+    const blob = new Blob([binary], { type: 'image/jpeg' });
+
+    const form = new FormData();
+    form.append('image_file', blob, 'image.jpg');
+    form.append('size', 'auto');
+    form.append('format', 'png');
+
+    const res = await fetch('https://api.remove.bg/v1.0/removebg', {
+      method: 'POST',
+      headers: { 'X-Api-Key': apiKey },
+      body: form
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      return jsonResponse({ error: `remove.bg ${res.status}: ${err}` }, res.status, request);
+    }
+
+    const resultBuf = await res.arrayBuffer();
+    const resultBase64 = btoa(String.fromCharCode(...new Uint8Array(resultBuf)));
+
+    return new Response(JSON.stringify({ imageBase64: resultBase64 }), {
+      status: 200,
+      headers: { ...corsHeaders(request), 'Content-Type': 'application/json' }
+    });
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, request);
   }
 }
 

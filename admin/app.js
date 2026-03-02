@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v33';
+  const APP_VERSION = 'v34';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -1118,36 +1118,28 @@
     return null;
   }
 
-  // --- remove.bg background removal ---
+  // --- remove.bg background removal (proxied through Cloudflare Worker) ---
+
+  const WORKER_URL = 'https://ol-checkout.objectlesson.workers.dev';
 
   async function removeBgProcess(dataUrl) {
     if (!removeBgKey) throw new Error('remove.bg API key not set');
     const resized = await resizeImage(dataUrl, 1536);
     const base64 = dataUrlToBase64(resized);
-    const blob = await (await fetch(`data:image/jpeg;base64,${base64}`)).blob();
 
-    const form = new FormData();
-    form.append('image_file', blob, 'image.jpg');
-    form.append('size', 'auto');
-    form.append('format', 'png');
-
-    const res = await fetch('https://api.remove.bg/v1.0/removebg', {
+    const res = await fetch(`${WORKER_URL}/removebg`, {
       method: 'POST',
-      headers: { 'X-Api-Key': removeBgKey },
-      body: form
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageBase64: base64, apiKey: removeBgKey })
     });
 
     if (!res.ok) {
       const err = await res.text();
-      throw new Error(`remove.bg error ${res.status}: ${err}`);
+      throw new Error(`remove.bg proxy error ${res.status}: ${err}`);
     }
 
-    const resultBlob = await res.blob();
-    return new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.readAsDataURL(resultBlob);
-    });
+    const data = await res.json();
+    return `data:image/png;base64,${data.imageBase64}`;
   }
 
   // Composite transparent PNG onto white bg with shadow using Canvas
