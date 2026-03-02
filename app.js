@@ -205,8 +205,6 @@
 
     document.getElementById('detail-title').textContent = item.title;
     document.getElementById('detail-price').textContent = '$' + Number(item.price).toLocaleString();
-    const taxEl = document.getElementById('detail-tax');
-    const totalEl = document.getElementById('detail-total');
     const sizeEl = document.getElementById('detail-size');
     sizeEl.textContent = item.size || '';
     sizeEl.style.display = item.size ? '' : 'none';
@@ -256,8 +254,6 @@
       inquireEl.style.display = 'none';
       buyEl.style.display = 'none';
       shippingEl.style.display = 'none';
-      taxEl.style.display = 'none';
-      totalEl.style.display = 'none';
       discountEl.style.display = 'none';
       if (wasPurchased) {
         purchasedEl.style.display = '';
@@ -272,8 +268,6 @@
       buyEl.style.display = 'none';
       shippingEl.style.display = 'none';
       purchasedEl.style.display = 'none';
-      taxEl.style.display = 'none';
-      totalEl.style.display = 'none';
       discountEl.style.display = 'none';
       inquireEl.style.display = '';
       inquireEl.href = buyLink(item);
@@ -287,12 +281,6 @@
       inquireEl.onclick = () => trackEvent('inquire', id);
 
       if (hasPrice) {
-        const tax = Number(item.price) * 0.1025;
-        const total = Number(item.price) + tax;
-        taxEl.textContent = `Tax (10.25%): $${tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-        totalEl.textContent = `Total: $${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-        taxEl.style.display = '';
-        totalEl.style.display = '';
         buyEl.style.display = '';
         shippingEl.style.display = '';
         discountEl.style.display = '';
@@ -381,8 +369,6 @@
       } else {
         buyEl.style.display = 'none';
         shippingEl.style.display = 'none';
-        taxEl.style.display = 'none';
-        totalEl.style.display = 'none';
         discountEl.style.display = 'none';
       }
     }
@@ -646,10 +632,11 @@
     mosaicCells = [];
 
     const shuffled = [...mosaicItems].sort(() => Math.random() - 0.5);
+    const cellCount = Math.min(MOSAIC_CELLS, shuffled.length);
 
-    for (let i = 0; i < MOSAIC_CELLS; i++) {
-      const item = shuffled[i % shuffled.length];
-      const nextItem = shuffled[(i + 1) % shuffled.length];
+    for (let i = 0; i < cellCount; i++) {
+      const item = shuffled[i];
+      const nextItem = shuffled[(i + 1) % cellCount];
 
       const cell = document.createElement('a');
       cell.className = 'mosaic-cell';
@@ -808,8 +795,6 @@
 
   function updatePriceDisplay(item) {
     const priceEl = document.getElementById('detail-price');
-    const taxEl = document.getElementById('detail-tax');
-    const totalEl = document.getElementById('detail-total');
     const originalPrice = Number(item.price);
 
     if (appliedDiscount && originalPrice > 0) {
@@ -817,19 +802,9 @@
       priceEl.classList.add('discounted');
       discountPriceEl.textContent = '$' + discounted.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
       discountPriceEl.style.display = '';
-      const tax = discounted * 0.1025;
-      const total = discounted + tax;
-      taxEl.textContent = `Tax (10.25%): $${tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      totalEl.textContent = `Total: $${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     } else {
       priceEl.classList.remove('discounted');
       discountPriceEl.style.display = 'none';
-      if (originalPrice > 0) {
-        const tax = originalPrice * 0.1025;
-        const total = originalPrice + tax;
-        taxEl.textContent = `Tax (10.25%): $${tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-        totalEl.textContent = `Total: $${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      }
     }
   }
 

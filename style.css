@@ -538,19 +538,6 @@ main {
   margin-bottom: 2px;
 }
 
-.detail-tax {
-  font-size: 13px;
-  color: var(--light);
-  margin-bottom: 2px;
-}
-
-.detail-total {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--black);
-  margin-bottom: 6px;
-}
-
 .detail-size {
   font-size: 14px;
   color: var(--light);
