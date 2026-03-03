@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v36';
+  const APP_VERSION = 'v37';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -1365,7 +1365,7 @@
       const msOf = s => new Date(s + 'T00:00:00Z').getTime();
       const todayMs = msOf(todayStr), yesterdayMs = msOf(yesterdayStr);
       const weekMs = msOf(weekStr), lastWeekMs = msOf(lastWeekStr);
-      const rangeMs = new Date(daysAgoStr(range)).getTime();
+      const rangeMs = range === 1 ? todayMs : new Date(daysAgoStr(range)).getTime();
 
       const pvBetween = (s, e) => pageViews.filter(r => r._ts >= s && (!e || r._ts < e));
 
@@ -1375,25 +1375,49 @@
       const lastWeekPV = pvBetween(lastWeekMs, weekMs);
       const rangePV = pvBetween(rangeMs);
 
-      // Summary cards
+      // Summary cards — responsive to range
+      const rangeViews = rangePV.length;
+      const rangeUniques = new Set(rangePV.map(r => r.session_id)).size;
+
+      // Compare to previous period of same length
+      const prevRangeMs = new Date(daysAgoStr(range * 2)).getTime();
+      const prevRangePV = pageViews.filter(r => r._ts >= prevRangeMs && r._ts < rangeMs);
+      const rangeDelta = pctChange(rangeViews, prevRangePV.length);
+
+      // Also keep today stats for the secondary card
       const todayViews = todayPV.length;
       const todayUniques = new Set(todayPV.map(r => r.session_id)).size;
-      const weekViews = weekPV.length;
-      const weekUniques = new Set(weekPV.map(r => r.session_id)).size;
       const todayDelta = pctChange(todayViews, yesterdayPV.length);
-      const weekDelta = pctChange(weekViews, lastWeekPV.length);
 
-      // 14-day sparkline
+      // Range label
+      const rangeLabels = { 1: 'Today', 7: 'This Week', 30: 'This Month', 90: 'Last 90 Days' };
+      const rangeLabel = rangeLabels[range] || range + 'd';
+
+      // Sparkline — adapt to range
+      const sparkCount = range === 1 ? 24 : Math.min(range, 14);
       const sparkDays = [];
-      for (let i = 13; i >= 0; i--) {
-        const d = new Date(now); d.setDate(now.getDate() - i);
-        const ds = d.toISOString().slice(0, 10);
-        const s = msOf(ds), e = s + 86400000;
-        sparkDays.push({
-          day: d.toLocaleDateString('en', { weekday: 'narrow' }),
-          count: pageViews.filter(r => r._ts >= s && r._ts < e).length,
-          isToday: i === 0
-        });
+      if (range === 1) {
+        // Hourly breakdown for 1d
+        for (let i = 23; i >= 0; i--) {
+          const h = new Date(now); h.setHours(now.getHours() - i, 0, 0, 0);
+          const s = h.getTime(), e = s + 3600000;
+          sparkDays.push({
+            day: h.getHours() % 6 === 0 ? h.toLocaleTimeString('en', { hour: 'numeric', hour12: true }).replace(' ', '') : '',
+            count: pageViews.filter(r => r._ts >= s && r._ts < e).length,
+            isToday: i === 0
+          });
+        }
+      } else {
+        for (let i = sparkCount - 1; i >= 0; i--) {
+          const d = new Date(now); d.setDate(now.getDate() - i);
+          const ds = d.toISOString().slice(0, 10);
+          const s = msOf(ds), e = s + 86400000;
+          sparkDays.push({
+            day: d.toLocaleDateString('en', { weekday: 'narrow' }),
+            count: pageViews.filter(r => r._ts >= s && r._ts < e).length,
+            isToday: i === 0
+          });
+        }
       }
       const sparkMax = Math.max(1, ...sparkDays.map(d => d.count));
 
@@ -1448,26 +1472,29 @@
       const totalDev = rangePV.length || 1;
 
       const rl = range + 'd';
+      const sparkLabel = range === 1 ? 'Hourly Views <span class="analytics-dim">today</span>' : `Daily Views <span class="analytics-dim">${rl}</span>`;
 
       // --- Render ---
       body.innerHTML = `
         <div class="analytics-cards">
+          <div class="analytics-card">
+            <div class="analytics-card-label">${rangeLabel}</div>
+            <div class="analytics-card-value">${rangeViews}</div>
+            <div class="analytics-card-sub">${rangeUniques} unique${rangeUniques !== 1 ? 's' : ''}</div>
+            <div class="analytics-card-change change-${rangeDelta.c}">${rangeDelta.t}</div>
+          </div>
+          ${range !== 1 ? `
           <div class="analytics-card">
             <div class="analytics-card-label">Today</div>
             <div class="analytics-card-value">${todayViews}</div>
             <div class="analytics-card-sub">${todayUniques} unique${todayUniques !== 1 ? 's' : ''}</div>
             <div class="analytics-card-change change-${todayDelta.c}">${todayDelta.t}</div>
           </div>
-          <div class="analytics-card">
-            <div class="analytics-card-label">This Week</div>
-            <div class="analytics-card-value">${weekViews}</div>
-            <div class="analytics-card-sub">${weekUniques} unique${weekUniques !== 1 ? 's' : ''}</div>
-            <div class="analytics-card-change change-${weekDelta.c}">${weekDelta.t}</div>
-          </div>
+          ` : ''}
         </div>
 
         <div class="analytics-section">
-          <div class="analytics-section-title">Daily Views <span class="analytics-dim">14 days</span></div>
+          <div class="analytics-section-title">${sparkLabel}</div>
           <div class="sparkline">
             ${sparkDays.map(d => `
               <div class="sparkline-col">
