@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v37';
+  const APP_VERSION = 'v38';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';

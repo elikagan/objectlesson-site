@@ -616,7 +616,9 @@
 
   let mosaicCells = [];
   let mosaicTimer = null;
-  let mosaicItems = [];       // items with images
+  let mosaicItems = [];
+  let mosaicDeck = [];   // items waiting to be shown (never overlaps with cells)
+  let mosaicGen = 0;     // generation counter — invalidates stale animation callbacks
 
   function isMobile() { return window.innerWidth <= 559; }
   function isTablet() { return window.innerWidth > 559 && window.innerWidth <= 959; }
@@ -630,13 +632,14 @@
     mosaic.style.display = '';
     mosaic.innerHTML = '';
     mosaicCells = [];
+    mosaicDeck = [];
+    mosaicGen++;
 
     const shuffled = [...mosaicItems].sort(() => Math.random() - 0.5);
     const cellCount = Math.min(MOSAIC_CELLS, shuffled.length);
 
     for (let i = 0; i < cellCount; i++) {
       const item = shuffled[i];
-
       const cell = document.createElement('a');
       cell.className = 'mosaic-cell';
       cell.href = '#' + item.id;
@@ -646,12 +649,15 @@
             <img src="${imgUrl(item.heroImage || item.images[0])}" alt="" loading="lazy">
           </div>
           <div class="mosaic-face mosaic-back">
-            <img src="" alt="" loading="lazy">
+            <img src="${imgUrl(item.heroImage || item.images[0])}" alt="" loading="lazy">
           </div>
         </div>
       `;
       mosaic.appendChild(cell);
       mosaicCells.push({ el: cell, flipped: false, currentItem: item, animating: false });
+    }
+    for (let i = cellCount; i < shuffled.length; i++) {
+      mosaicDeck.push(shuffled[i]);
     }
 
     startMosaic();
@@ -674,50 +680,43 @@
     if (available.length < 2) return;
 
     const base = flipBase();
+    // Never flip more cells than we have deck items for
     const count = Math.min(
       Math.random() < 0.5 ? base : base + 1,
-      available.length
+      available.length,
+      mosaicDeck.length
     );
+    if (count === 0) return;
 
-    // Build pool of items NOT currently visible — guaranteed no duplicates
-    const visibleIds = new Set(mosaicCells.filter((c, i) => i < vis).map(c => c.currentItem.id));
-    let pool = mosaicItems.filter(item => !visibleIds.has(item.id));
+    const toFlip = [...available].sort(() => Math.random() - 0.5).slice(0, count);
+    const gen = mosaicGen;
 
-    // If pool is empty (all items visible), allow replacing with any different item
-    if (pool.length === 0) pool = [...mosaicItems];
+    toFlip.forEach(cell => {
+      // Pull next item from deck (deck never contains on-screen items)
+      const newItem = mosaicDeck.shift();
+      if (!newItem) return;
 
-    // Shuffle the pool once
-    pool.sort(() => Math.random() - 0.5);
-    let poolIdx = 0;
+      const oldItem = cell.currentItem;
 
-    const shuffled = [...available].sort(() => Math.random() - 0.5);
-    // Don't flip more cells than we have unique replacements for
-    const safeCount = Math.min(count, pool.length);
-    shuffled.slice(0, safeCount).forEach(cell => {
-      // Pick next item from shuffled pool, skip if same as current cell
-      let newItem = pool[poolIdx++ % pool.length];
-      if (newItem.id === cell.currentItem.id && pool.length > 1) {
-        newItem = pool[poolIdx++ % pool.length];
-      }
-
-      // Update visible tracking
-      visibleIds.delete(cell.currentItem.id);
-      visibleIds.add(newItem.id);
-
+      // Load new image into hidden face
       const inner = cell.el.querySelector('.mosaic-inner');
       const hiddenImg = cell.flipped
         ? inner.querySelector('.mosaic-front img')
         : inner.querySelector('.mosaic-back img');
       hiddenImg.src = imgUrl(newItem.heroImage || newItem.images[0]);
 
+      // Flip
       cell.animating = true;
       cell.flipped = !cell.flipped;
-      cell.currentItem = newItem;  // Update immediately to prevent race condition duplicates
+      cell.currentItem = newItem;
       inner.classList.toggle('flipped');
 
+      // Return old item to deck AFTER animation completes (not before)
       setTimeout(() => {
+        if (gen !== mosaicGen) return;  // mosaic was re-initialized, discard
         cell.el.href = '#' + newItem.id;
         cell.animating = false;
+        mosaicDeck.push(oldItem);
       }, MOSAIC_FLIP_MS + 50);
     });
   }
