@@ -636,7 +636,6 @@
 
     for (let i = 0; i < cellCount; i++) {
       const item = shuffled[i];
-      const nextItem = shuffled[(i + 1) % cellCount];
 
       const cell = document.createElement('a');
       cell.className = 'mosaic-cell';
@@ -647,7 +646,7 @@
             <img src="${imgUrl(item.heroImage || item.images[0])}" alt="" loading="lazy">
           </div>
           <div class="mosaic-face mosaic-back">
-            <img src="${imgUrl(nextItem.heroImage || nextItem.images[0])}" alt="" loading="lazy">
+            <img src="" alt="" loading="lazy">
           </div>
         </div>
       `;
@@ -704,11 +703,11 @@
 
       cell.animating = true;
       cell.flipped = !cell.flipped;
+      cell.currentItem = newItem;  // Update immediately to prevent race condition duplicates
       inner.classList.toggle('flipped');
 
       setTimeout(() => {
         cell.el.href = '#' + newItem.id;
-        cell.currentItem = newItem;
         cell.animating = false;
       }, MOSAIC_FLIP_MS + 50);
     });
