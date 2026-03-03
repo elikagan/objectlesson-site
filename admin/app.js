@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v38';
+  const APP_VERSION = 'v39';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -1354,9 +1354,10 @@
       const pvDays = Math.max(14, range);
 
       // 3 efficient parallel queries
-      const [pageViews, itemEvents] = await Promise.all([
+      const [pageViews, itemEvents, sessionEnds] = await Promise.all([
         supaSelect(`select=session_id,created_at,referrer,utm_source,ua_mobile&event=eq.page_view&created_at=gte.${daysAgoStr(pvDays)}&order=created_at.asc&limit=50000`),
-        supaSelect(`select=item_id,event&event=in.(item_view,inquire)&created_at=gte.${daysAgoStr(range)}&item_id=not.is.null&limit=50000`)
+        supaSelect(`select=item_id,event&event=in.(item_view,inquire)&created_at=gte.${daysAgoStr(range)}&item_id=not.is.null&limit=50000`),
+        supaSelect(`select=duration,created_at&event=eq.session_end&created_at=gte.${daysAgoStr(range)}&duration=not.is.null&limit=50000`)
       ]);
 
       // Pre-process timestamps
@@ -1388,6 +1389,12 @@
       const todayViews = todayPV.length;
       const todayUniques = new Set(todayPV.map(r => r.session_id)).size;
       const todayDelta = pctChange(todayViews, yesterdayPV.length);
+
+      // Avg time on site
+      const rangeSE = sessionEnds.filter(r => new Date(r.created_at).getTime() >= rangeMs);
+      const durations = rangeSE.map(r => r.duration).filter(d => d > 0 && d < 3600);
+      const avgDuration = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0;
+      const fmtDur = (s) => s >= 60 ? Math.floor(s / 60) + 'm ' + (s % 60) + 's' : s + 's';
 
       // Range label
       const rangeLabels = { 1: 'Today', 7: 'This Week', 30: 'This Month', 90: 'Last 90 Days' };
@@ -1482,6 +1489,11 @@
             <div class="analytics-card-value">${rangeViews}</div>
             <div class="analytics-card-sub">${rangeUniques} unique${rangeUniques !== 1 ? 's' : ''}</div>
             <div class="analytics-card-change change-${rangeDelta.c}">${rangeDelta.t}</div>
+          </div>
+          <div class="analytics-card">
+            <div class="analytics-card-label">Avg. Time</div>
+            <div class="analytics-card-value">${avgDuration ? fmtDur(avgDuration) : '—'}</div>
+            <div class="analytics-card-sub">${durations.length} session${durations.length !== 1 ? 's' : ''}</div>
           </div>
           ${range !== 1 ? `
           <div class="analytics-card">

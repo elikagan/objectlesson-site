@@ -32,8 +32,10 @@
   }
 
   const _utmSource = getUtmSource();
+  const _sessionStart = Date.now();
+  let _durationSent = false;
 
-  function trackEvent(event, itemId) {
+  function trackEvent(event, itemId, extra) {
     if (!SUPA_URL || !SUPA_ANON) return;
     if (/bot|crawl|spider|slurp/i.test(navigator.userAgent)) return;
     const body = {
@@ -43,9 +45,10 @@
       referrer: document.referrer || null,
       utm_source: _utmSource,
       ua_mobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
-      path: location.hash || '/'
+      path: location.hash || '/',
+      ...extra
     };
-    fetch(`${SUPA_URL}/rest/v1/events`, {
+    return fetch(`${SUPA_URL}/rest/v1/events`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,9 +56,26 @@
         'Authorization': 'Bearer ' + SUPA_ANON,
         'Prefer': 'return=minimal'
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      keepalive: true
     }).catch(() => {});
   }
+
+  // Track time on site — fires when user leaves or hides page
+  function sendSessionDuration() {
+    if (_durationSent) return;
+    _durationSent = true;
+    const secs = Math.round((Date.now() - _sessionStart) / 1000);
+    if (secs < 2) return; // ignore instant bounces
+    trackEvent('session_end', null, { duration: secs });
+    // Allow re-send if user comes back (mobile tab switch)
+    setTimeout(() => { _durationSent = false; }, 5000);
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) sendSessionDuration();
+  });
+  window.addEventListener('pagehide', sendSessionDuration);
 
   let items = [];
   let activeCategory = 'all';
