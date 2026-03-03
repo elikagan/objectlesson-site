@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v39';
+  const APP_VERSION = 'v40';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -861,11 +861,17 @@
       }
 
       // 2. Auto-detect tape measure and estimate dimensions
-      if (photos.some(p => !p.processed) && !document.getElementById('field-size').value) {
+      const unprocessedForTape = photos.filter(p => !p.processed);
+      if (unprocessedForTape.length > 0 && !document.getElementById('field-size').value) {
         setStatus('Checking for tape measure...');
-        const sizeEstimate = await geminiDetectTapeMeasure(photos.filter(p => !p.processed).map(p => p.dataUrl));
-        if (sizeEstimate) {
-          document.getElementById('field-size').value = sizeEstimate;
+        const tapeResult = await geminiDetectTapeMeasure(unprocessedForTape.map(p => p.dataUrl));
+        if (tapeResult.size) {
+          document.getElementById('field-size').value = tapeResult.size;
+        }
+        // Skip AI processing on the tape measure photo — leave it as-is
+        if (tapeResult.tapeIndex >= 0 && tapeResult.tapeIndex < unprocessedForTape.length) {
+          unprocessedForTape[tapeResult.tapeIndex].aiProcess = false;
+          renderPhotos();
         }
       }
 
@@ -1072,7 +1078,7 @@
     // Use higher resolution so tape markings are legible
     const imgs = await Promise.all(dataUrls.slice(0, 4).map(url => resizeImage(url, 1536)));
     const parts = [
-      { text: `These are photos of an item for sale. Check if any photo contains a tape measure, ruler, or measuring tool. If yes, READ THE ACTUAL NUMBERS AND MARKINGS on the measuring tool — do NOT estimate or guess. Look at where the tape measure starts and ends against the object, read the inch/cm markings at those points, and calculate the exact measurement shown. Report the dimensions you READ from the tool. Format as a concise size string, e.g.: 9.5" L × 4" W or 14" H or 12" diameter. If no measuring tool is visible, return empty string. Return ONLY valid JSON: {"size": "string"}` }
+      { text: `These are ${imgs.length} photos of an item for sale. Check if any photo contains a tape measure, ruler, or measuring tool. If yes, READ THE ACTUAL NUMBERS AND MARKINGS on the measuring tool — do NOT estimate or guess. Look at where the tape measure starts and ends against the object, read the inch/cm markings at those points, and calculate the exact measurement shown. Report the dimensions you READ from the tool. Format as a concise size string, e.g.: 9.5" L × 4" W or 14" H or 12" diameter. Also return the 0-based image index of the photo containing the measuring tool. If no measuring tool is visible, return empty string and -1. Return ONLY valid JSON: {"size": "string", "tapeIndex": number}` }
     ];
     for (const url of imgs) {
       parts.push({ inlineData: { mimeType: 'image/jpeg', data: dataUrlToBase64(url) } });
@@ -1083,9 +1089,9 @@
     try {
       const text = result.candidates[0].content.parts[0].text;
       const parsed = JSON.parse(text);
-      return parsed.size || '';
+      return { size: parsed.size || '', tapeIndex: parsed.tapeIndex ?? -1 };
     } catch {
-      return '';
+      return { size: '', tapeIndex: -1 };
     }
   }
 
