@@ -1,5 +1,26 @@
 [
   {
+    "id": "000032",
+    "title": "Large Painting by Mario Mazzella 1959",
+    "description": "Mid-century modernist oil painting depicting three nude figures under yellow awnings on a vibrant blue and green beach, signed and dated 1959.",
+    "price": 5500,
+    "size": "",
+    "category": "wall-art",
+    "maker": "M. Mazzella Schia",
+    "condition": "Good, minor age-related wear.",
+    "dealerCode": "14EK",
+    "isNew": true,
+    "isHold": false,
+    "isSold": false,
+    "images": [
+      "images/products/000032/0.jpg",
+      "images/products/000032/1.jpg"
+    ],
+    "heroImage": "images/products/000032/0.jpg",
+    "order": 0,
+    "createdAt": "2026-03-03T22:21:41.799Z"
+  },
+  {
     "id": "000031",
     "title": "Painting Signed C. Jacobson 1968",
     "description": "Mid-century abstract oil painting on canvas by C. Jacobson from 1965 in a brown wood frame.",
@@ -19,7 +40,7 @@
       "images/products/000031/3.jpg"
     ],
     "heroImage": "images/products/000031/0.jpg",
-    "order": 0,
+    "order": 1,
     "createdAt": "2026-03-03T22:20:39.829Z"
   },
   {
@@ -43,7 +64,7 @@
       "images/products/000030/4.jpg"
     ],
     "heroImage": "images/products/000030/0.jpg",
-    "order": 1,
+    "order": 2,
     "createdAt": "2026-03-03T05:16:26.532Z"
   },
   {
@@ -64,7 +85,7 @@
       "images/products/000029/1.jpg"
     ],
     "heroImage": "images/products/000029/0.jpg",
-    "order": 2,
+    "order": 3,
     "createdAt": "2026-03-03T05:08:23.033Z"
   },
   {
@@ -86,7 +107,7 @@
       "images/products/000028/2.jpg"
     ],
     "heroImage": "images/products/000028/0.jpg",
-    "order": 3,
+    "order": 4,
     "createdAt": "2026-03-03T05:06:09.646Z"
   },
   {
@@ -108,7 +129,7 @@
       "images/products/000026/2.jpg"
     ],
     "heroImage": "images/products/000026/0.jpg",
-    "order": 4,
+    "order": 5,
     "createdAt": "2026-03-01T21:08:56.978Z"
   },
   {
@@ -131,7 +152,7 @@
       "images/products/000025/3.jpg"
     ],
     "heroImage": "images/products/000025/0.jpg",
-    "order": 5,
+    "order": 6,
     "createdAt": "2026-03-01T20:30:41.307Z"
   },
   {
@@ -155,7 +176,7 @@
       "images/products/000024/3.jpg"
     ],
     "heroImage": "images/products/000024/4.jpg",
-    "order": 6,
+    "order": 7,
     "createdAt": "2026-03-01T20:26:32.744Z"
   },
   {
@@ -176,7 +197,7 @@
       "images/products/000023/1.jpg"
     ],
     "heroImage": "images/products/000023/0.jpg",
-    "order": 7,
+    "order": 8,
     "createdAt": "2026-03-01T20:11:14.415Z"
   },
   {
@@ -198,7 +219,7 @@
       "images/products/000022/2.jpg"
     ],
     "heroImage": "images/products/000022/0.jpg",
-    "order": 8,
+    "order": 9,
     "createdAt": "2026-03-01T19:37:12.609Z"
   },
   {
@@ -219,7 +240,7 @@
       "images/products/000021/1.jpg"
     ],
     "heroImage": "images/products/000021/0.jpg",
-    "order": 9,
+    "order": 10,
     "createdAt": "2026-03-01T18:28:59.833Z"
   },
   {
@@ -240,7 +261,7 @@
       "images/products/000027/1.jpg"
     ],
     "heroImage": "images/products/000027/0.jpg",
-    "order": 10,
+    "order": 11,
     "createdAt": "2026-03-02T05:00:28.281Z"
   },
   {
@@ -260,7 +281,7 @@
       "images/products/000020/2.jpg"
     ],
     "heroImage": "images/products/000020/0.jpg",
-    "order": 11,
+    "order": 12,
     "createdAt": "2026-02-28T02:29:23.383Z"
   },
   {
@@ -280,7 +301,7 @@
       "images/products/000019/2.jpg"
     ],
     "heroImage": "images/products/000019/0.jpg",
-    "order": 12,
+    "order": 13,
     "createdAt": "2026-02-28T02:26:58.680Z"
   },
   {
@@ -301,7 +322,7 @@
       "images/products/000018/3.jpg"
     ],
     "heroImage": "images/products/000018/0.jpg",
-    "order": 13,
+    "order": 14,
     "createdAt": "2026-02-28T02:24:40.333Z"
   },
   {
@@ -322,7 +343,7 @@
       "images/products/000017/3.jpg"
     ],
     "heroImage": "images/products/000017/0.jpg",
-    "order": 14,
+    "order": 15,
     "createdAt": "2026-02-28T02:22:29.874Z"
   },
   {
@@ -341,7 +362,7 @@
       "images/products/000016/1.jpg"
     ],
     "heroImage": "images/products/000016/0.jpg",
-    "order": 15,
+    "order": 16,
     "createdAt": "2026-02-28T02:19:08.958Z"
   },
   {
@@ -361,7 +382,7 @@
       "images/products/000009/4.jpg"
     ],
     "heroImage": "images/products/000009/0.jpg",
-    "order": 16,
+    "order": 17,
     "createdAt": "2026-02-27T00:42:45.829Z"
   },
   {
@@ -379,7 +400,7 @@
       "images/products/000015/1.jpg"
     ],
     "heroImage": "images/products/000015/0.jpg",
-    "order": 17,
+    "order": 18,
     "createdAt": "2026-02-27T01:29:34.448Z"
   },
   {
@@ -397,7 +418,7 @@
       "images/products/000014/2.jpg"
     ],
     "heroImage": "images/products/000014/1.jpg",
-    "order": 18,
+    "order": 19,
     "createdAt": "2026-02-27T01:26:53.714Z"
   },
   {
@@ -414,7 +435,7 @@
       "images/products/000013/1.jpg"
     ],
     "heroImage": "images/products/000013/0.jpg",
-    "order": 19,
+    "order": 20,
     "createdAt": "2026-02-27T01:08:13.231Z"
   },
   {
@@ -430,7 +451,7 @@
       "images/products/000012/0.jpg"
     ],
     "heroImage": "images/products/000012/0.jpg",
-    "order": 20,
+    "order": 21,
     "createdAt": "2026-02-27T01:06:16.740Z"
   },
   {
@@ -449,7 +470,7 @@
       "images/products/000011/3.jpg"
     ],
     "heroImage": "images/products/000011/0.jpg",
-    "order": 21,
+    "order": 22,
     "createdAt": "2026-02-27T01:04:11.804Z"
   },
   {
@@ -468,7 +489,7 @@
       "images/products/000010/3.jpg"
     ],
     "heroImage": "images/products/000010/0.jpg",
-    "order": 22,
+    "order": 23,
     "createdAt": "2026-02-27T01:01:43.530Z"
   },
   {
@@ -487,7 +508,7 @@
       "images/products/000006/3.jpg"
     ],
     "heroImage": "images/products/000006/0.jpg",
-    "order": 23,
+    "order": 24,
     "createdAt": "2026-02-27T00:27:43.671Z"
   },
   {
@@ -507,7 +528,7 @@
       "images/products/000005/3.jpg"
     ],
     "heroImage": "images/products/000005/0.jpg",
-    "order": 24,
+    "order": 25,
     "createdAt": "2026-02-27T00:23:14.346Z"
   },
   {
@@ -526,7 +547,7 @@
       "images/products/000004/3.jpg"
     ],
     "heroImage": "images/products/000004/0.jpg",
-    "order": 25,
+    "order": 26,
     "createdAt": "2026-02-26T23:14:42.025Z"
   },
   {
@@ -545,7 +566,7 @@
       "images/products/mm3pl1ta/4.jpg"
     ],
     "heroImage": "images/products/mm3pl1ta/0.jpg",
-    "order": 26,
+    "order": 27,
     "createdAt": "2026-02-26T17:00:13.166Z"
   },
   {
@@ -565,7 +586,7 @@
       "images/products/000001/3.jpg"
     ],
     "heroImage": "images/products/000001/0.jpg",
-    "order": 27,
+    "order": 28,
     "createdAt": "2026-02-26T18:23:47.895Z"
   },
   {
@@ -583,7 +604,7 @@
       "images/products/000002/3.jpg"
     ],
     "heroImage": "images/products/000002/0.jpg",
-    "order": 28,
+    "order": 29,
     "createdAt": "2026-02-26T22:10:31.688Z"
   },
   {
@@ -601,7 +622,7 @@
       "images/products/000003/3.jpg"
     ],
     "heroImage": "images/products/000003/0.jpg",
-    "order": 29,
+    "order": 30,
     "createdAt": "2026-02-26T22:19:26.952Z"
   },
   {
@@ -619,7 +640,7 @@
       "images/products/000007/2.jpg"
     ],
     "heroImage": "images/products/000007/0.jpg",
-    "order": 30,
+    "order": 31,
     "createdAt": "2026-02-27T00:30:26.796Z"
   },
   {
@@ -642,7 +663,7 @@
       "images/products/000008/2.jpg"
     ],
     "heroImage": "images/products/000008/3.jpg",
-    "order": 31,
+    "order": 32,
     "createdAt": "2026-02-27T00:38:05.143Z"
   }
 ]
