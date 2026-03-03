@@ -679,17 +679,26 @@
       available.length
     );
 
-    // Collect all currently visible item IDs to avoid duplicates
+    // Build pool of items NOT currently visible — guaranteed no duplicates
     const visibleIds = new Set(mosaicCells.filter((c, i) => i < vis).map(c => c.currentItem.id));
+    let pool = mosaicItems.filter(item => !visibleIds.has(item.id));
+
+    // If pool is empty (all items visible), allow replacing with any different item
+    if (pool.length === 0) pool = [...mosaicItems];
+
+    // Shuffle the pool once
+    pool.sort(() => Math.random() - 0.5);
+    let poolIdx = 0;
 
     const shuffled = [...available].sort(() => Math.random() - 0.5);
-    shuffled.slice(0, count).forEach(cell => {
-      let newItem;
-      let attempts = 0;
-      do {
-        newItem = mosaicItems[Math.floor(Math.random() * mosaicItems.length)];
-        attempts++;
-      } while ((newItem.id === cell.currentItem.id || visibleIds.has(newItem.id)) && attempts < 40);
+    // Don't flip more cells than we have unique replacements for
+    const safeCount = Math.min(count, pool.length);
+    shuffled.slice(0, safeCount).forEach(cell => {
+      // Pick next item from shuffled pool, skip if same as current cell
+      let newItem = pool[poolIdx++ % pool.length];
+      if (newItem.id === cell.currentItem.id && pool.length > 1) {
+        newItem = pool[poolIdx++ % pool.length];
+      }
 
       // Update visible tracking
       visibleIds.delete(cell.currentItem.id);
