@@ -272,7 +272,8 @@ async function handleWebhook(request, env) {
               },
               body: JSON.stringify({
                 email: buyerEmail,
-                source: 'purchase'
+                source: 'purchase',
+                item_id: itemId || null
               })
             });
             console.log('🚨 STEP 6: Email captured ✓');
