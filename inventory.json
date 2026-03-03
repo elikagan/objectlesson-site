@@ -1,31 +1,10 @@
 [
   {
-    "id": "000027",
-    "title": "Stainless Steel Spiral Sculpture",
-    "description": "Brushed silver metal spiral sculpture.",
-    "price": 175,
-    "size": "",
-    "category": "sculpture",
-    "maker": "",
-    "condition": "Excellent",
-    "dealerCode": "14EK",
-    "isNew": false,
-    "isHold": false,
-    "isSold": false,
-    "images": [
-      "images/products/000027/0.jpg",
-      "images/products/000027/1.jpg"
-    ],
-    "heroImage": "images/products/000027/0.jpg",
-    "order": 0,
-    "createdAt": "2026-03-02T05:00:28.281Z"
-  },
-  {
     "id": "000026",
     "title": "Wood Egg",
     "description": "Smooth wooden egg-shaped object with visible natural wood grain.",
     "price": 95,
-    "size": "About 6â long",
+    "size": "About 6Ã¢ÂÂ long",
     "category": "object",
     "maker": "",
     "condition": "Excellent",
@@ -39,7 +18,7 @@
       "images/products/000026/2.jpg"
     ],
     "heroImage": "images/products/000026/0.jpg",
-    "order": 1,
+    "order": 0,
     "createdAt": "2026-03-01T21:08:56.978Z"
   },
   {
@@ -47,7 +26,7 @@
     "title": "Oversized Foot",
     "description": "Composite oversized foot sculpture",
     "price": 325,
-    "size": "24Ã¢ÂÂ tall",
+    "size": "24ÃÂ¢ÃÂÃÂ tall",
     "category": "object",
     "maker": "",
     "condition": "Good, minor surface wear and edge imperfections",
@@ -62,7 +41,7 @@
       "images/products/000025/3.jpg"
     ],
     "heroImage": "images/products/000025/0.jpg",
-    "order": 2,
+    "order": 1,
     "createdAt": "2026-03-01T20:30:41.307Z"
   },
   {
@@ -86,7 +65,7 @@
       "images/products/000024/3.jpg"
     ],
     "heroImage": "images/products/000024/4.jpg",
-    "order": 3,
+    "order": 2,
     "createdAt": "2026-03-01T20:26:32.744Z"
   },
   {
@@ -107,7 +86,7 @@
       "images/products/000023/1.jpg"
     ],
     "heroImage": "images/products/000023/0.jpg",
-    "order": 4,
+    "order": 3,
     "createdAt": "2026-03-01T20:11:14.415Z"
   },
   {
@@ -129,7 +108,7 @@
       "images/products/000022/2.jpg"
     ],
     "heroImage": "images/products/000022/0.jpg",
-    "order": 5,
+    "order": 4,
     "createdAt": "2026-03-01T19:37:12.609Z"
   },
   {
@@ -150,8 +129,29 @@
       "images/products/000021/1.jpg"
     ],
     "heroImage": "images/products/000021/0.jpg",
-    "order": 6,
+    "order": 5,
     "createdAt": "2026-03-01T18:28:59.833Z"
+  },
+  {
+    "id": "000027",
+    "title": "Stainless Steel Spiral Sculpture",
+    "description": "Brushed silver metal spiral sculpture.",
+    "price": 175,
+    "size": "",
+    "category": "sculpture",
+    "maker": "",
+    "condition": "Excellent",
+    "dealerCode": "14EK",
+    "isNew": false,
+    "isHold": false,
+    "isSold": false,
+    "images": [
+      "images/products/000027/0.jpg",
+      "images/products/000027/1.jpg"
+    ],
+    "heroImage": "images/products/000027/0.jpg",
+    "order": 6,
+    "createdAt": "2026-03-02T05:00:28.281Z"
   },
   {
     "id": "000020",
