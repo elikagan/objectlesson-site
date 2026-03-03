@@ -680,6 +680,9 @@
       available.length
     );
 
+    // Collect all currently visible item IDs to avoid duplicates
+    const visibleIds = new Set(mosaicCells.filter((c, i) => i < vis).map(c => c.currentItem.id));
+
     const shuffled = [...available].sort(() => Math.random() - 0.5);
     shuffled.slice(0, count).forEach(cell => {
       let newItem;
@@ -687,7 +690,11 @@
       do {
         newItem = mosaicItems[Math.floor(Math.random() * mosaicItems.length)];
         attempts++;
-      } while (newItem.id === cell.currentItem.id && attempts < 20);
+      } while ((newItem.id === cell.currentItem.id || visibleIds.has(newItem.id)) && attempts < 40);
+
+      // Update visible tracking
+      visibleIds.delete(cell.currentItem.id);
+      visibleIds.add(newItem.id);
 
       const inner = cell.el.querySelector('.mosaic-inner');
       const hiddenImg = cell.flipped
