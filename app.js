@@ -354,7 +354,7 @@
                 'Authorization': 'Bearer ' + SUPA_ANON,
                 'Prefer': 'return=minimal'
               },
-              body: JSON.stringify({ email, source: 'purchase' })
+              body: JSON.stringify({ email, source: 'abandoned_cart' })
             });
           } catch {}
           localStorage.setItem('ol_email_collected', '1');
