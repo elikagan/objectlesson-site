@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v35';
+  const APP_VERSION = 'v36';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -57,7 +57,7 @@
   let photos = []; // { file, dataUrl, processed, remotePath? }
   let sortable = null;
   let photoSortable = null;
-  let analyticsRange = 30;
+  let analyticsRange = 1;
 
   // --- Encrypted config (keys stored in repo, decrypted with PIN) ---
 
