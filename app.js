@@ -61,6 +61,14 @@
     }).catch(() => {});
   }
 
+  // Auto-expire "New" badge after 7 days based on createdAt
+  const NEW_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+  function isItemNew(item) {
+    if (!item.isNew) return false;
+    if (!item.createdAt) return true; // no date = trust the flag
+    return (Date.now() - new Date(item.createdAt).getTime()) < NEW_DURATION_MS;
+  }
+
   // Track time on site — fires when user leaves or hides page
   function sendSessionDuration() {
     if (_durationSent) return;
@@ -160,7 +168,7 @@
         ? `<img src="${imgSrc}" alt="${esc(item.title)}" loading="lazy">`
         : '';
 
-      const newBadge = item.isNew && !isSold ? '<span class="card-new">New</span>' : '';
+      const newBadge = isItemNew(item) && !isSold ? '<span class="card-new">New</span>' : '';
       const holdBadge = item.isHold && !isSold ? '<span class="card-hold">On Hold</span>' : '';
       const soldBadge = isSold ? '<span class="card-sold">Sold</span>' : '';
 
@@ -411,7 +419,7 @@
 
     // New badge (don't show on sold or hold items)
     const newEl = document.getElementById('detail-new');
-    newEl.style.display = item.isNew && !item.isSold && !item.isHold ? '' : 'none';
+    newEl.style.display = isItemNew(item) && !item.isSold && !item.isHold ? '' : 'none';
 
     // Thumbnails
     const thumbStrip = document.getElementById('detail-thumbs');
