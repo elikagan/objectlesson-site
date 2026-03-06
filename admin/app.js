@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v40';
+  const APP_VERSION = 'v41';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -1222,7 +1222,9 @@
   async function saveItem() {
     const title = document.getElementById('field-title').value.trim();
     const description = document.getElementById('field-desc').value.trim();
-    const price = parseFloat(document.getElementById('field-price').value) || 0;
+    const priceVal = document.getElementById('field-price').value.trim();
+    const price = priceVal === '' ? 0 : parseFloat(priceVal);
+    if (isNaN(price) || price < 0) { toast('Enter a valid price'); return; }
     const size = document.getElementById('field-size').value.trim();
     const category = document.getElementById('field-category').value;
     const maker = document.getElementById('field-maker').value.trim();
