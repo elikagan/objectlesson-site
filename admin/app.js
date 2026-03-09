@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v41';
+  const APP_VERSION = 'v42';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -1257,7 +1257,10 @@
 
         const path = `${imgDir}/${i}.jpg`;
         const base64 = dataUrlToBase64(p.dataUrl);
-        await putFileBinary(path, base64, null, 'Add product image');
+        // Get existing file SHA if overwriting
+        let sha = null;
+        try { sha = (await getFile(path)).sha; } catch (_) {}
+        await putFileBinary(path, base64, sha, 'Add product image');
         uploadedImages.push(path);
       }
 
