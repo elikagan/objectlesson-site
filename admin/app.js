@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v43';
+  const APP_VERSION = 'v44';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -1215,6 +1215,166 @@
     }
   }
 
+  // --- SEO: static item pages, sitemap, Google/IndexNow notification ---
+
+  const SITE_URL = 'https://objectlesson.la';
+  const RAW_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
+  const INDEXNOW_KEY = 'a1b2c3d4e5f6g7h8objectlesson';
+
+  function seoImgUrl(path) {
+    if (!path || path.startsWith('http')) return path;
+    return `${RAW_URL}/${path}`;
+  }
+
+  function escHtml(s) {
+    return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function escXml(s) {
+    return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+  }
+
+  function generateItemPageHtml(item) {
+    const url = `${SITE_URL}/item/${item.id}/`;
+    const heroImg = seoImgUrl(item.heroImage || (item.images && item.images[0]) || '');
+    const allImages = (item.images || []).map(seoImgUrl);
+    const desc = item.description || `${item.title} — available at Object Lesson, Pasadena.`;
+    const availability = item.isSold ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock';
+    const soldLabel = item.isSold ? ' (Sold)' : '';
+    const price = Number(item.price) || 0;
+    const sd = JSON.stringify({
+      '@context': 'https://schema.org', '@type': 'Product',
+      name: item.title, description: desc, image: allImages,
+      brand: { '@type': 'Brand', name: 'Object Lesson' },
+      ...(item.maker ? { manufacturer: { '@type': 'Organization', name: item.maker } } : {}),
+      ...(item.condition ? { itemCondition: 'https://schema.org/UsedCondition' } : {}),
+      offers: { '@type': 'Offer', price: price.toString(), priceCurrency: 'USD', availability, url,
+        seller: { '@type': 'Organization', name: 'Object Lesson', url: SITE_URL } }
+    });
+    const addlImgs = allImages.slice(1);
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escHtml(item.title)}${soldLabel} | Object Lesson</title>
+  <meta name="description" content="${escHtml(desc.slice(0, 160))}">
+  <link rel="canonical" href="${url}">
+  <link rel="icon" type="image/svg+xml" href="/OL_logo.svg">
+  <meta property="og:title" content="${escHtml(item.title)}">
+  <meta property="og:description" content="${escHtml(desc.slice(0, 200))}">
+  <meta property="og:type" content="product">
+  <meta property="og:url" content="${url}">
+  <meta property="og:image" content="${escHtml(heroImg)}">
+  <meta property="og:site_name" content="Object Lesson">
+  <meta property="product:price:amount" content="${price}">
+  <meta property="product:price:currency" content="USD">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${escHtml(item.title)}">
+  <meta name="twitter:description" content="${escHtml(desc.slice(0, 200))}">
+  <meta name="twitter:image" content="${escHtml(heroImg)}">
+  <script type="application/ld+json">${sd}</script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#111;background:#fff;-webkit-font-smoothing:antialiased}
+    header{padding:20px;text-align:center;border-bottom:1px solid #eee}
+    header img{height:22px}
+    header a{text-decoration:none}
+    main{max-width:560px;margin:0 auto;padding:24px 16px 48px}
+    .hero{width:100%;aspect-ratio:1;object-fit:contain;background:#f5f5f5;border-radius:8px;display:block}
+    .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:12px}
+    .thumbs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px}
+    h1{font-size:20px;font-weight:500;margin-top:20px;line-height:1.3}
+    .price{font-size:18px;color:#333;margin-top:8px}
+    .sold-badge{display:inline-block;background:#111;color:#fff;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:3px;margin-top:8px}
+    .desc{color:#555;margin-top:12px;line-height:1.6;font-size:15px}
+    .meta{color:#888;margin-top:8px;font-size:14px}
+    .cta{display:inline-block;margin-top:24px;padding:14px 36px;background:#111;color:#fff;text-decoration:none;border-radius:6px;font-size:15px;letter-spacing:0.3px}
+    .cta:hover{background:#333}
+    footer{text-align:center;padding:32px 16px;color:#999;font-size:13px;border-top:1px solid #eee;margin-top:32px}
+    footer a{color:#666;text-decoration:none}
+  </style>
+</head>
+<body>
+  <header><a href="${SITE_URL}/"><img src="/OL_logo.svg" alt="Object Lesson"></a></header>
+  <main>
+    ${heroImg ? `<img class="hero" src="${escHtml(heroImg)}" alt="${escHtml(item.title)}" width="1536" height="1536">` : ''}
+    ${addlImgs.length > 0 ? `<div class="thumbs">${addlImgs.map((img, i) =>
+      `<img src="${escHtml(img)}" alt="${escHtml(item.title)} — detail ${i + 2}" width="1536" height="1536" loading="lazy">`
+    ).join('')}</div>` : ''}
+    <h1>${escHtml(item.title)}</h1>
+    ${item.isSold ? '<span class="sold-badge">Sold</span>' : `<p class="price">$${price.toLocaleString()}</p>`}
+    ${desc ? `<p class="desc">${escHtml(desc)}</p>` : ''}
+    ${item.size ? `<p class="meta">${escHtml(item.size)}</p>` : ''}
+    ${item.maker ? `<p class="meta">${escHtml(item.maker)}</p>` : ''}
+    ${item.condition ? `<p class="meta">Condition: ${escHtml(item.condition)}</p>` : ''}
+    <a class="cta" href="${SITE_URL}/#${item.id}">${item.isSold ? 'Browse Collection' : 'View Item'} &rarr;</a>
+  </main>
+  <footer><a href="${SITE_URL}/">Object Lesson</a> &middot; Uncommon Objects, Art and Design &middot; <a href="https://maps.google.com/?q=480+S+Fair+Oaks+Ave,+Pasadena,+CA+91105">Pasadena, CA</a></footer>
+</body>
+</html>`;
+  }
+
+  function generateSitemapXml(allItems) {
+    const now = new Date().toISOString().slice(0, 10);
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>${SITE_URL}/</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>\n`;
+    for (const item of allItems) {
+      const lm = item.createdAt ? new Date(item.createdAt).toISOString().slice(0, 10) : now;
+      xml += `  <url>\n    <loc>${SITE_URL}/item/${item.id}/</loc>\n    <lastmod>${lm}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n`;
+      for (const img of (item.images || []).map(seoImgUrl)) {
+        xml += `    <image:image>\n      <image:loc>${escXml(img)}</image:loc>\n      <image:title>${escXml(item.title)}</image:title>\n    </image:image>\n`;
+      }
+      xml += `  </url>\n`;
+    }
+    xml += `</urlset>`;
+    return xml;
+  }
+
+  async function updateSEO(savedItem) {
+    try {
+      // 1. Push/update the item's static HTML page
+      const pagePath = `item/${savedItem.id}/index.html`;
+      const pageHtml = generateItemPageHtml(savedItem);
+      let pageSha = null;
+      try { pageSha = (await getFile(pagePath)).sha; } catch (_) {}
+      await putFile(pagePath, pageHtml, pageSha, `SEO: update ${savedItem.title}`);
+
+      // 2. Regenerate and push sitemap.xml
+      const sitemapXml = generateSitemapXml(items);
+      let smSha = null;
+      try { smSha = (await getFile('sitemap.xml')).sha; } catch (_) {}
+      await putFile('sitemap.xml', sitemapXml, smSha, 'Update sitemap');
+
+      // 3. Notify IndexNow (Bing, Yandex) — fire and forget
+      const itemUrl = `${SITE_URL}/item/${savedItem.id}/`;
+      fetch('https://api.indexnow.org/indexnow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          host: 'objectlesson.la',
+          key: INDEXNOW_KEY,
+          urlList: [itemUrl]
+        })
+      }).catch(() => {});
+
+      // 4. Ping Google sitemap (simple GET)
+      fetch(`https://www.google.com/ping?sitemap=${encodeURIComponent(SITE_URL + '/sitemap.xml')}`).catch(() => {});
+
+      console.log('[SEO] Updated page + sitemap + pinged search engines for', savedItem.id);
+    } catch (e) {
+      console.warn('[SEO] Failed:', e.message);
+      // Non-critical — don't block the save flow
+    }
+  }
+
   // --- Save item ---
 
   document.getElementById('btn-save').addEventListener('click', saveItem);
@@ -1299,6 +1459,9 @@
       items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
       await saveInventory((editingId ? 'Update ' : 'Add ') + title);
+
+      // Update SEO files (item page + sitemap + ping search engines) — fire and forget
+      updateSEO(itemData).catch(() => {});
 
       toast('Saved');
       showView('list');

@@ -227,7 +227,7 @@
 
     // Build carousel slides
     track.innerHTML = detailImages.map((img, i) =>
-      `<div class="detail-slide"><img src="${img}" alt="${i === 0 ? esc(item.title) : ''}" draggable="false"></div>`
+      `<div class="detail-slide"><img src="${img}" alt="${esc(item.title)}${i > 0 ? ' — detail ' + (i + 1) : ''}" draggable="false"></div>`
     ).join('');
     slideTo(detailIndex, false);
 
