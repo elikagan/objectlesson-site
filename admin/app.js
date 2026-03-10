@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v42';
+  const APP_VERSION = 'v43';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -1246,6 +1246,9 @@
       const imgDir = `images/products/${id}`;
       const uploadedImages = [];
 
+      // SEO-friendly slug from title
+      const slug = title.toLowerCase().replace(/['']/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+
       // Upload photos (first = hero)
       for (let i = 0; i < photos.length; i++) {
         const p = photos[i];
@@ -1255,7 +1258,7 @@
           continue;
         }
 
-        const path = `${imgDir}/${i}.jpg`;
+        const path = `${imgDir}/${slug}_${i + 1}.jpg`;
         const base64 = dataUrlToBase64(p.dataUrl);
         // Get existing file SHA if overwriting
         let sha = null;
