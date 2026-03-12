@@ -417,7 +417,13 @@
     try {
       const file = await getFile('inventory.json');
       inventorySha = file.sha;
-      items = JSON.parse(atob(file.content.replace(/\n/g, '')));
+      if (file.content) {
+        items = JSON.parse(atob(file.content.replace(/\n/g, '')));
+      } else {
+        // File >1MB — Contents API omits content; fetch raw instead
+        const res = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/inventory.json?t=${Date.now()}`);
+        items = await res.json();
+      }
       items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     } catch (e) {
       items = [];
