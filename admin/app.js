@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v44';
+  const APP_VERSION = 'v45';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -523,16 +523,18 @@
         const item = items.find(i => i.id === id);
         if (!item) return;
         confirm('Delete ' + (item.title || 'this item') + '?', async () => {
-          for (const img of (item.images || [])) {
+          const imagesToDelete = [...(item.images || [])];
+          items = items.filter(i => i.id !== id);
+          await saveInventory('Delete ' + (item.title || 'item'));
+          toast('Deleted');
+          renderList();
+          // Delete images in background
+          for (const img of imagesToDelete) {
             try {
               const f = await getFile(img);
               await deleteFile(img, f.sha, 'Delete image');
             } catch (e) { /* ignore */ }
           }
-          items = items.filter(i => i.id !== id);
-          await saveInventory('Delete ' + (item.title || 'item'));
-          toast('Deleted');
-          renderList();
         });
       });
     });
@@ -704,19 +706,21 @@
       const item = items.find(i => i.id === editingId);
       if (!item) return;
 
-      // Delete images from repo
-      for (const img of (item.images || [])) {
-        try {
-          const f = await getFile(img);
-          await deleteFile(img, f.sha, 'Delete image');
-        } catch (e) { /* ignore */ }
-      }
-
+      // Remove from inventory immediately for instant feedback
+      const imagesToDelete = [...(item.images || [])];
       items = items.filter(i => i.id !== editingId);
       await saveInventory('Delete ' + (item.title || 'item'));
       toast('Deleted');
       showView('list');
       renderList();
+
+      // Delete images from repo in background (fire and forget)
+      for (const img of imagesToDelete) {
+        try {
+          const f = await getFile(img);
+          await deleteFile(img, f.sha, 'Delete image');
+        } catch (e) { /* ignore */ }
+      }
     });
   });
 
