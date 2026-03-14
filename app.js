@@ -616,10 +616,10 @@
 
   // --- Helpers ---
 
-  const RAW = 'https://raw.githubusercontent.com/elikagan/objectlesson-site/main/';
+  // Serve images from GitHub Pages CDN (not raw.githubusercontent.com which 503s under load)
   function imgUrl(path) {
     if (!path || path.startsWith('http')) return path;
-    return RAW + path;
+    return '/' + path;
   }
 
   function formatId(id) {
