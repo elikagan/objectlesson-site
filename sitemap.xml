@@ -3,9 +3,31 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://objectlesson.la/</loc>
-    <lastmod>2026-03-15</lastmod>
+    <lastmod>2026-03-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://objectlesson.la/item/000053/</loc>
+    <lastmod>2026-03-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000053/pitcher_deco_vase_french_1.jpg</image:loc>
+      <image:title>Pitcher Deco Vase (French)</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000053/pitcher_deco_vase_french_2.jpg</image:loc>
+      <image:title>Pitcher Deco Vase (French)</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000053/pitcher_deco_vase_french_3.jpg</image:loc>
+      <image:title>Pitcher Deco Vase (French)</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000053/pitcher_deco_vase_french_4.jpg</image:loc>
+      <image:title>Pitcher Deco Vase (French)</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://objectlesson.la/item/000052/</loc>
