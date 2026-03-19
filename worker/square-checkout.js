@@ -309,7 +309,7 @@ async function handleGiftCheckout(request, env) {
           body: JSON.stringify({
             from: 'Object Lesson <gift@objectlesson.la>',
             to: [email],
-            subject: `Your Object Lesson Gift Certificate — $${amount}`,
+            subject: `Your Object Lesson Gift Certificate - $${amount}`,
             html: `
               <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;">
                 <h1 style="font-size:20px;font-weight:500;margin-bottom:24px;">Gift Certificate</h1>
@@ -369,7 +369,7 @@ async function handleSendGiftEmail(request, env) {
       body: JSON.stringify({
         from: 'Object Lesson <gift@objectlesson.la>',
         to: [email],
-        subject: `Your Object Lesson Gift Certificate — $${amount}`,
+        subject: `Your Object Lesson Gift Certificate - $${amount}`,
         html: `
           <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;">
             <h1 style="font-size:20px;font-weight:500;margin-bottom:24px;">Gift Certificate</h1>
