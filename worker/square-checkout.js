@@ -257,6 +257,7 @@ async function handleGiftCheckout(request, env) {
           is_gift_certificate: true,
           is_active: true
         };
+        gcBody.purchaser_email = email;
         if (purchaserName) gcBody.purchaser_name = purchaserName;
         if (recipientName) gcBody.recipient_name = recipientName;
 

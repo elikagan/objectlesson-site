@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v47';
+  const APP_VERSION = 'v48';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -2043,7 +2043,7 @@
   // --- Gift Certificates ---
   async function loadGiftCertificates() {
     try {
-      const res = await fetch(`${supaUrl}/rest/v1/discount_codes?select=id,code,type,value,is_active,max_uses,used_count,purchaser_name,recipient_name,created_at&is_gift_certificate=is.true&order=created_at.desc`, {
+      const res = await fetch(`${supaUrl}/rest/v1/discount_codes?select=id,code,type,value,is_active,max_uses,used_count,purchaser_name,recipient_name,purchaser_email,created_at&is_gift_certificate=is.true&order=created_at.desc`, {
         headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
       });
       const certs = await res.json();
@@ -2071,7 +2071,7 @@
                 <span class="dc-code">${esc(gc.code)}</span>
                 <span class="gc-status ${statusClass}">${status}</span>
               </div>
-              <div class="dc-info">$${gc.value}${nameLabel ? ' · ' + esc(nameLabel) : ''} · ${date}</div>
+              <div class="dc-info">$${gc.value}${nameLabel ? ' · ' + esc(nameLabel) : ''}${gc.purchaser_email ? ' · ' + esc(gc.purchaser_email) : ''} · ${date}</div>
             </div>
             ${gc.is_active && !redeemed ? `<button class="btn-small gc-void" data-id="${gc.id}">Void</button>` : ''}
           </div>`;

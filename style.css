@@ -53,6 +53,23 @@ header {
   border-color: var(--light);
 }
 
+.header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  color: var(--light);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.header-icon:hover {
+  color: var(--gray);
+  border-color: var(--light);
+}
+
 .loc-pill {
   display: flex;
   align-items: center;
@@ -798,6 +815,8 @@ footer {
   .logo { width: 120px; }
   .ig-pill { padding: 6px; }
   .ig-pill svg { width: 14px; height: 14px; }
+  .header-icon { padding: 6px; }
+  .header-icon svg { width: 16px; height: 16px; }
   .loc-pill { padding: 5px 10px; font-size: 10px; }
   .filter-btn { font-size: 10px; padding: 6px 12px; }
   .filter-icon { width: 14px; height: 14px; }
