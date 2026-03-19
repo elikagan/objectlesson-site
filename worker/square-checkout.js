@@ -205,7 +205,7 @@ async function handleGiftCheckout(request, env) {
     const orderBody = {
       location_id: env.SQUARE_LOCATION_ID,
       line_items: [{
-        name: `Gift Certificate – $${amount}`,
+        name: `Gift Certificate - $${amount}`,
         quantity: '1',
         base_price_money: { amount: amountCents, currency: 'USD' }
       }]
