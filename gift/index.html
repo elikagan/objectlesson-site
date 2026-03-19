@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gift Certificate — Object Lesson</title>
+  <meta name="description" content="Purchase a gift certificate for Object Lesson — Uncommon Objects, Art and Design in Pasadena.">
+  <link rel="icon" type="image/svg+xml" href="/OL_logo.svg">
+  <meta property="og:title" content="Gift Certificate — Object Lesson">
+  <meta property="og:description" content="Give the gift of uncommon objects, art and design.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://objectlesson.la/gift/">
+  <meta property="og:image" content="https://objectlesson.la/Asset%201.png">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --black: #1a1a1a;
+      --gray: #888;
+      --border: #bbb;
+      --bg: #fff;
+      --font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: var(--font);
+      color: var(--black);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    .logo {
+      width: 140px;
+      height: auto;
+      display: block;
+      margin: 40px auto 48px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      padding: 0 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--gray);
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gray);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input {
+      width: 100%;
+      font-family: var(--font);
+      font-size: 16px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+
+    input:focus {
+      border-color: var(--black);
+    }
+
+    input::placeholder {
+      color: #bbb;
+    }
+
+    .amount-wrap {
+      position: relative;
+    }
+
+    .amount-wrap::before {
+      content: '$';
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      color: var(--gray);
+      pointer-events: none;
+    }
+
+    .amount-wrap input {
+      padding-left: 28px;
+    }
+
+    .btn {
+      width: 100%;
+      font-family: var(--font);
+      font-size: 15px;
+      font-weight: 500;
+      padding: 14px;
+      background: var(--black);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 8px;
+    }
+
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+
+    .back {
+      display: inline-block;
+      font-size: 14px;
+      color: var(--gray);
+      margin-top: 24px;
+      padding-bottom: 40px;
+    }
+
+    .back:hover { color: var(--black); }
+
+    /* Confirmation state */
+    .confirmation { display: none; text-align: center; }
+    .confirmation.visible { display: block; }
+    .form-state.hidden { display: none; }
+
+    .conf-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .conf-title {
+      font-size: 22px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .conf-subtitle {
+      font-size: 15px;
+      color: var(--gray);
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    .gift-code {
+      display: inline-block;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding: 16px 28px;
+      border: 2px solid var(--black);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      user-select: all;
+      cursor: pointer;
+    }
+
+    .copy-hint {
+      font-size: 13px;
+      color: var(--gray);
+      margin-bottom: 28px;
+    }
+
+    .conf-note {
+      font-size: 14px;
+      color: var(--gray);
+      line-height: 1.6;
+      max-width: 340px;
+      margin: 0 auto 32px;
+    }
+  </style>
+</head>
+<body>
+  <a href="/"><img src="/OL_logo.svg" alt="Object Lesson" class="logo"></a>
+
+  <div class="container">
+    <!-- Purchase form -->
+    <div class="form-state" id="form-state">
+      <h1>Gift Certificate</h1>
+      <p class="subtitle">Give the gift of uncommon objects, art and design.</p>
+
+      <div class="form-group">
+        <label for="gc-amount">Amount</label>
+        <div class="amount-wrap">
+          <input type="number" id="gc-amount" placeholder="50" min="1" max="10000" step="1" inputmode="numeric" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="gc-to">To <span style="font-weight:400;text-transform:none">(optional)</span></label>
+        <input type="text" id="gc-to" placeholder="Recipient name" maxlength="100">
+      </div>
+
+      <div class="form-group">
+        <label for="gc-from">From <span style="font-weight:400;text-transform:none">(optional)</span></label>
+        <input type="text" id="gc-from" placeholder="Your name" maxlength="100">
+      </div>
+
+      <button class="btn" id="gc-buy">Purchase Gift Certificate</button>
+      <a href="/" class="back">&larr; Back to shop</a>
+    </div>
+
+    <!-- Confirmation -->
+    <div class="confirmation" id="conf-state">
+      <div class="conf-title">Gift Certificate Purchased</div>
+      <p class="conf-subtitle">Share this code with the recipient.</p>
+      <div class="gift-code" id="conf-code"></div>
+      <p class="copy-hint" id="copy-hint">Tap to copy</p>
+      <p class="conf-note">
+        This code can be used at checkout on objectlesson.la or in-store at Object Lesson in Pasadena. It does not expire.
+      </p>
+      <a href="/" class="btn" style="display:inline-block;text-align:center;text-decoration:none">Continue Shopping</a>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    const CHECKOUT_URL = 'https://ol-checkout.objectlesson.workers.dev/gift-checkout';
+
+    // Check for confirmation redirect
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('purchased') === '1' && params.get('code')) {
+      document.getElementById('form-state').classList.add('hidden');
+      const conf = document.getElementById('conf-state');
+      conf.classList.add('visible');
+      const codeEl = document.getElementById('conf-code');
+      codeEl.textContent = params.get('code');
+
+      codeEl.addEventListener('click', () => {
+        navigator.clipboard.writeText(params.get('code')).then(() => {
+          document.getElementById('copy-hint').textContent = 'Copied!';
+          setTimeout(() => { document.getElementById('copy-hint').textContent = 'Tap to copy'; }, 2000);
+        });
+      });
+      return;
+    }
+
+    // Purchase flow
+    const buyBtn = document.getElementById('gc-buy');
+    buyBtn.addEventListener('click', async () => {
+      const amount = parseFloat(document.getElementById('gc-amount').value);
+      if (!amount || amount <= 0 || amount > 10000) {
+        document.getElementById('gc-amount').focus();
+        return;
+      }
+
+      buyBtn.disabled = true;
+      buyBtn.textContent = 'Processing...';
+
+      try {
+        const body = { amount };
+        const to = document.getElementById('gc-to').value.trim();
+        const from = document.getElementById('gc-from').value.trim();
+        if (to) body.recipientName = to;
+        if (from) body.purchaserName = from;
+
+        const res = await fetch(CHECKOUT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert(data.error || 'Unable to process. Please try again.');
+          buyBtn.textContent = 'Purchase Gift Certificate';
+          buyBtn.disabled = false;
+        }
+      } catch {
+        alert('Unable to process. Please try again.');
+        buyBtn.textContent = 'Purchase Gift Certificate';
+        buyBtn.disabled = false;
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -10,6 +10,10 @@ export default {
       return handleCheckout(request, env);
     }
 
+    if (url.pathname === '/gift-checkout' && request.method === 'POST') {
+      return handleGiftCheckout(request, env);
+    }
+
     if (url.pathname === '/webhook' && request.method === 'POST') {
       return handleWebhook(request, env);
     }
@@ -178,6 +182,100 @@ async function handleCheckout(request, env) {
   }
 }
 
+async function handleGiftCheckout(request, env) {
+  try {
+    const { amount, purchaserName, recipientName } = await request.json();
+
+    if (typeof amount !== 'number' || amount <= 0 || amount > 10000) {
+      return jsonResponse({ error: 'Invalid amount' }, 400, request);
+    }
+
+    // Generate GIFT-XXXX-XXXX code
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = 'GIFT-';
+    for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    code += '-';
+    for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+
+    const amountCents = Math.round(amount * 100);
+
+    const orderBody = {
+      location_id: env.SQUARE_LOCATION_ID,
+      line_items: [{
+        name: `Gift Certificate – $${amount}`,
+        quantity: '1',
+        base_price_money: { amount: amountCents, currency: 'USD' }
+      }]
+      // No taxes — gift certificates are not taxable
+    };
+
+    const res = await fetch('https://connect.squareup.com/v2/online-checkout/payment-links', {
+      method: 'POST',
+      headers: {
+        'Square-Version': '2024-12-18',
+        'Authorization': `Bearer ${env.SQUARE_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        idempotency_key: crypto.randomUUID(),
+        order: orderBody,
+        checkout_options: {
+          redirect_url: `https://objectlesson.la/gift/?purchased=1&code=${encodeURIComponent(code)}`,
+          ask_for_shipping_address: false
+        },
+        payment_note: `Object Lesson | Gift Certificate (${code})`
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error('Square error:', JSON.stringify(data.errors));
+      return jsonResponse({ error: data.errors?.[0]?.detail || 'Checkout failed' }, 500, request);
+    }
+
+    const checkoutUrl = data.payment_link?.url || '';
+    if (!checkoutUrl.startsWith('https://square.link/') && !checkoutUrl.startsWith('https://checkout.square.site/')) {
+      console.error('Unexpected checkout URL:', checkoutUrl);
+      return jsonResponse({ error: 'Checkout failed' }, 500, request);
+    }
+
+    // Create the gift certificate in Supabase
+    if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
+      try {
+        const body = {
+          code,
+          type: 'fixed',
+          value: amount,
+          max_uses: 1,
+          is_gift_certificate: true,
+          is_active: true
+        };
+        if (purchaserName) body.purchaser_name = purchaserName;
+        if (recipientName) body.recipient_name = recipientName;
+
+        await fetch(`${env.SUPABASE_URL}/rest/v1/discount_codes`, {
+          method: 'POST',
+          headers: {
+            'apikey': env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(body)
+        });
+      } catch (e) {
+        console.error('Gift cert Supabase insert failed:', e.message);
+      }
+    }
+
+    return jsonResponse({ url: checkoutUrl, code }, 200, request);
+  } catch (err) {
+    console.error('Gift checkout error:', err.message);
+    return jsonResponse({ error: 'Server error' }, 500, request);
+  }
+}
+
 async function handleWebhook(request, env) {
   try {
     const body = await request.text();
@@ -244,8 +342,9 @@ async function handleWebhook(request, env) {
           console.log('🚨 STEP 4: Note does not start with "Object Lesson |" — note was:', JSON.stringify(note));
         }
 
-        // Auto-mark as sold if we can identify the item
-        if (itemId && env.GITHUB_TOKEN) {
+        // Auto-mark as sold if we can identify the item (skip for gift certificates)
+        const isGiftCert = note.includes('Gift Certificate');
+        if (itemId && env.GITHUB_TOKEN && !isGiftCert) {
           console.log('🚨 STEP 5: MARKING AS SOLD — itemId:', itemId);
           try {
             await markAsSold(env, itemId);
