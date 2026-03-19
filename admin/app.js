@@ -2108,6 +2108,7 @@
     const amount = parseFloat(document.getElementById('gc-amount').value);
     const purchaser = document.getElementById('gc-purchaser').value.trim();
     const recipient = document.getElementById('gc-recipient').value.trim();
+    const email = document.getElementById('gc-email').value.trim();
 
     if (!amount || amount <= 0) { toast('Amount required'); return; }
     if (!supaUrl || !supaKey) { toast('Supabase not configured'); return; }
@@ -2133,6 +2134,7 @@
       };
       if (purchaser) body.purchaser_name = purchaser;
       if (recipient) body.recipient_name = recipient;
+      if (email) body.purchaser_email = email;
 
       const res = await fetch(`${supaUrl}/rest/v1/discount_codes`, {
         method: 'POST',
@@ -2150,10 +2152,26 @@
         throw new Error(err.message || 'Create failed');
       }
 
-      toast(`Gift certificate created: ${code}`);
+      // Send email with gift code if email provided
+      if (email) {
+        try {
+          await fetch('https://ol-checkout.objectlesson.workers.dev/send-gift-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, amount, email, purchaserName: purchaser, recipientName: recipient })
+          });
+          toast(`Gift certificate created & emailed: ${code}`);
+        } catch {
+          toast(`Gift certificate created: ${code} (email failed)`);
+        }
+      } else {
+        toast(`Gift certificate created: ${code}`);
+      }
+
       document.getElementById('gc-amount').value = '';
       document.getElementById('gc-purchaser').value = '';
       document.getElementById('gc-recipient').value = '';
+      document.getElementById('gc-email').value = '';
       loadGiftCertificates();
     } catch (e) {
       toast(e.message || 'Failed to create gift certificate');

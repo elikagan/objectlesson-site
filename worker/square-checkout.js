@@ -22,6 +22,10 @@ export default {
       return handleRemoveBg(request, env);
     }
 
+    if (url.pathname === '/send-gift-email' && request.method === 'POST') {
+      return handleSendGiftEmail(request, env);
+    }
+
     return new Response('Not found', { status: 404 });
   }
 };
@@ -335,6 +339,68 @@ async function handleGiftCheckout(request, env) {
     return jsonResponse({ url: checkoutUrl, code }, 200, request);
   } catch (err) {
     console.error('Gift checkout error:', err.message);
+    return jsonResponse({ error: 'Server error' }, 500, request);
+  }
+}
+
+async function handleSendGiftEmail(request, env) {
+  try {
+    const { code, amount, email, purchaserName, recipientName } = await request.json();
+
+    if (!code || !amount || !email) {
+      return jsonResponse({ error: 'code, amount, and email required' }, 400, request);
+    }
+
+    if (!env.RESEND_API_KEY) {
+      return jsonResponse({ error: 'Email not configured' }, 500, request);
+    }
+
+    const toName = recipientName || 'someone special';
+    const fromName = purchaserName || '';
+    const fromLine = fromName ? `<p style="color:#888;font-size:14px;">From: ${fromName}</p>` : '';
+    const toLine = recipientName ? `<p style="color:#888;font-size:14px;">To: ${toName}</p>` : '';
+
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'Object Lesson <gift@objectlesson.la>',
+        to: [email],
+        subject: `Your Object Lesson Gift Certificate — $${amount}`,
+        html: `
+          <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;">
+            <h1 style="font-size:20px;font-weight:500;margin-bottom:24px;">Gift Certificate</h1>
+            ${toLine}${fromLine}
+            <p style="font-size:15px;color:#555;line-height:1.6;margin-bottom:24px;">
+              Here's your Object Lesson gift certificate. Give this code to the recipient to use at checkout.
+            </p>
+            <div style="text-align:center;padding:24px;border:2px solid #1a1a1a;border-radius:12px;margin-bottom:24px;">
+              <div style="font-size:14px;color:#888;margin-bottom:8px;">GIFT CERTIFICATE CODE</div>
+              <div style="font-size:28px;font-weight:600;letter-spacing:0.06em;">${code}</div>
+              <div style="font-size:16px;color:#888;margin-top:8px;">$${amount}</div>
+            </div>
+            <p style="font-size:14px;color:#888;line-height:1.6;">
+              This code can be used at checkout on <a href="https://objectlesson.la" style="color:#1a1a1a;">objectlesson.la</a> or in-store at Object Lesson in Pasadena. It does not expire.
+            </p>
+            <hr style="border:none;border-top:1px solid #ddd;margin:32px 0;">
+            <p style="font-size:12px;color:#aaa;">Object Lesson — Uncommon Objects, Art and Design<br>Pasadena, CA</p>
+          </div>
+        `
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error('Resend error:', err);
+      return jsonResponse({ error: 'Failed to send email' }, 500, request);
+    }
+
+    return jsonResponse({ success: true }, 200, request);
+  } catch (err) {
+    console.error('Send gift email error:', err.message);
     return jsonResponse({ error: 'Server error' }, 500, request);
   }
 }
