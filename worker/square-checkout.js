@@ -184,10 +184,13 @@ async function handleCheckout(request, env) {
 
 async function handleGiftCheckout(request, env) {
   try {
-    const { amount, purchaserName, recipientName } = await request.json();
+    const { amount, email, purchaserName, recipientName } = await request.json();
 
     if (typeof amount !== 'number' || amount <= 0 || amount > 10000) {
       return jsonResponse({ error: 'Invalid amount' }, 400, request);
+    }
+    if (!email || typeof email !== 'string') {
+      return jsonResponse({ error: 'Email required' }, 400, request);
     }
 
     // Generate GIFT-XXXX-XXXX code
@@ -243,7 +246,7 @@ async function handleGiftCheckout(request, env) {
     // Create the gift certificate in Supabase
     if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
       try {
-        const body = {
+        const gcBody = {
           code,
           type: 'fixed',
           value: amount,
@@ -251,8 +254,8 @@ async function handleGiftCheckout(request, env) {
           is_gift_certificate: true,
           is_active: true
         };
-        if (purchaserName) body.purchaser_name = purchaserName;
-        if (recipientName) body.recipient_name = recipientName;
+        if (purchaserName) gcBody.purchaser_name = purchaserName;
+        if (recipientName) gcBody.recipient_name = recipientName;
 
         await fetch(`${env.SUPABASE_URL}/rest/v1/discount_codes`, {
           method: 'POST',
@@ -262,7 +265,19 @@ async function handleGiftCheckout(request, env) {
             'Content-Type': 'application/json',
             'Prefer': 'return=minimal'
           },
-          body: JSON.stringify(body)
+          body: JSON.stringify(gcBody)
+        });
+
+        // Capture purchaser email
+        await fetch(`${env.SUPABASE_URL}/rest/v1/emails`, {
+          method: 'POST',
+          headers: {
+            'apikey': env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ email, source: 'gift_certificate' })
         });
       } catch (e) {
         console.error('Gift cert Supabase insert failed:', e.message);

@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v46';
+  const APP_VERSION = 'v47';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -124,6 +124,7 @@
   const viewEditor = document.getElementById('view-editor');
   const viewAnalytics = document.getElementById('view-analytics');
   const viewMarketing = document.getElementById('view-marketing');
+  const viewGiftcerts = document.getElementById('view-giftcerts');
   const itemList = document.getElementById('item-list');
   const photoGrid = document.getElementById('photo-grid');
   const photoInput = document.getElementById('photo-input');
@@ -216,6 +217,9 @@
       if (hash === 'analytics') {
         showView('analytics');
         loadAnalytics();
+      } else if (hash === 'giftcerts') {
+        showView('giftcerts');
+        loadGiftCertificates();
       } else if (hash === 'marketing') {
         showView('marketing');
         loadMarketing();
@@ -315,6 +319,13 @@
     loadAnalytics();
   });
 
+  document.getElementById('menu-giftcerts').addEventListener('click', () => {
+    menuDropdown.classList.add('hidden');
+    location.hash = 'giftcerts';
+    showView('giftcerts');
+    loadGiftCertificates();
+  });
+
   document.getElementById('menu-marketing').addEventListener('click', () => {
     menuDropdown.classList.add('hidden');
     location.hash = 'marketing';
@@ -358,8 +369,8 @@
   // --- Navigation ---
 
   function showView(name) {
-    [viewLock, viewSetup, viewList, viewEditor, viewAnalytics, viewMarketing].forEach(v => v.classList.add('hidden'));
-    const v = { lock: viewLock, setup: viewSetup, list: viewList, editor: viewEditor, analytics: viewAnalytics, marketing: viewMarketing }[name];
+    [viewLock, viewSetup, viewList, viewEditor, viewAnalytics, viewMarketing, viewGiftcerts].forEach(v => v.classList.add('hidden'));
+    const v = { lock: viewLock, setup: viewSetup, list: viewList, editor: viewEditor, analytics: viewAnalytics, marketing: viewMarketing, giftcerts: viewGiftcerts }[name];
     if (v) v.classList.remove('hidden');
   }
 
@@ -1859,16 +1870,19 @@
     showView('list');
   });
 
+  document.getElementById('btn-giftcerts-back').addEventListener('click', () => {
+    history.replaceState(null, '', location.pathname);
+    showView('list');
+  });
+
   async function loadMarketing() {
     if (!supaUrl || !supaKey) {
       document.getElementById('email-empty').style.display = '';
       document.getElementById('dc-empty').style.display = '';
-      document.getElementById('gc-empty').style.display = '';
       return;
     }
     loadEmails();
     loadDiscountCodes();
-    loadGiftCertificates();
   }
 
   async function loadEmails() {

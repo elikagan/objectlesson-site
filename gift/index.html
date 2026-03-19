@@ -236,6 +236,11 @@
       </div>
 
       <div class="form-group">
+        <label for="gc-email">Your Email</label>
+        <input type="email" id="gc-email" placeholder="you@example.com" maxlength="200" required>
+      </div>
+
+      <div class="form-group">
         <label for="gc-to">To <span style="font-weight:400;text-transform:none">(optional)</span></label>
         <input type="text" id="gc-to" placeholder="Recipient name" maxlength="100">
       </div>
@@ -252,7 +257,7 @@
     <!-- Confirmation -->
     <div class="confirmation" id="conf-state">
       <div class="conf-title">Gift Certificate Purchased</div>
-      <p class="conf-subtitle">Share this code with the recipient.</p>
+      <p class="conf-subtitle">Give this code to the recipient to use at checkout.</p>
       <div class="gift-code" id="conf-code"></div>
       <p class="copy-hint" id="copy-hint">Tap to copy</p>
       <div class="share-buttons">
@@ -318,8 +323,16 @@
     const buyBtn = document.getElementById('gc-buy');
     buyBtn.addEventListener('click', async () => {
       const amount = parseFloat(document.getElementById('gc-amount').value);
+      const emailInput = document.getElementById('gc-email');
+      const email = emailInput.value.trim();
+
       if (!amount || amount <= 0 || amount > 10000) {
         document.getElementById('gc-amount').focus();
+        return;
+      }
+      if (!email || !emailInput.checkValidity()) {
+        emailInput.focus();
+        emailInput.reportValidity();
         return;
       }
 
@@ -327,7 +340,7 @@
       buyBtn.textContent = 'Processing...';
 
       try {
-        const body = { amount };
+        const body = { amount, email };
         const to = document.getElementById('gc-to').value.trim();
         const from = document.getElementById('gc-from').value.trim();
         if (to) body.recipientName = to;
