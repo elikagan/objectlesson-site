@@ -226,6 +226,9 @@ async function handleGiftCheckout(request, env) {
           redirect_url: `https://objectlesson.la/gift/?purchased=1&code=${encodeURIComponent(code)}`,
           ask_for_shipping_address: false
         },
+        pre_populated_data: {
+          buyer_email: email
+        },
         payment_note: `Object Lesson | Gift Certificate (${code})`
       })
     });
@@ -281,6 +284,50 @@ async function handleGiftCheckout(request, env) {
         });
       } catch (e) {
         console.error('Gift cert Supabase insert failed:', e.message);
+      }
+    }
+
+    // Send confirmation email with gift certificate code
+    if (env.RESEND_API_KEY) {
+      try {
+        const toName = recipientName || 'someone special';
+        const fromName = purchaserName || '';
+        const fromLine = fromName ? `<p style="color:#888;font-size:14px;">From: ${fromName}</p>` : '';
+        const toLine = recipientName ? `<p style="color:#888;font-size:14px;">To: ${toName}</p>` : '';
+
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: 'Object Lesson <gift@objectlesson.la>',
+            to: [email],
+            subject: `Your Object Lesson Gift Certificate — $${amount}`,
+            html: `
+              <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;">
+                <h1 style="font-size:20px;font-weight:500;margin-bottom:24px;">Gift Certificate</h1>
+                ${toLine}${fromLine}
+                <p style="font-size:15px;color:#555;line-height:1.6;margin-bottom:24px;">
+                  Here's your Object Lesson gift certificate. Give this code to the recipient to use at checkout.
+                </p>
+                <div style="text-align:center;padding:24px;border:2px solid #1a1a1a;border-radius:12px;margin-bottom:24px;">
+                  <div style="font-size:14px;color:#888;margin-bottom:8px;">GIFT CERTIFICATE CODE</div>
+                  <div style="font-size:28px;font-weight:600;letter-spacing:0.06em;">${code}</div>
+                  <div style="font-size:16px;color:#888;margin-top:8px;">$${amount}</div>
+                </div>
+                <p style="font-size:14px;color:#888;line-height:1.6;">
+                  This code can be used at checkout on <a href="https://objectlesson.la" style="color:#1a1a1a;">objectlesson.la</a> or in-store at Object Lesson in Pasadena. It does not expire.
+                </p>
+                <hr style="border:none;border-top:1px solid #ddd;margin:32px 0;">
+                <p style="font-size:12px;color:#aaa;">Object Lesson — Uncommon Objects, Art and Design<br>Pasadena, CA</p>
+              </div>
+            `
+          })
+        });
+      } catch (e) {
+        console.error('Gift cert email failed:', e.message);
       }
     }
 
