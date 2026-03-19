@@ -53,6 +53,17 @@ header {
   border-color: var(--light);
 }
 
+.header-side {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-right {
+  justify-content: flex-end;
+}
+
 .header-icon {
   display: flex;
   align-items: center;
