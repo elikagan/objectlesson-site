@@ -1212,3 +1212,28 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   transform: translateX(14px);
 }
 
+/* Gift certificate status badges */
+.gc-status {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.gc-active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.gc-redeemed {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--light);
+}
+
+.gc-voided {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+

@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v45';
+  const APP_VERSION = 'v46';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -1863,10 +1863,12 @@
     if (!supaUrl || !supaKey) {
       document.getElementById('email-empty').style.display = '';
       document.getElementById('dc-empty').style.display = '';
+      document.getElementById('gc-empty').style.display = '';
       return;
     }
     loadEmails();
     loadDiscountCodes();
+    loadGiftCertificates();
   }
 
   async function loadEmails() {
@@ -1917,7 +1919,7 @@
 
   async function loadDiscountCodes() {
     try {
-      const res = await fetch(`${supaUrl}/rest/v1/discount_codes?select=id,code,type,value,is_active,max_uses,used_count,created_at&order=created_at.desc`, {
+      const res = await fetch(`${supaUrl}/rest/v1/discount_codes?select=id,code,type,value,is_active,max_uses,used_count,created_at&is_gift_certificate=is.false&order=created_at.desc`, {
         headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
       });
       const codes = await res.json();
@@ -2022,6 +2024,129 @@
 
     btn.disabled = false;
     btn.textContent = 'Create Code';
+  });
+
+  // --- Gift Certificates ---
+  async function loadGiftCertificates() {
+    try {
+      const res = await fetch(`${supaUrl}/rest/v1/discount_codes?select=id,code,type,value,is_active,max_uses,used_count,purchaser_name,recipient_name,created_at&is_gift_certificate=is.true&order=created_at.desc`, {
+        headers: { 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey }
+      });
+      const certs = await res.json();
+      const listEl = document.getElementById('gc-list');
+      const emptyEl = document.getElementById('gc-empty');
+
+      if (!certs.length) {
+        emptyEl.style.display = '';
+        listEl.innerHTML = '';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      listEl.innerHTML = certs.map(gc => {
+        const redeemed = gc.used_count >= (gc.max_uses || 1);
+        const status = !gc.is_active ? 'Voided' : redeemed ? 'Redeemed' : 'Active';
+        const statusClass = !gc.is_active ? 'gc-voided' : redeemed ? 'gc-redeemed' : 'gc-active';
+        const names = [gc.purchaser_name, gc.recipient_name].filter(Boolean);
+        const nameLabel = names.length ? names.join(' → ') : '';
+        const date = new Date(gc.created_at).toLocaleDateString();
+        return `
+          <div class="dc-row">
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span class="dc-code">${esc(gc.code)}</span>
+                <span class="gc-status ${statusClass}">${status}</span>
+              </div>
+              <div class="dc-info">$${gc.value}${nameLabel ? ' · ' + esc(nameLabel) : ''} · ${date}</div>
+            </div>
+            ${gc.is_active && !redeemed ? `<button class="btn-small gc-void" data-id="${gc.id}">Void</button>` : ''}
+          </div>`;
+      }).join('');
+
+      listEl.querySelectorAll('.gc-void').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          btn.disabled = true;
+          try {
+            await fetch(`${supaUrl}/rest/v1/discount_codes?id=eq.${btn.dataset.id}`, {
+              method: 'PATCH',
+              headers: {
+                'apikey': supaKey,
+                'Authorization': 'Bearer ' + supaKey,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify({ is_active: false })
+            });
+            loadGiftCertificates();
+          } catch {
+            toast('Failed to void');
+            btn.disabled = false;
+          }
+        });
+      });
+    } catch {
+      document.getElementById('gc-empty').style.display = '';
+      document.getElementById('gc-empty').textContent = 'Failed to load gift certificates.';
+    }
+  }
+
+  document.getElementById('gc-create-btn').addEventListener('click', async () => {
+    const amount = parseFloat(document.getElementById('gc-amount').value);
+    const purchaser = document.getElementById('gc-purchaser').value.trim();
+    const recipient = document.getElementById('gc-recipient').value.trim();
+
+    if (!amount || amount <= 0) { toast('Amount required'); return; }
+    if (!supaUrl || !supaKey) { toast('Supabase not configured'); return; }
+
+    // Generate GIFT-XXXX-XXXX code
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = 'GIFT-';
+    for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    code += '-';
+    for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+
+    const btn = document.getElementById('gc-create-btn');
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+    try {
+      const body = {
+        code,
+        type: 'fixed',
+        value: amount,
+        max_uses: 1,
+        is_gift_certificate: true
+      };
+      if (purchaser) body.purchaser_name = purchaser;
+      if (recipient) body.recipient_name = recipient;
+
+      const res = await fetch(`${supaUrl}/rest/v1/discount_codes`, {
+        method: 'POST',
+        headers: {
+          'apikey': supaKey,
+          'Authorization': 'Bearer ' + supaKey,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Create failed');
+      }
+
+      toast(`Gift certificate created: ${code}`);
+      document.getElementById('gc-amount').value = '';
+      document.getElementById('gc-purchaser').value = '';
+      document.getElementById('gc-recipient').value = '';
+      loadGiftCertificates();
+    } catch (e) {
+      toast(e.message || 'Failed to create gift certificate');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Create Gift Certificate';
   });
 
   function confirm(msg, onConfirm) {
