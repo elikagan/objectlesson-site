@@ -278,6 +278,32 @@
   <script>
   (function() {
     const CHECKOUT_URL = 'https://ol-checkout.objectlesson.workers.dev/gift-checkout';
+    const SUPA_URL = 'https://gjlwoibtdgxlhtfswdkk.supabase.co';
+    const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqbHdvaWJ0ZGd4bGh0ZnN3ZGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNTYzODgsImV4cCI6MjA4NzczMjM4OH0.4QSS1BBMBuqbMtLjo_Tr0_WVTS48YYNsNYvtEMTf33U';
+
+    function getSessionId() {
+      let sid = sessionStorage.getItem('ol_sid');
+      if (!sid) { sid = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem('ol_sid', sid); }
+      return sid;
+    }
+
+    function trackEvent(event) {
+      if (/bot|crawl|spider/i.test(navigator.userAgent)) return;
+      fetch(`${SUPA_URL}/rest/v1/events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON, 'Prefer': 'return=minimal' },
+        body: JSON.stringify({
+          event,
+          session_id: getSessionId(),
+          referrer: document.referrer || null,
+          ua_mobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
+          path: '/gift/'
+        }),
+        keepalive: true
+      }).catch(() => {});
+    }
+
+    trackEvent('page_view');
 
     // Check for confirmation redirect
     const params = new URLSearchParams(window.location.search);
@@ -338,6 +364,7 @@
 
       buyBtn.disabled = true;
       buyBtn.textContent = 'Processing...';
+      trackEvent('gift_purchase');
 
       try {
         const body = { amount, email };
