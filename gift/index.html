@@ -190,6 +190,33 @@
       max-width: 340px;
       margin: 0 auto 32px;
     }
+
+    .share-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .share-btn {
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--black);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .share-btn:hover {
+      border-color: var(--black);
+    }
   </style>
 </head>
 <body>
@@ -228,8 +255,16 @@
       <p class="conf-subtitle">Share this code with the recipient.</p>
       <div class="gift-code" id="conf-code"></div>
       <p class="copy-hint" id="copy-hint">Tap to copy</p>
+      <div class="share-buttons">
+        <a class="share-btn" id="share-email">Email</a>
+        <a class="share-btn" id="share-text">Text</a>
+        <button class="share-btn" id="share-native" style="display:none">Share</button>
+      </div>
       <p class="conf-note">
         This code can be used at checkout on objectlesson.la or in-store at Object Lesson in Pasadena. It does not expire.
+      </p>
+      <p class="conf-note" style="font-size:13px;margin-top:-16px">
+        This code is also included in your Square payment receipt.
       </p>
       <a href="/" class="btn" style="display:inline-block;text-align:center;text-decoration:none">Continue Shopping</a>
     </div>
@@ -245,15 +280,37 @@
       document.getElementById('form-state').classList.add('hidden');
       const conf = document.getElementById('conf-state');
       conf.classList.add('visible');
+      const code = params.get('code');
       const codeEl = document.getElementById('conf-code');
-      codeEl.textContent = params.get('code');
+      codeEl.textContent = code;
 
       codeEl.addEventListener('click', () => {
-        navigator.clipboard.writeText(params.get('code')).then(() => {
+        navigator.clipboard.writeText(code).then(() => {
           document.getElementById('copy-hint').textContent = 'Copied!';
           setTimeout(() => { document.getElementById('copy-hint').textContent = 'Tap to copy'; }, 2000);
         });
       });
+
+      const shareText = `Here's a gift certificate for Object Lesson!\n\nCode: ${code}\n\nUse it at objectlesson.la or in-store in Pasadena. It doesn't expire.`;
+      const shareSubject = 'Gift Certificate for Object Lesson';
+
+      // Email button
+      document.getElementById('share-email').href =
+        `mailto:?subject=${encodeURIComponent(shareSubject)}&body=${encodeURIComponent(shareText)}`;
+
+      // Text/SMS button
+      document.getElementById('share-text').href =
+        `sms:?&body=${encodeURIComponent(shareText)}`;
+
+      // Native share (mobile)
+      if (navigator.share) {
+        const nativeBtn = document.getElementById('share-native');
+        nativeBtn.style.display = '';
+        nativeBtn.addEventListener('click', () => {
+          navigator.share({ title: shareSubject, text: shareText }).catch(() => {});
+        });
+      }
+
       return;
     }
 
