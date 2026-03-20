@@ -26,6 +26,10 @@ export default {
       return handleSendGiftEmail(request, env);
     }
 
+    if (url.pathname === '/lazyposter-sync' && request.method === 'POST') {
+      return handleLazyposterSync(request, env);
+    }
+
     return new Response('Not found', { status: 404 });
   }
 };
@@ -632,3 +636,95 @@ async function markAsSold(env, itemId) {
   }
 }
 
+// --- Lazy Poster Marketplace Sync ---
+
+const LP_API = 'https://us-central1-lazyposter.cloudfunctions.net';
+
+async function handleLazyposterSync(request, env) {
+  try {
+    if (!env.LAZYPOSTER_TOKEN) {
+      return jsonResponse({ error: 'Lazy Poster not configured' }, 500, request);
+    }
+
+    const { items } = await request.json();
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return jsonResponse({ error: 'items array required' }, 400, request);
+    }
+
+    const results = [];
+
+    for (const item of items) {
+      try {
+        // Upload images first
+        const imageUrls = [];
+        if (item.imageUrls && item.imageUrls.length > 0) {
+          for (const imgUrl of item.imageUrls.slice(0, 10)) {
+            try {
+              // Fetch the image and convert to base64
+              const imgResp = await fetch(imgUrl);
+              if (!imgResp.ok) continue;
+              const imgBuf = await imgResp.arrayBuffer();
+              const base64 = btoa(String.fromCharCode(...new Uint8Array(imgBuf)));
+              const mimeType = imgResp.headers.get('content-type') || 'image/jpeg';
+
+              const uploadResp = await fetch(`${LP_API}/uploadImage`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-access-token': env.LAZYPOSTER_TOKEN
+                },
+                body: JSON.stringify({ image: `data:${mimeType};base64,${base64}` })
+              });
+
+              if (uploadResp.ok) {
+                const uploadData = await uploadResp.json();
+                imageUrls.push(uploadData.url);
+              }
+            } catch {
+              // Skip failed image uploads
+            }
+          }
+        }
+
+        // Create the listing
+        const listing = {
+          type: 'item',
+          platform: ['facebook'],
+          title: item.title || item.name || 'Untitled',
+          price: Math.round(item.price) || 1,
+          description: item.description || '',
+          category: item.category || 'Home & Garden',
+          condition: typeof item.condition === 'number' ? item.condition : 2,
+          location: 'Pasadena, CA',
+          deliveryMethod: 'Local pickup only',
+          campaign: 'object-lesson',
+          images: imageUrls
+        };
+
+        const addResp = await fetch(`${LP_API}/addListing`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-access-token': env.LAZYPOSTER_TOKEN
+          },
+          body: JSON.stringify({ listing })
+        });
+
+        const addData = await addResp.text();
+        results.push({
+          itemId: item.id,
+          status: addResp.ok ? 'ok' : 'error',
+          lpId: addResp.ok ? JSON.parse(addData).id : null,
+          error: addResp.ok ? null : addData,
+          images: imageUrls.length
+        });
+      } catch (e) {
+        results.push({ itemId: item.id, status: 'error', error: e.message });
+      }
+    }
+
+    return jsonResponse({ results }, 200, request);
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, request);
+  }
+}

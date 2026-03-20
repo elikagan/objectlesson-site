@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v48';
+  const APP_VERSION = 'v49';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -1396,6 +1396,58 @@
     }
   }
 
+  // --- FB Marketplace sync via Lazy Poster ---
+
+  const LP_CATEGORY_MAP = {
+    'wall-art': 'Home & Garden',
+    'object': 'Home & Garden',
+    'ceramic': 'Home & Garden',
+    'furniture': 'Furniture',
+    'light': 'Home & Garden',
+    'sculpture': 'Home & Garden',
+    'misc': 'Miscellaneous'
+  };
+
+  const LP_CONDITION_MAP = {
+    'excellent': 1,
+    'good': 2,
+    'fair': 3,
+    '': 2
+  };
+
+  async function syncToMarketplace(item) {
+    try {
+      const imageUrls = (item.images || []).map(img =>
+        img.startsWith('http') ? img : `${RAW_URL}/${img}`
+      );
+
+      const lpItem = {
+        id: item.id,
+        title: item.title,
+        price: item.price,
+        description: item.description || '',
+        category: LP_CATEGORY_MAP[item.category] || 'Home & Garden',
+        condition: LP_CONDITION_MAP[item.condition] || 2,
+        imageUrls
+      };
+
+      const resp = await fetch(`${WORKER_URL}/lazyposter-sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: [lpItem] })
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        console.log('[Marketplace] Synced:', data.results);
+      } else {
+        console.warn('[Marketplace] Sync failed:', await resp.text());
+      }
+    } catch (e) {
+      console.warn('[Marketplace] Sync error:', e.message);
+    }
+  }
+
   // --- Save item ---
 
   document.getElementById('btn-save').addEventListener('click', saveItem);
@@ -1483,6 +1535,11 @@
 
       // Update SEO files (item page + sitemap + ping search engines) — fire and forget
       updateSEO(itemData).catch(() => {});
+
+      // Sync to FB Marketplace via Lazy Poster — fire and forget
+      if (!isSold && !isHold && price > 0) {
+        syncToMarketplace(itemData).catch(() => {});
+      }
 
       toast('Saved');
       showView('list');
