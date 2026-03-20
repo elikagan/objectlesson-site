@@ -276,14 +276,14 @@ async function handleGiftCheckout(request, env) {
           body: JSON.stringify(gcBody)
         });
 
-        // Capture purchaser email
+        // Capture purchaser email (ignore if already exists)
         await fetch(`${env.SUPABASE_URL}/rest/v1/emails`, {
           method: 'POST',
           headers: {
             'apikey': env.SUPABASE_ANON_KEY,
             'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
             'Content-Type': 'application/json',
-            'Prefer': 'return=minimal'
+            'Prefer': 'return=minimal,resolution=ignore-duplicates'
           },
           body: JSON.stringify({ email, source: 'gift_certificate' })
         });
@@ -496,7 +496,7 @@ async function handleWebhook(request, env) {
                 'apikey': env.SUPABASE_ANON_KEY,
                 'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
                 'Content-Type': 'application/json',
-                'Prefer': 'return=minimal'
+                'Prefer': 'return=minimal,resolution=ignore-duplicates'
               },
               body: JSON.stringify({
                 email: buyerEmail,

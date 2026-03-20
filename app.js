@@ -380,7 +380,7 @@
                 'Content-Type': 'application/json',
                 'apikey': SUPA_ANON,
                 'Authorization': 'Bearer ' + SUPA_ANON,
-                'Prefer': 'return=minimal'
+                'Prefer': 'return=minimal,resolution=ignore-duplicates'
               },
               body: JSON.stringify({ email, source: 'abandoned_cart', item_id: id })
             });
@@ -800,7 +800,7 @@
             'Content-Type': 'application/json',
             'apikey': SUPA_ANON,
             'Authorization': 'Bearer ' + SUPA_ANON,
-            'Prefer': 'return=minimal'
+            'Prefer': 'return=minimal,resolution=ignore-duplicates'
           },
           body: JSON.stringify({ email, source: 'newsletter', discount_code: 'WELCOME10' })
         });
