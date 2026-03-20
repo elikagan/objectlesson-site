@@ -487,30 +487,6 @@
     "createdAt": "2026-03-03T22:20:39.829Z"
   },
   {
-    "id": "000030",
-    "title": "French Deco Box",
-    "description": "Silver grey riveted box with royal blue velvet interior.",
-    "price": 200,
-    "size": "9.5\" L",
-    "category": "object",
-    "maker": "",
-    "condition": "surface scuffs and minor wear to edges.",
-    "dealerCode": "14EK",
-    "isNew": false,
-    "isHold": false,
-    "isSold": false,
-    "images": [
-      "images/products/000030/french_deco_box_1.jpg",
-      "images/products/000030/french_deco_box_2.jpg",
-      "images/products/000030/french_deco_box_3.jpg",
-      "images/products/000030/french_deco_box_4.jpg",
-      "images/products/000030/french_deco_box_5.jpg"
-    ],
-    "heroImage": "images/products/000030/french_deco_box_1.jpg",
-    "order": 25,
-    "createdAt": "2026-03-03T05:16:26.532Z"
-  },
-  {
     "id": "000029",
     "title": "Aluminum Abstract Sculpture",
     "description": "Textured cast metal abstract sculpture with a silver finish and a spiral shape.",
