@@ -129,6 +129,7 @@ Object Lesson App and Website/
 |
 |-- worker/
 |   |-- square-checkout.js  Cloudflare Worker source
+|   |-- wrangler.toml       Wrangler CLI config (account_id, worker name)
 |
 |-- .claude/
     |-- launch.json         Dev server config (Ruby HTTP, port 8090)
@@ -776,7 +777,13 @@ For the **storefront**: just push changes to `index.html`, `app.js`, `style.css`
 
 For the **admin**: push changes to `admin/index.html`, `admin/app.js`, `admin/style.css`. Bump the service worker cache version in `admin/sw.js` (e.g., `ol-admin-v24` to `v25`) to ensure phones pick up the new version.
 
-For the **Cloudflare Worker**: Deploy `worker/square-checkout.js` to Cloudflare Workers via the Cloudflare dashboard or `wrangler` CLI. The worker URL is `https://ol-checkout.objectlesson.workers.dev`.
+For the **Cloudflare Worker**: Deploy using the Wrangler CLI from the `worker/` directory:
+
+```bash
+cd worker && wrangler deploy
+```
+
+Config file: `worker/wrangler.toml`. The worker URL is `https://ol-checkout.objectlesson.workers.dev`.
 
 ### 8.3 Build Script
 
@@ -813,6 +820,36 @@ When the admin panel saves an item or reorders inventory:
   "port": 8090
 }
 ```
+
+### 8.6 CLI Tools
+
+All infrastructure is managed via CLI tools rather than browser dashboards.
+
+**Wrangler (Cloudflare Workers)**
+- Installed globally: `npm install -g wrangler`
+- Authenticated via OAuth (eli.kagan@gmail.com)
+- Config: `worker/wrangler.toml`
+- Deploy: `cd worker && wrangler deploy`
+- Check logs: `wrangler tail`
+
+**Supabase CLI**
+- Installed via Homebrew: `brew install supabase/tap/supabase`
+- Authenticated with access token
+- Project linked: ref `gjlwoibtdgxlhtfswdkk`
+- Shell needs: `eval "$(/opt/homebrew/bin/brew shellenv zsh)"` before `supabase` works
+- Check tables: `supabase inspect db table-stats`
+- Check indexes: `supabase inspect db index-stats`
+- Dump schema: `supabase db dump`
+
+**GitHub CLI (gh)**
+- Installed via Homebrew
+- Authenticated via keyring
+- Shell needs: `eval "$(/opt/homebrew/bin/brew shellenv zsh)"` before `gh` works
+
+**Duplicate Email Handling**
+- All email inserts (storefront + worker) use Supabase header `'Prefer': 'return=minimal,resolution=ignore-duplicates'`
+- `emails` table has a unique index on the `email` column (`emails_email_unique`)
+- Duplicate emails are silently ignored rather than causing errors
 
 ---
 
