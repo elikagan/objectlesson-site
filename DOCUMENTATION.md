@@ -31,7 +31,7 @@ The project consists of three main parts:
 
 1. **Public storefront** -- A single-page app (SPA) served from GitHub Pages that displays inventory with a mosaic hero, product grid, detail views, and integrated Square Checkout.
 2. **Admin panel** -- A separate SPA (also on GitHub Pages at `/admin/`) that acts as a mobile-first PWA for managing inventory, with AI-powered image processing via Gemini.
-3. **Cloudflare Worker** -- A serverless backend (`ol-checkout.objectlesson.workers.dev`) that handles Square Checkout link creation, payment webhooks, auto-marking items as sold, SMS notifications via Twilio, and buyer email capture.
+3. **Cloudflare Worker** -- A serverless backend (`ol-checkout.objectlesson.workers.dev`) that handles Square Checkout link creation, gift certificate checkout, payment webhooks, auto-marking items as sold, email sending via Resend, and buyer email capture.
 
 ---
 
@@ -56,6 +56,7 @@ Both the storefront and admin panel are single-page applications using hash-base
 | (after unlock) | `view-list` | Inventory list |
 | `#analytics` | `view-analytics` | Analytics dashboard |
 | `#marketing` | `view-marketing` | Email subscribers and discount codes |
+| `#giftcerts` | `view-giftcerts` | Gift certificate management |
 
 ### Data Flow
 
@@ -82,9 +83,11 @@ Square API
         |-- Payment links created by Cloudflare Worker
         |-- Webhooks notify Worker of completed payments
 
-Twilio API
+Resend API
         |
-        |-- SMS sale alerts sent by Cloudflare Worker
+        |-- Gift certificate confirmation emails
+        |-- Sends from gift@objectlesson.la
+        |-- Domain verified via DKIM/SPF/DMARC on Porkbun DNS
 ```
 
 ---
@@ -301,51 +304,78 @@ When returning from Square with `?purchased=1#{itemId}`:
    - Pickup info at Pasadena Antique Center
    - SMS link to arrange other pickup/shipping
 
-### 4.14 About/Visit Page
+### 4.14 Header Layout
 
-Accessible via the "Visit" pill in the header. Shows:
+The header uses a three-column flex layout with `justify-content: space-between`:
+- **Left:** Two icon buttons (house icon for Visit/About, gift box icon for Gift Certificates) in a `header-side` div with `flex: 1`
+- **Center:** Object Lesson logo (linked to homepage)
+- **Right:** Instagram icon in a `header-side` div with `flex: 1` and `justify-content: flex-end`
+
+Both side divs use `flex: 1` to ensure they take equal width, keeping the logo perfectly centered on all screen sizes. Icons are circular pill buttons (`.header-icon` class) matching the `.ig-pill` style.
+
+### 4.15 About/Visit Page
+
+Accessible via the house icon in the header. Shows:
 - Tagline: "Uncommon Objects, Art and Design"
 - Founders: "Eli Kagan & Megan Gage"
 - Address (linked to Google Maps): 480 S. Fair Oaks Ave, Pasadena, CA 91105
 - Context: "In the Pasadena Antique Center"
 - Email and Instagram links
 
-### 4.15 Not Found View
+### 4.16 Not Found View
 
 When a hash points to a non-existent item ID, shows:
 - "This item is no longer available."
 - "Browse all items" link
 
-### 4.16 Gift Certificate Purchase Page
+### 4.17 Gift Certificate Purchase Page
 
 **URL:** `/gift/` (standalone page: `gift/index.html`)
 
 A customer-facing page where visitors can purchase gift certificates.
 
+**Marketing Copy:** "Give the gift of something unexpected. Object Lesson gift certificates can be used online or in-store at our Pasadena shop -- and they never expire."
+
 **Purchase Form:**
 - Custom dollar amount input ($1 - $10,000)
+- Email address (required) -- used for Square checkout pre-fill and confirmation email
 - Optional "To" (recipient name) and "From" (purchaser name) fields
-- "Purchase Gift Certificate" button → POST to worker `/gift-checkout` endpoint
-- Redirects to Square Checkout (no sales tax, no shipping address)
+- "Purchase Gift Certificate" button -> POST to worker `/gift-checkout` endpoint
+- Redirects to Square Checkout (no sales tax, no shipping address, buyer email pre-filled)
 
 **After Payment:**
 - Square redirects back to `/gift/?purchased=1&code=GIFT-XXXX-XXXX`
 - Confirmation view shows the gift certificate code prominently
 - Code is selectable and has tap-to-copy functionality
-- Instructions: "This code can be used at checkout on objectlesson.la or in-store at Object Lesson in Pasadena. It does not expire."
+- Share buttons: Email (mailto:), Text (sms:), Share (native Web Share API on mobile)
+- Instructions: use at checkout on objectlesson.la or in-store, never expires
 - "Continue Shopping" button links back to homepage
+- **Confirmation email sent automatically** via Resend from `gift@objectlesson.la` with:
+  - Styled HTML email matching site aesthetic (Helvetica Neue)
+  - Gift code displayed prominently in bordered box
+  - Dollar amount
+  - To/From names if provided
+  - Usage instructions (online + in-store, no expiration)
 
 **Navigation:**
-- "Gift" pill in the homepage header (alongside "Visit" pill)
+- House icon (visit) and gift box icon in homepage header (icon-only circular buttons)
+- Both sides of header use `flex: 1` to keep logo perfectly centered
 - "Back to shop" link on the gift page
+- Discount input placeholder on main site reads "Discount or gift certificate code"
+
+**Analytics:**
+- `page_view` event tracked on page load
+- `gift_purchase` event tracked on buy button click
+- Events sent to Supabase `events` table with path `/gift/`
 
 **How redemption works:**
 - Gift certificate codes (`GIFT-XXXX-XXXX`) are stored in the `discount_codes` table with `is_gift_certificate: true`, `type: fixed`, `max_uses: 1`
 - Customers enter the code in the discount input on any product detail page
-- The existing discount code validation and application flow handles it — no special case needed
+- The existing discount code validation and application flow handles it -- no special case needed
 - One-time use: after checkout, `used_count` is incremented and the code becomes invalid
+- If a used code is entered, the discount silently does not apply (code not found in active codes query)
 
-### 4.17 Inventory Loading
+### 4.18 Inventory Loading
 
 1. Fetches from GitHub raw URL with cache-bust timestamp: `https://raw.githubusercontent.com/elikagan/objectlesson-site/main/inventory.json?t={timestamp}`
 2. Falls back to local `inventory.json?t={timestamp}` if raw fetch fails
@@ -495,25 +525,49 @@ Accessible from hamburger menu. Two sections:
 - Filters out gift certificates (shown separately)
 - Data from Supabase `discount_codes` table (where `is_gift_certificate` is false)
 
-**Gift Certificates:**
-- Create form: dollar amount, purchaser name (optional), recipient name (optional)
-- Auto-generates `GIFT-XXXX-XXXX` code on creation
-- List view showing: code, amount, purchaser → recipient names, date, status badge
+### 5.9 Gift Certificates (Top-Level Menu)
+
+Gift certificates have their own top-level menu item in the admin (gift box icon), not nested under Marketing.
+
+**Admin route:** `#giftcerts` / `view-giftcerts`
+
+**Create Form:**
+- Dollar amount (required)
+- Purchaser name (optional)
+- Recipient name (optional)
+- Recipient email (optional) -- if provided, automatically sends an email with the gift code via the worker's `/send-gift-email` endpoint
+- Auto-generates `GIFT-XXXX-XXXX` code (charset: `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` -- no ambiguous chars like 0/O/1/I)
+- Stores `purchaser_email` on the discount code record
+
+**List View:**
+- Shows: code, amount, purchaser -> recipient names, purchaser email, date, status badge
 - Status badges: Active (green), Redeemed (gray), Voided (red)
 - "Void" button to deactivate unredeemed certificates
 - Data from Supabase `discount_codes` table (where `is_gift_certificate` is true)
-- Gift certificates are also created automatically when a customer purchases one on the `/gift/` page
 
-### 5.9 Service Worker
+**Redemption Flow:**
+- Gift certificates are standard discount codes with `is_gift_certificate: true`, `type: fixed`, `max_uses: 1`
+- Customers enter the `GIFT-XXXX-XXXX` code in the discount input on any product detail page
+- The existing discount validation applies the dollar amount as a fixed discount
+- After checkout, `used_count` is incremented to 1, making the code invalid for future use
+- In the admin list, status changes from "Active" to "Redeemed"
+
+**Two Creation Paths:**
+1. **Customer-purchased:** Via the `/gift/` page -- customer pays via Square, code created automatically by the `/gift-checkout` worker endpoint, confirmation email sent via Resend
+2. **Admin-created:** Via the admin panel -- no payment required, optionally sends email to recipient via `/send-gift-email` worker endpoint
+
+Gift certificates never expire.
+
+### 5.10 Service Worker
 
 `admin/sw.js` provides offline caching for the PWA:
-- Cache name: `ol-admin-v24`
+- Cache name: `ol-admin-v48`
 - Caches shell files: `/admin/`, `/admin/style.css`, `/admin/app.js`, `/OL_logo.svg`
 - Strategy: network-first with cache fallback (online-first for fresh data, offline fallback for cached shell)
 - Cache versioning: old caches deleted on activation
 - skipWaiting + clients.claim for immediate activation
 
-### 5.10 PWA Manifest
+### 5.11 PWA Manifest
 
 ```json
 {
@@ -569,20 +623,47 @@ Request body:
 ```json
 {
   "amount": 50,
+  "email": "buyer@example.com",
   "purchaserName": "Jane Doe",
   "recipientName": "John Smith"
 }
 ```
+- `amount` and `email` are required
 - `purchaserName` and `recipientName` are optional
 
 Process:
-1. Input validation (amount > 0 and <= 10,000)
-2. Generates `GIFT-XXXX-XXXX` code (alphanumeric, no ambiguous characters)
-3. Creates Square order with line item -- **no sales tax** (gift certificates are not taxable), **no shipping address**
-4. Creates payment link via Square Online Checkout API
-5. Inserts gift certificate into Supabase `discount_codes` table with `is_gift_certificate: true`, `type: fixed`, `value: amount`, `max_uses: 1`
-6. Redirect URL: `https://objectlesson.la/gift/?purchased=1&code={CODE}`
-7. Returns `{ "url": "https://square.link/...", "code": "GIFT-XXXX-XXXX" }`
+1. Input validation (amount > 0 and <= 10,000, email required)
+2. Generates `GIFT-XXXX-XXXX` code (charset: `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`)
+3. Creates Square order with line item name `Gift Certificate - $XX` -- **no sales tax** (gift certificates are not taxable), **no shipping address**
+4. Creates payment link via Square Online Checkout API with `pre_populated_data.buyer_email` set
+5. Inserts gift certificate into Supabase `discount_codes` table with `is_gift_certificate: true`, `type: fixed`, `value: amount`, `max_uses: 1`, `purchaser_email: email`
+6. Captures email in Supabase `emails` table (source: `gift_certificate`)
+7. **Sends confirmation email** via Resend API from `gift@objectlesson.la` with styled HTML containing the gift code, amount, names, and usage instructions
+8. Payment note format: `Object Lesson | Gift Certificate (GIFT-XXXX-XXXX)`
+9. Redirect URL: `https://objectlesson.la/gift/?purchased=1&code={CODE}`
+10. Returns `{ "url": "https://square.link/...", "code": "GIFT-XXXX-XXXX" }`
+
+**POST /send-gift-email** -- Sends a gift certificate email (used by admin panel)
+
+Request body:
+```json
+{
+  "code": "GIFT-XXXX-XXXX",
+  "amount": 50,
+  "email": "recipient@example.com",
+  "purchaserName": "Jane Doe",
+  "recipientName": "John Smith"
+}
+```
+- `code`, `amount`, and `email` are required
+- `purchaserName` and `recipientName` are optional
+
+Process:
+1. Validates required fields
+2. Sends styled HTML email via Resend API (same template as gift-checkout)
+3. Returns `{ "success": true }`
+
+This endpoint exists so admin-created gift certificates can trigger emails without going through Square checkout.
 
 **POST /webhook** -- Handles Square payment webhooks
 
@@ -597,13 +678,25 @@ Process:
 
 Allowed origins: `https://objectlesson.la`, `https://www.objectlesson.la`, `https://elikagan.github.io`
 
-### 6.3 SMS Notifications
+### 6.3 Email Sending (Resend)
 
-Uses Twilio API to send SMS alerts to the configured phone number on every completed payment.
+Gift certificate confirmation emails are sent via the Resend API.
 
-Message format: `Sale: {title} ({itemId}) -- ${amount}. Check Square for details.`
+- **From address:** `Object Lesson <gift@objectlesson.la>`
+- **Domain:** `objectlesson.la` verified in Resend with DKIM, SPF, and DMARC records on Porkbun DNS
+- **DNS records added to Porkbun:**
+  - TXT `resend._domainkey` -- DKIM public key
+  - MX `send` -- `feedback-smtp.us-east-1.amazonses.com` (priority 10)
+  - TXT `send` -- `v=spf1 include:amazonses.com ~all`
+  - TXT `_dmarc` -- `v=DMARC1; p=none;` (optional)
+- **Email template:** Styled HTML matching site aesthetic (Helvetica Neue, minimal, centered layout)
+- **Triggered by:** `/gift-checkout` (customer purchases) and `/send-gift-email` (admin creates)
 
-### 6.4 Environment Variables
+### 6.4 Sale Notifications
+
+Sale notifications are handled natively by Square (Settings -> Notifications), not by the worker. Twilio was previously used but has been removed due to 10DLC carrier requirements.
+
+### 6.5 Environment Variables
 
 | Variable | Purpose |
 |----------|---------|
@@ -613,10 +706,7 @@ Message format: `Sale: {title} ({itemId}) -- ${amount}. Check Square for details
 | `GITHUB_TOKEN` | GitHub API token for auto-sold |
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_ANON_KEY` | Supabase anon key |
-| `TWILIO_ACCOUNT_SID` | Twilio account SID |
-| `TWILIO_AUTH_TOKEN` | Twilio auth token |
-| `TWILIO_FROM_NUMBER` | Twilio sender number |
-| `ALERT_PHONE_NUMBER` | SMS recipient number |
+| `RESEND_API_KEY` | Resend API key for sending emails |
 
 ---
 
@@ -740,7 +830,20 @@ When the admin panel saves an item or reorders inventory:
 |-------|--------|---------|
 | `events` | event, item_id, session_id, referrer, utm_source, ua_mobile, path, created_at | Analytics tracking |
 | `emails` | email, source, discount_code, created_at | Email subscriber collection |
-| `discount_codes` | id, code, type, value, is_active, max_uses, used_count, is_gift_certificate, purchaser_name, recipient_name, created_at | Discount codes and gift certificates |
+| `discount_codes` | id, code, type, value, is_active, max_uses, used_count, is_gift_certificate, purchaser_name, recipient_name, purchaser_email, created_at | Discount codes and gift certificates |
+
+**RLS Policies on `discount_codes`:**
+- Anon key can INSERT rows where `is_gift_certificate = true` (allows the public gift checkout to create gift certs)
+- Anon key can SELECT and PATCH (for incrementing `used_count` on redemption)
+- Full access via service key (admin panel)
+
+**`emails` table `source` values:**
+| Source | When |
+|--------|------|
+| `newsletter` | Email bar signup (WELCOME10) |
+| `purchase` | Email gate before checkout, or buyer email from Square webhook |
+| `gift_certificate` | Gift certificate purchase on `/gift/` page |
+| `abandoned_cart` | Email gate where user didn't complete purchase |
 
 ### 9.2 Square
 
@@ -755,13 +858,21 @@ When the admin panel saves an item or reorders inventory:
 - **API:** Used by admin panel and Cloudflare Worker for reading/writing inventory and images
 - **Raw content:** Used by storefront for fetching fresh inventory (`raw.githubusercontent.com`)
 
-### 9.4 Twilio
+### 9.4 Resend (Email)
 
-- Used by Cloudflare Worker to send SMS sale alerts
-- API: `https://api.twilio.com/2010-04-01/Accounts/{SID}/Messages.json`
-- Basic auth with account SID and auth token
+- **Used by:** Cloudflare Worker for sending gift certificate confirmation emails
+- **API:** `https://api.resend.com/emails`
+- **From address:** `Object Lesson <gift@objectlesson.la>`
+- **Domain:** `objectlesson.la` -- verified with DKIM/SPF/DMARC DNS records on Porkbun
+- **DNS provider:** Porkbun (porkbun.com)
+- **Resend dashboard:** resend.com (logged in as eli.kagan@gmail.com)
+- **API key env var:** `RESEND_API_KEY` in Cloudflare Worker
 
-### 9.5 Google Gemini
+### 9.5 Twilio (REMOVED)
+
+Twilio was previously used for SMS sale alerts. Account deleted due to 10DLC carrier registration requirements blocking messages. Sale notifications now handled natively by Square (Settings -> Notifications).
+
+### 9.6 Google Gemini
 
 - Used by admin panel for AI-powered image processing
 - **Models:**
