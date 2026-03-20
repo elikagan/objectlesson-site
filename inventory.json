@@ -421,27 +421,6 @@
     "createdAt": "2026-03-03T22:31:29.039Z"
   },
   {
-    "id": "000034",
-    "title": "Painting by Albert Radoczy",
-    "description": "Small Mid-century modern figurative painting in earthy tones and green with a natural wood frame.",
-    "price": 225,
-    "size": "",
-    "category": "wall-art",
-    "maker": "Radoczy",
-    "condition": "Excellent",
-    "dealerCode": "14EK",
-    "isNew": true,
-    "isHold": false,
-    "isSold": false,
-    "images": [
-      "images/products/000034/painting_by_albert_radoczy_1.jpg",
-      "images/products/000034/painting_by_albert_radoczy_2.jpg"
-    ],
-    "heroImage": "images/products/000034/painting_by_albert_radoczy_1.jpg",
-    "order": 21,
-    "createdAt": "2026-03-03T22:28:51.540Z"
-  },
-  {
     "id": "000033",
     "title": "Triangular Mixed Metal Art",
     "description": "Vintage bronze and gold tone metal triangular dish with abstract design.",
