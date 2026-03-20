@@ -164,6 +164,11 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  pointer-events: none;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topbar-actions {
