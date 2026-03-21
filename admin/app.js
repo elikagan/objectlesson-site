@@ -2033,12 +2033,14 @@
       const range = analyticsRange;
       const pvDays = Math.max(14, range);
 
-      // 3 efficient parallel queries
-      const [pageViews, itemEvents, sessionEnds] = await Promise.all([
+      // 4 efficient parallel queries (includes sales)
+      const [pageViews, itemEvents, sessionEnds, salesResp] = await Promise.all([
         supaSelect(`select=session_id,created_at,referrer,utm_source,ua_mobile&event=eq.page_view&created_at=gte.${daysAgoStr(pvDays)}&order=created_at.asc&limit=50000`),
         supaSelect(`select=item_id,event&event=in.(item_view,inquire)&created_at=gte.${daysAgoStr(range)}&item_id=not.is.null&limit=50000`),
-        supaSelect(`select=duration,created_at&event=eq.session_end&created_at=gte.${daysAgoStr(range)}&duration=not.is.null&limit=50000`)
+        supaSelect(`select=duration,created_at&event=eq.session_end&created_at=gte.${daysAgoStr(range)}&duration=not.is.null&limit=50000`),
+        fetch(`${WORKER_URL}/sales`, { method: 'POST', headers: { 'Content-Type': 'application/json' } }).then(r => r.json()).catch(() => ({ sales: [] }))
       ]);
+      const allSales = salesResp.sales || [];
 
       // Pre-process timestamps
       pageViews.forEach(r => { r._ts = new Date(r.created_at).getTime(); });
@@ -2161,6 +2163,13 @@
       const rl = range + 'd';
       const sparkLabel = range === 1 ? 'Hourly Views <span class="analytics-dim">today</span>' : `Daily Views <span class="analytics-dim">${rl}</span>`;
 
+      // Revenue data from sales table
+      const rangeSales = allSales.filter(s => new Date(s.created_at).getTime() >= rangeMs);
+      const rangeRevenue = rangeSales.reduce((sum, s) => sum + Number(s.amount), 0);
+      const rangeGiftCerts = rangeSales.filter(s => s.type === 'gift_certificate');
+      const rangeGiftRevenue = rangeGiftCerts.reduce((sum, s) => sum + Number(s.amount), 0);
+      const fmtMoney = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
       // --- Render ---
       body.innerHTML = `
         <div class="analytics-cards">
@@ -2183,6 +2192,14 @@
             <div class="analytics-card-change change-${todayDelta.c}">${todayDelta.t}</div>
           </div>
           ` : ''}
+        </div>
+
+        <div class="analytics-cards">
+          <div class="analytics-card">
+            <div class="analytics-card-label">Revenue ${rangeLabel}</div>
+            <div class="analytics-card-value">${fmtMoney(rangeRevenue)}</div>
+            <div class="analytics-card-sub">${rangeSales.length} sale${rangeSales.length !== 1 ? 's' : ''}${rangeGiftCerts.length > 0 ? ' (' + rangeGiftCerts.length + ' gift cert' + (rangeGiftCerts.length !== 1 ? 's' : '') + ')' : ''}</div>
+          </div>
         </div>
 
         <div class="analytics-section">
