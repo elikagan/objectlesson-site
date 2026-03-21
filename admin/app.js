@@ -736,6 +736,20 @@
     showView('editor');
   }
 
+  // --- Marketplace toggle feedback ---
+  document.getElementById('field-marketplace').addEventListener('change', (e) => {
+    if (e.target.checked) {
+      toast('Item will be posted to FB Marketplace on save');
+    } else {
+      const item = editingId ? items.find(i => i.id === editingId) : null;
+      if (item?.lpListingId) {
+        toast('Item will be removed from FB Marketplace on save');
+      } else {
+        toast('Item will not be posted to FB Marketplace');
+      }
+    }
+  });
+
   // --- Delete item ---
 
   document.getElementById('btn-delete-item').addEventListener('click', () => {
