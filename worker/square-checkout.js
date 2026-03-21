@@ -58,6 +58,10 @@ export default {
       return handleSalesBackfill(request, env);
     }
 
+    if (url.pathname === '/sales-backfill-names' && request.method === 'POST') {
+      return handleSalesBackfillNames(request, env);
+    }
+
     return new Response('Not found', { status: 404 });
   }
 };
@@ -547,10 +551,17 @@ async function handleWebhook(request, env) {
         // Record sale in Supabase sales table (website sales only — must have Object Lesson note)
         if (note.startsWith('Object Lesson |') && env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
           try {
+            // Extract customer name — try cardholder name, then shipping address
+            let cardholderName = payment.card_details?.card?.cardholder_name || null;
+            if (!cardholderName && payment.shipping_address) {
+              const addr = payment.shipping_address;
+              if (addr.first_name || addr.last_name) cardholderName = `${addr.first_name || ''} ${addr.last_name || ''}`.trim();
+            }
             const saleRecord = {
               type: isGiftCert ? 'gift_certificate' : 'item',
               amount,
               customer_email: buyerEmail || null,
+              customer_name: cardholderName,
               item_id: itemId || null,
               item_title: isGiftCert ? `Gift Certificate - $${amount}` : (itemInfo || null),
               gift_code: isGiftCert ? itemId : null,
@@ -1340,6 +1351,77 @@ async function handleSalesBackfill(request, env) {
       inserted,
       records: records.length
     }, 200, request);
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, request);
+  }
+}
+
+async function handleSalesBackfillNames(request, env) {
+  // For each sale with a square_payment_id but no customer_name, fetch the payment from Square
+  // and try cardholder_name, then order customer, then shipping address
+  if (!env.SQUARE_ACCESS_TOKEN || !env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) {
+    return jsonResponse({ error: 'Missing Square or Supabase config' }, 500, request);
+  }
+  try {
+    const res = await fetch(
+      `${env.SUPABASE_URL}/rest/v1/sales?customer_name=is.null&square_payment_id=not.is.null&select=id,square_payment_id`,
+      { headers: { 'apikey': env.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}` } }
+    );
+    const sales = await res.json();
+    if (!sales.length) return jsonResponse({ updated: 0, message: 'All sales already have names' }, 200, request);
+
+    let updated = 0;
+    const details = [];
+    for (const sale of sales) {
+      try {
+        // Fetch payment details
+        const pRes = await fetch(`https://connect.squareup.com/v2/payments/${sale.square_payment_id}`, {
+          headers: { 'Square-Version': '2024-12-18', 'Authorization': `Bearer ${env.SQUARE_ACCESS_TOKEN}` }
+        });
+        if (!pRes.ok) { details.push({ id: sale.id, error: 'payment fetch failed' }); continue; }
+        const pData = await pRes.json();
+        const payment = pData.payment;
+
+        // Try multiple sources for name
+        let name = payment?.card_details?.card?.cardholder_name;
+        if (!name && payment?.shipping_address) {
+          const addr = payment.shipping_address;
+          if (addr.first_name || addr.last_name) name = `${addr.first_name || ''} ${addr.last_name || ''}`.trim();
+        }
+        if (!name && payment?.order_id) {
+          // Try fetching the order for customer info
+          const oRes = await fetch(`https://connect.squareup.com/v2/orders/${payment.order_id}`, {
+            headers: { 'Square-Version': '2024-12-18', 'Authorization': `Bearer ${env.SQUARE_ACCESS_TOKEN}` }
+          });
+          if (oRes.ok) {
+            const oData = await oRes.json();
+            const fulfillment = oData.order?.fulfillments?.[0]?.pickup_details?.recipient;
+            if (fulfillment?.display_name) name = fulfillment.display_name;
+          }
+        }
+
+        details.push({ id: sale.id, paymentId: sale.square_payment_id, nameFound: name || null,
+          cardholderName: payment?.card_details?.card?.cardholder_name || null,
+          buyerEmail: payment?.buyer_email_address || null });
+
+        if (!name) continue;
+
+        await fetch(`${env.SUPABASE_URL}/rest/v1/sales?id=eq.${sale.id}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ customer_name: name })
+        });
+        updated++;
+      } catch (e) {
+        details.push({ id: sale.id, error: e.message });
+      }
+    }
+    return jsonResponse({ total: sales.length, updated, details }, 200, request);
   } catch (e) {
     return jsonResponse({ error: e.message }, 500, request);
   }

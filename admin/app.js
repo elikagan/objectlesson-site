@@ -2789,6 +2789,7 @@
           if (!title) title = isGift ? `Gift Certificate` : 'In-store sale';
 
           // Customer info
+          const customerName = sale.customer_name || '';
           const customer = sale.customer_email || '';
           const giftCode = sale.gift_code ? `Code: ${sale.gift_code}` : '';
           const discount = sale.discount_code ? `Discount: ${sale.discount_code}` : '';
@@ -2799,6 +2800,7 @@
                 <span class="sale-type ${typeCls}">${typeLabel}</span>
                 <div class="sale-info">
                   <div class="sale-title">${title}</div>
+                  ${customerName ? `<div class="sale-customer">${customerName}</div>` : ''}
                   <div class="sale-detail">${dateStr} ${timeStr}${customer ? ' &middot; ' + customer : ''}${giftCode ? ' &middot; ' + giftCode : ''}${discount ? ' &middot; ' + discount : ''}</div>
                 </div>
               </div>

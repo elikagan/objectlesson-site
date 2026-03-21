@@ -1443,6 +1443,13 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.sale-customer {
+  font-size: 12px;
+  color: var(--black);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .sale-detail {
   font-size: 11px;
   color: var(--text);
