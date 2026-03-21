@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v50';
+  const APP_VERSION = 'v51';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -126,6 +126,7 @@
   const viewMarketing = document.getElementById('view-marketing');
   const viewGiftcerts = document.getElementById('view-giftcerts');
   const viewMarketplace = document.getElementById('view-marketplace');
+  const viewSales = document.getElementById('view-sales');
   const itemList = document.getElementById('item-list');
   const photoGrid = document.getElementById('photo-grid');
   const photoInput = document.getElementById('photo-input');
@@ -227,6 +228,9 @@
       } else if (hash === 'marketplace') {
         showView('marketplace');
         loadMarketplace();
+      } else if (hash === 'sales') {
+        showView('sales');
+        loadSales();
       } else {
         showView('list');
       }
@@ -323,6 +327,13 @@
     loadAnalytics();
   });
 
+  document.getElementById('menu-sales').addEventListener('click', () => {
+    menuDropdown.classList.add('hidden');
+    location.hash = 'sales';
+    showView('sales');
+    loadSales();
+  });
+
   document.getElementById('menu-giftcerts').addEventListener('click', () => {
     menuDropdown.classList.add('hidden');
     location.hash = 'giftcerts';
@@ -345,6 +356,11 @@
   });
 
   document.getElementById('btn-analytics-back').addEventListener('click', () => {
+    history.replaceState(null, '', location.pathname);
+    showView('list');
+  });
+
+  document.getElementById('btn-sales-back').addEventListener('click', () => {
     history.replaceState(null, '', location.pathname);
     showView('list');
   });
@@ -380,8 +396,8 @@
   // --- Navigation ---
 
   function showView(name) {
-    [viewLock, viewSetup, viewList, viewEditor, viewAnalytics, viewMarketing, viewGiftcerts, viewMarketplace].forEach(v => v.classList.add('hidden'));
-    const v = { lock: viewLock, setup: viewSetup, list: viewList, editor: viewEditor, analytics: viewAnalytics, marketing: viewMarketing, giftcerts: viewGiftcerts, marketplace: viewMarketplace }[name];
+    [viewLock, viewSetup, viewList, viewEditor, viewAnalytics, viewMarketing, viewGiftcerts, viewMarketplace, viewSales].forEach(v => v.classList.add('hidden'));
+    const v = { lock: viewLock, setup: viewSetup, list: viewList, editor: viewEditor, analytics: viewAnalytics, marketing: viewMarketing, giftcerts: viewGiftcerts, marketplace: viewMarketplace, sales: viewSales }[name];
     if (v) v.classList.remove('hidden');
   }
 
@@ -2676,6 +2692,111 @@
     history.replaceState(null, '', location.pathname);
     showView('list');
   });
+
+  // ─── Sales View ─────────────────────────────────────────────────
+
+  async function loadSales() {
+    const body = document.getElementById('sales-body');
+    const loading = document.getElementById('sales-loading');
+    loading.style.display = '';
+
+    try {
+      const resp = await fetch(`${WORKER_URL}/sales`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Failed to load sales');
+
+      const sales = data.sales || [];
+      loading.style.display = 'none';
+
+      // Summary stats
+      const totalRevenue = sales.reduce((s, r) => s + Number(r.amount), 0);
+      const itemSales = sales.filter(r => r.type === 'item');
+      const giftSales = sales.filter(r => r.type === 'gift_certificate');
+      const itemRevenue = itemSales.reduce((s, r) => s + Number(r.amount), 0);
+      const giftRevenue = giftSales.reduce((s, r) => s + Number(r.amount), 0);
+
+      // Today's sales
+      const today = new Date().toISOString().slice(0, 10);
+      const todaySales = sales.filter(r => r.created_at.slice(0, 10) === today);
+      const todayRevenue = todaySales.reduce((s, r) => s + Number(r.amount), 0);
+
+      // This month's sales
+      const thisMonth = new Date().toISOString().slice(0, 7);
+      const monthSales = sales.filter(r => r.created_at.slice(0, 7) === thisMonth);
+      const monthRevenue = monthSales.reduce((s, r) => s + Number(r.amount), 0);
+
+      let html = `
+        <section class="marketing-section">
+          <div class="sales-summary">
+            <div class="sales-stat">
+              <div class="sales-stat-value">$${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+              <div class="sales-stat-label">All Time</div>
+            </div>
+            <div class="sales-stat">
+              <div class="sales-stat-value">$${monthRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+              <div class="sales-stat-label">This Month</div>
+            </div>
+            <div class="sales-stat">
+              <div class="sales-stat-value">$${todayRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+              <div class="sales-stat-label">Today</div>
+            </div>
+          </div>
+          <div class="sales-meta">
+            ${sales.length} total transactions &middot; ${itemSales.length} items ($${itemRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}) &middot; ${giftSales.length} gift certs ($${giftRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })})
+          </div>
+        </section>
+        <section class="marketing-section">
+          <h2 class="marketing-section-title">Transaction History</h2>
+          <div class="sales-list">`;
+
+      if (sales.length === 0) {
+        html += '<p class="marketing-empty">No sales recorded yet.</p>';
+      } else {
+        for (const sale of sales) {
+          const date = new Date(sale.created_at);
+          const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+          const amount = Number(sale.amount).toLocaleString('en-US', { minimumFractionDigits: 2 });
+          const isGift = sale.type === 'gift_certificate';
+          const typeLabel = isGift ? 'Gift Cert' : 'Item';
+          const typeCls = isGift ? 'sale-type-gift' : 'sale-type-item';
+
+          // Title: use item_title, fall back to note parsing, or generic
+          let title = sale.item_title || '';
+          if (!title && sale.note) {
+            title = sale.note.replace('Object Lesson | ', '').replace(/\s*\([^)]*\)$/, '');
+          }
+          if (!title) title = isGift ? `Gift Certificate` : 'In-store sale';
+
+          // Customer info
+          const customer = sale.customer_email || '';
+          const giftCode = sale.gift_code ? `Code: ${sale.gift_code}` : '';
+          const discount = sale.discount_code ? `Discount: ${sale.discount_code}` : '';
+
+          html += `
+            <div class="sale-row">
+              <div class="sale-row-left">
+                <span class="sale-type ${typeCls}">${typeLabel}</span>
+                <div class="sale-info">
+                  <div class="sale-title">${title}</div>
+                  <div class="sale-detail">${dateStr} ${timeStr}${customer ? ' &middot; ' + customer : ''}${giftCode ? ' &middot; ' + giftCode : ''}${discount ? ' &middot; ' + discount : ''}</div>
+                </div>
+              </div>
+              <div class="sale-amount">$${amount}</div>
+            </div>`;
+        }
+      }
+
+      html += '</div></section>';
+      body.innerHTML = html;
+    } catch (e) {
+      loading.style.display = 'none';
+      body.innerHTML = `<div class="analytics-empty">Error loading sales: ${e.message}</div>`;
+    }
+  }
 
   function loadMarketplace() {
     renderSyncLog();

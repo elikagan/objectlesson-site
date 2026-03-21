@@ -50,6 +50,14 @@ export default {
       return handleMarketplaceListings(request, env);
     }
 
+    if (url.pathname === '/sales' && request.method === 'POST') {
+      return handleSales(request, env);
+    }
+
+    if (url.pathname === '/sales-backfill' && request.method === 'POST') {
+      return handleSalesBackfill(request, env);
+    }
+
     return new Response('Not found', { status: 404 });
   }
 };
@@ -534,6 +542,35 @@ async function handleWebhook(request, env) {
           }
         } else {
           console.log('🚨 STEP 6: SKIPPING email capture —', !buyerEmail ? 'no buyer email on payment' : 'missing Supabase env vars');
+        }
+
+        // Record sale in Supabase sales table
+        if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
+          try {
+            const saleRecord = {
+              type: isGiftCert ? 'gift_certificate' : 'item',
+              amount,
+              customer_email: buyerEmail || null,
+              item_id: itemId || null,
+              item_title: isGiftCert ? `Gift Certificate - $${amount}` : (itemInfo || null),
+              gift_code: isGiftCert ? itemId : null,
+              square_payment_id: payment.id || null,
+              note: note || null
+            };
+            await fetch(`${env.SUPABASE_URL}/rest/v1/sales`, {
+              method: 'POST',
+              headers: {
+                'apikey': env.SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal,resolution=ignore-duplicates'
+              },
+              body: JSON.stringify(saleRecord)
+            });
+            console.log('🚨 STEP 7: Sale recorded ✓', saleRecord.type, '$' + amount);
+          } catch (e) {
+            console.error('🚨🚨🚨 STEP 7 FAILED: Sale record error:', e.message);
+          }
         }
 
         // Sale notifications handled by Square app directly
@@ -1176,4 +1213,134 @@ async function handleMarketplaceTest(request, env) {
   const failed = results.filter(r => r.status === 'fail').length;
 
   return jsonResponse({ passed, failed, total: results.length, results }, 200, request);
+}
+
+// ─── Sales ─────────────────────────────────────────────────────────
+
+async function handleSales(request, env) {
+  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) {
+    return jsonResponse({ error: 'Supabase not configured' }, 500, request);
+  }
+  try {
+    const res = await fetch(
+      `${env.SUPABASE_URL}/rest/v1/sales?select=*&order=created_at.desc&limit=500`,
+      {
+        headers: {
+          'apikey': env.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+    const sales = await res.json();
+    return jsonResponse({ sales, count: sales.length }, 200, request);
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, request);
+  }
+}
+
+async function handleSalesBackfill(request, env) {
+  // Query Square Payments API for all completed payments and insert into Supabase sales table
+  if (!env.SQUARE_ACCESS_TOKEN) {
+    return jsonResponse({ error: 'Square not configured' }, 500, request);
+  }
+  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) {
+    return jsonResponse({ error: 'Supabase not configured' }, 500, request);
+  }
+
+  try {
+    const payments = [];
+    let cursor = null;
+
+    // Fetch Square payments (up to 3 pages to stay under Worker subrequest limit)
+    let pages = 0;
+    do {
+      const params = new URLSearchParams({
+        sort_order: 'DESC',
+        limit: '100'
+      });
+      if (cursor) params.set('cursor', cursor);
+
+      const res = await fetch(
+        `https://connect.squareup.com/v2/payments?${params}`,
+        {
+          headers: {
+            'Square-Version': '2024-12-18',
+            'Authorization': `Bearer ${env.SQUARE_ACCESS_TOKEN}`
+          }
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        return jsonResponse({ error: data.errors?.[0]?.detail || 'Square API error' }, 500, request);
+      }
+      if (data.payments) payments.push(...data.payments);
+      cursor = data.cursor || null;
+      pages++;
+    } while (cursor && pages < 3);
+
+    // Filter to completed payments only
+    const completed = payments.filter(p => p.status === 'COMPLETED');
+
+    // Build sale records
+    const records = completed.map(p => {
+      const note = p.note || '';
+      const amount = (p.amount_money?.amount || 0) / 100;
+      const isGiftCert = note.includes('Gift Certificate');
+
+      let itemId = null;
+      let itemInfo = '';
+      if (note.startsWith('Object Lesson |')) {
+        itemInfo = note.replace('Object Lesson | ', '');
+        const idMatch = note.match(/\(([^)]+)\)$/);
+        itemId = idMatch ? idMatch[1] : null;
+      }
+
+      return {
+        type: isGiftCert ? 'gift_certificate' : 'item',
+        amount,
+        customer_email: p.buyer_email_address || null,
+        item_id: itemId || null,
+        item_title: isGiftCert ? `Gift Certificate - $${amount}` : (itemInfo || note || null),
+        gift_code: isGiftCert ? itemId : null,
+        square_payment_id: p.id,
+        note: note || null,
+        created_at: p.created_at
+      };
+    });
+
+    // Batch upsert into Supabase in chunks of 20
+    let inserted = 0;
+    const chunkSize = 20;
+    for (let i = 0; i < records.length; i += chunkSize) {
+      const chunk = records.slice(i, i + chunkSize);
+      try {
+        const res = await fetch(`${env.SUPABASE_URL}/rest/v1/sales`, {
+          method: 'POST',
+          headers: {
+            'apikey': env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal,resolution=ignore-duplicates'
+          },
+          body: JSON.stringify(chunk)
+        });
+        if (res.ok) inserted += chunk.length;
+        else {
+          const err = await res.text();
+          console.error(`Batch ${i}-${i+chunkSize} failed:`, res.status, err);
+        }
+      } catch (e) {
+        console.error(`Batch ${i}-${i+chunkSize} error:`, e.message);
+      }
+    }
+
+    return jsonResponse({
+      total_payments: payments.length,
+      completed: completed.length,
+      inserted,
+      records: records.length
+    }, 200, request);
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, request);
+  }
 }
