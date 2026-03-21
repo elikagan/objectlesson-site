@@ -3,7 +3,7 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://objectlesson.la/</loc>
-    <lastmod>2026-03-16</lastmod>
+    <lastmod>2026-03-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -362,20 +362,6 @@
     </image:image>
   </url>
   <url>
-    <loc>https://objectlesson.la/item/000034/</loc>
-    <lastmod>2026-03-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000034/painting_by_albert_radoczy_1.jpg</image:loc>
-      <image:title>Painting by Albert Radoczy</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000034/painting_by_albert_radoczy_2.jpg</image:loc>
-      <image:title>Painting by Albert Radoczy</image:title>
-    </image:image>
-  </url>
-  <url>
     <loc>https://objectlesson.la/item/000033/</loc>
     <lastmod>2026-03-03</lastmod>
     <changefreq>weekly</changefreq>
@@ -427,32 +413,6 @@
     <image:image>
       <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000031/painting_signed_c_jacobson_1968_4.jpg</image:loc>
       <image:title>Painting Signed C. Jacobson 1968</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://objectlesson.la/item/000030/</loc>
-    <lastmod>2026-03-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000030/french_deco_box_1.jpg</image:loc>
-      <image:title>French Deco Box</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000030/french_deco_box_2.jpg</image:loc>
-      <image:title>French Deco Box</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000030/french_deco_box_3.jpg</image:loc>
-      <image:title>French Deco Box</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000030/french_deco_box_4.jpg</image:loc>
-      <image:title>French Deco Box</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000030/french_deco_box_5.jpg</image:loc>
-      <image:title>French Deco Box</image:title>
     </image:image>
   </url>
   <url>
@@ -705,32 +665,6 @@
     <image:image>
       <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000016/wood_spiral_sculpture_2.jpg</image:loc>
       <image:title>Wood Spiral Sculpture</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://objectlesson.la/item/000009/</loc>
-    <lastmod>2026-02-27</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000009/cleo_baldon_style_chairs_2_1.jpg</image:loc>
-      <image:title>Cleo Baldon Style Chairs (2)</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000009/cleo_baldon_style_chairs_2_2.jpg</image:loc>
-      <image:title>Cleo Baldon Style Chairs (2)</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000009/cleo_baldon_style_chairs_2_3.jpg</image:loc>
-      <image:title>Cleo Baldon Style Chairs (2)</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000009/cleo_baldon_style_chairs_2_4.jpg</image:loc>
-      <image:title>Cleo Baldon Style Chairs (2)</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000009/cleo_baldon_style_chairs_2_5.jpg</image:loc>
-      <image:title>Cleo Baldon Style Chairs (2)</image:title>
     </image:image>
   </url>
   <url>
