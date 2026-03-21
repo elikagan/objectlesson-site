@@ -544,8 +544,8 @@ async function handleWebhook(request, env) {
           }
         }
 
-        // Record sale in Supabase sales table
-        if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
+        // Record sale in Supabase sales table (website sales only — must have Object Lesson note)
+        if (note.startsWith('Object Lesson |') && env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
           try {
             const saleRecord = {
               type: isGiftCert ? 'gift_certificate' : 'item',
@@ -1278,8 +1278,8 @@ async function handleSalesBackfill(request, env) {
       pages++;
     } while (cursor && pages < 3);
 
-    // Filter to completed payments only
-    const completed = payments.filter(p => p.status === 'COMPLETED');
+    // Filter to completed payments from the website only (have "Object Lesson |" in note)
+    const completed = payments.filter(p => p.status === 'COMPLETED' && p.note && p.note.startsWith('Object Lesson |'));
 
     // Build sale records
     const records = completed.map(p => {
