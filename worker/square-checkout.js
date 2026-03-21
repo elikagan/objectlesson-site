@@ -225,9 +225,6 @@ async function handleGiftCheckout(request, env) {
     if (typeof amount !== 'number' || amount <= 0 || amount > 10000) {
       return jsonResponse({ error: 'Invalid amount' }, 400, request);
     }
-    if (!email || typeof email !== 'string') {
-      return jsonResponse({ error: 'Email required' }, 400, request);
-    }
 
     // Generate GIFT-XXXX-XXXX code
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -262,9 +259,7 @@ async function handleGiftCheckout(request, env) {
           redirect_url: `https://objectlesson.la/gift/?purchased=1&code=${encodeURIComponent(code)}`,
           ask_for_shipping_address: false
         },
-        pre_populated_data: {
-          buyer_email: email
-        },
+        ...(email ? { pre_populated_data: { buyer_email: email } } : {}),
         payment_note: `Object Lesson | Gift Certificate (${code})`
       })
     });
@@ -293,7 +288,7 @@ async function handleGiftCheckout(request, env) {
           is_gift_certificate: true,
           is_active: true
         };
-        gcBody.purchaser_email = email;
+        if (email) gcBody.purchaser_email = email;
         if (purchaserName) gcBody.purchaser_name = purchaserName;
         if (recipientName) gcBody.recipient_name = recipientName;
 
@@ -307,67 +302,12 @@ async function handleGiftCheckout(request, env) {
           },
           body: JSON.stringify(gcBody)
         });
-
-        // Capture purchaser email (ignore if already exists)
-        await fetch(`${env.SUPABASE_URL}/rest/v1/emails`, {
-          method: 'POST',
-          headers: {
-            'apikey': env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal,resolution=ignore-duplicates'
-          },
-          body: JSON.stringify({ email, source: 'gift_certificate' })
-        });
       } catch (e) {
         console.error('Gift cert Supabase insert failed:', e.message);
       }
     }
 
-    // Send confirmation email with gift certificate code
-    if (env.RESEND_API_KEY) {
-      try {
-        const toName = recipientName || 'someone special';
-        const fromName = purchaserName || '';
-        const fromLine = fromName ? `<p style="color:#888;font-size:14px;">From: ${fromName}</p>` : '';
-        const toLine = recipientName ? `<p style="color:#888;font-size:14px;">To: ${toName}</p>` : '';
-
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            from: 'Object Lesson <gift@objectlesson.la>',
-            to: [email],
-            subject: `Your Object Lesson Gift Certificate - $${amount}`,
-            html: `
-              <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;">
-                <h1 style="font-size:20px;font-weight:500;margin-bottom:24px;">Gift Certificate</h1>
-                ${toLine}${fromLine}
-                <p style="font-size:15px;color:#555;line-height:1.6;margin-bottom:24px;">
-                  Here's your Object Lesson gift certificate. Give this code to the recipient to use at checkout.
-                </p>
-                <div style="text-align:center;padding:24px;border:2px solid #1a1a1a;border-radius:12px;margin-bottom:24px;">
-                  <div style="font-size:14px;color:#888;margin-bottom:8px;">GIFT CERTIFICATE CODE</div>
-                  <div style="font-size:28px;font-weight:600;letter-spacing:0.06em;">${code}</div>
-                  <div style="font-size:16px;color:#888;margin-top:8px;">$${amount}</div>
-                </div>
-                <p style="font-size:14px;color:#888;line-height:1.6;">
-                  This code can be used at checkout on <a href="https://objectlesson.la" style="color:#1a1a1a;">objectlesson.la</a> or in-store at Object Lesson in Pasadena. It does not expire.
-                </p>
-                <hr style="border:none;border-top:1px solid #ddd;margin:32px 0;">
-                <p style="font-size:12px;color:#aaa;">Object Lesson — Uncommon Objects, Art and Design<br>Pasadena, CA</p>
-              </div>
-            `
-          })
-        });
-      } catch (e) {
-        console.error('Gift cert email failed:', e.message);
-      }
-    }
-
+    // Confirmation email is sent after payment completes (via webhook)
     return jsonResponse({ url: checkoutUrl, code }, 200, request);
   } catch (err) {
     console.error('Gift checkout error:', err.message);
@@ -542,6 +482,66 @@ async function handleWebhook(request, env) {
           }
         } else {
           console.log('🚨 STEP 6: SKIPPING email capture —', !buyerEmail ? 'no buyer email on payment' : 'missing Supabase env vars');
+        }
+
+        // For gift certs: send confirmation email now that payment is complete
+        if (isGiftCert && buyerEmail && itemId && env.RESEND_API_KEY && env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
+          try {
+            // Look up the gift cert from discount_codes to get purchaser/recipient names
+            const gcRes = await fetch(
+              `${env.SUPABASE_URL}/rest/v1/discount_codes?code=eq.${encodeURIComponent(itemId)}&is_gift_certificate=eq.true&select=value,purchaser_name,recipient_name`,
+              { headers: { 'apikey': env.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}` } }
+            );
+            const gcData = await gcRes.json();
+            const gc = gcData?.[0] || {};
+            const gcAmount = gc.value || amount;
+            const toName = gc.recipient_name || 'someone special';
+            const fromName = gc.purchaser_name || '';
+            const fromLine = fromName ? `<p style="color:#888;font-size:14px;">From: ${fromName}</p>` : '';
+            const toLine = gc.recipient_name ? `<p style="color:#888;font-size:14px;">To: ${toName}</p>` : '';
+
+            // Update purchaser_email on the gift cert record
+            await fetch(
+              `${env.SUPABASE_URL}/rest/v1/discount_codes?code=eq.${encodeURIComponent(itemId)}&is_gift_certificate=eq.true`,
+              {
+                method: 'PATCH',
+                headers: { 'apikey': env.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                body: JSON.stringify({ purchaser_email: buyerEmail })
+              }
+            );
+
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                from: 'Object Lesson <gift@objectlesson.la>',
+                to: [buyerEmail],
+                subject: `Your Object Lesson Gift Certificate - $${gcAmount}`,
+                html: `
+                  <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;">
+                    <h1 style="font-size:20px;font-weight:500;margin-bottom:24px;">Gift Certificate</h1>
+                    ${toLine}${fromLine}
+                    <p style="font-size:15px;color:#555;line-height:1.6;margin-bottom:24px;">
+                      Here's your Object Lesson gift certificate. Give this code to the recipient to use at checkout.
+                    </p>
+                    <div style="text-align:center;padding:24px;border:2px solid #1a1a1a;border-radius:12px;margin-bottom:24px;">
+                      <div style="font-size:14px;color:#888;margin-bottom:8px;">GIFT CERTIFICATE CODE</div>
+                      <div style="font-size:28px;font-weight:600;letter-spacing:0.06em;">${itemId}</div>
+                      <div style="font-size:16px;color:#888;margin-top:8px;">$${gcAmount}</div>
+                    </div>
+                    <p style="font-size:14px;color:#888;line-height:1.6;">
+                      This code can be used at checkout on <a href="https://objectlesson.la" style="color:#1a1a1a;">objectlesson.la</a> or in-store at Object Lesson in Pasadena. It does not expire.
+                    </p>
+                    <hr style="border:none;border-top:1px solid #ddd;margin:32px 0;">
+                    <p style="font-size:12px;color:#aaa;">Object Lesson — Uncommon Objects, Art and Design<br>Pasadena, CA</p>
+                  </div>
+                `
+              })
+            });
+            console.log('🚨 STEP 6b: Gift cert email sent to', buyerEmail, '✓');
+          } catch (e) {
+            console.error('🚨🚨🚨 STEP 6b FAILED: Gift cert email error:', e.message);
+          }
         }
 
         // Record sale in Supabase sales table

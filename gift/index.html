@@ -236,11 +236,6 @@
       </div>
 
       <div class="form-group">
-        <label for="gc-email">Your Email</label>
-        <input type="email" id="gc-email" placeholder="you@example.com" maxlength="200" required>
-      </div>
-
-      <div class="form-group">
         <label for="gc-to">To <span style="font-weight:400;text-transform:none">(optional)</span></label>
         <input type="text" id="gc-to" placeholder="Recipient name" maxlength="100">
       </div>
@@ -269,7 +264,7 @@
         This code can be used at checkout on objectlesson.la or in-store at Object Lesson in Pasadena. It does not expire.
       </p>
       <p class="conf-note" style="font-size:13px;margin-top:-16px">
-        This code is also included in your Square payment receipt.
+        A confirmation email with this code has been sent to your payment email.
       </p>
       <a href="/" class="btn" style="display:inline-block;text-align:center;text-decoration:none">Continue Shopping</a>
     </div>
@@ -349,16 +344,9 @@
     const buyBtn = document.getElementById('gc-buy');
     buyBtn.addEventListener('click', async () => {
       const amount = parseFloat(document.getElementById('gc-amount').value);
-      const emailInput = document.getElementById('gc-email');
-      const email = emailInput.value.trim();
 
       if (!amount || amount <= 0 || amount > 10000) {
         document.getElementById('gc-amount').focus();
-        return;
-      }
-      if (!email || !emailInput.checkValidity()) {
-        emailInput.focus();
-        emailInput.reportValidity();
         return;
       }
 
@@ -367,7 +355,7 @@
       trackEvent('gift_purchase');
 
       try {
-        const body = { amount, email };
+        const body = { amount };
         const to = document.getElementById('gc-to').value.trim();
         const from = document.getElementById('gc-from').value.trim();
         if (to) body.recipientName = to;
