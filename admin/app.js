@@ -468,8 +468,38 @@
       inventorySha = '';
     }
     renderList();
+    // Reconcile sales — catch any items the webhook failed to mark sold
+    reconcileSales();
     // Init marketplace health check + retry queue (non-blocking)
     initMarketplace();
+  }
+
+  async function reconcileSales() {
+    try {
+      const resp = await fetch(`${WORKER_URL}/sales`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+      if (!resp.ok) return;
+      const data = await resp.json();
+      const sales = data.sales || [];
+      // Find item sales (not gift certs) where the item is still not marked sold
+      let fixed = 0;
+      for (const sale of sales) {
+        if (sale.type === 'gift_certificate' || !sale.item_id) continue;
+        const item = items.find(i => i.id === sale.item_id);
+        if (item && !item.isSold) {
+          item.isSold = true;
+          item.isNew = false;
+          item.isHold = false;
+          fixed++;
+        }
+      }
+      if (fixed > 0) {
+        await saveInventory(`Reconcile ${fixed} missed sale${fixed > 1 ? 's' : ''}`);
+        renderList();
+        console.log(`[Reconcile] Fixed ${fixed} items not marked sold`);
+      }
+    } catch (e) {
+      console.warn('[Reconcile] Failed:', e.message);
+    }
   }
 
   // --- Render list ---

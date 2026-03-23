@@ -717,8 +717,12 @@ async function markAsSold(env, itemId, attempt = 0) {
       await new Promise(r => setTimeout(r, 1000 * (attempt + 1))); // backoff
       return markAsSold(env, itemId, attempt + 1);
     }
-  } catch {
-    // Don't fail the webhook if GitHub update fails
+    if (!putRes.ok) {
+      console.error(`[markAsSold] Failed for ${itemId} after ${attempt + 1} attempts, status ${putRes.status}`);
+    }
+  } catch (e) {
+    console.error(`[markAsSold] Error for ${itemId}:`, e.message);
+    // Don't fail the webhook — reconciliation on admin load will catch it
   }
 }
 
