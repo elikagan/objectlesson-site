@@ -77,13 +77,11 @@
     "size": "6.625\" L",
     "category": "object",
     "maker": "Los Castillos",
-    "condition": "",
+    "condition": "Good, visible tarnish and minor surface wear to metal.",
     "dealerCode": "14EK",
-    "isNew": false,
+    "isNew": true,
     "isHold": false,
-    "isSold": true,
-    "marketplace": false,
-    "lpListingId": null,
+    "isSold": false,
     "images": [
       "images/products/000050/los_castillos_malachite_and_mixed_metal_dish_1.jpg",
       "images/products/000050/los_castillos_malachite_and_mixed_metal_dish_2.jpg",
@@ -91,7 +89,8 @@
     ],
     "heroImage": "images/products/000050/los_castillos_malachite_and_mixed_metal_dish_1.jpg",
     "order": 4,
-    "createdAt": "2026-03-08T22:44:45.847Z"
+    "createdAt": "2026-03-08T22:44:45.847Z",
+    "marketplace": false
   },
   {
     "id": "000049",
@@ -218,11 +217,13 @@
     "size": "",
     "category": "object",
     "maker": "",
-    "condition": "Good, minor surface wear consistent with age.",
+    "condition": "",
     "dealerCode": "14EK",
-    "isNew": true,
+    "isNew": false,
     "isHold": false,
-    "isSold": false,
+    "isSold": true,
+    "marketplace": false,
+    "lpListingId": null,
     "images": [
       "images/products/000044/marble_bowl_1.jpg",
       "images/products/000044/marble_bowl_2.jpg",
@@ -230,8 +231,7 @@
     ],
     "heroImage": "images/products/000044/marble_bowl_1.jpg",
     "order": 11,
-    "createdAt": "2026-03-06T19:17:04.581Z",
-    "marketplace": false
+    "createdAt": "2026-03-06T19:17:04.581Z"
   },
   {
     "id": "000043",
@@ -355,13 +355,11 @@
     "size": "",
     "category": "object",
     "maker": "",
-    "condition": "",
+    "condition": "Good, visible surface wear and scuffs consistent with age.",
     "dealerCode": "14EK",
-    "isNew": false,
+    "isNew": true,
     "isHold": false,
-    "isSold": true,
-    "marketplace": false,
-    "lpListingId": null,
+    "isSold": false,
     "images": [
       "images/products/000038/metallic_deco_vase_1.jpg",
       "images/products/000038/metallic_deco_vase_2.jpg",
@@ -370,7 +368,8 @@
     ],
     "heroImage": "images/products/000038/metallic_deco_vase_1.jpg",
     "order": 17,
-    "createdAt": "2026-03-04T01:19:45.183Z"
+    "createdAt": "2026-03-04T01:19:45.183Z",
+    "marketplace": false
   },
   {
     "id": "000037",
