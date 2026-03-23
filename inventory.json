@@ -77,11 +77,13 @@
     "size": "6.625\" L",
     "category": "object",
     "maker": "Los Castillos",
-    "condition": "Good, visible tarnish and minor surface wear to metal.",
+    "condition": "",
     "dealerCode": "14EK",
-    "isNew": true,
+    "isNew": false,
     "isHold": false,
-    "isSold": false,
+    "isSold": true,
+    "marketplace": false,
+    "lpListingId": null,
     "images": [
       "images/products/000050/los_castillos_malachite_and_mixed_metal_dish_1.jpg",
       "images/products/000050/los_castillos_malachite_and_mixed_metal_dish_2.jpg",
@@ -89,8 +91,7 @@
     ],
     "heroImage": "images/products/000050/los_castillos_malachite_and_mixed_metal_dish_1.jpg",
     "order": 4,
-    "createdAt": "2026-03-08T22:44:45.847Z",
-    "marketplace": false
+    "createdAt": "2026-03-08T22:44:45.847Z"
   },
   {
     "id": "000049",
