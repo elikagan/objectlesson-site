@@ -651,7 +651,7 @@ async function handleRemoveBg(request, env) {
   }
 }
 
-async function markAsSold(env, itemId) {
+async function markAsSold(env, itemId, attempt = 0) {
   const owner = 'elikagan';
   const repo = 'objectlesson-site';
   const path = 'inventory.json';
@@ -695,7 +695,7 @@ async function markAsSold(env, itemId) {
     const updated = JSON.stringify(items, null, 2);
     const encoded = btoa(unescape(encodeURIComponent(updated)));
 
-    await fetch(`${ghApi}/repos/${owner}/${repo}/contents/${path}`, {
+    const putRes = await fetch(`${ghApi}/repos/${owner}/${repo}/contents/${path}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
@@ -710,6 +710,13 @@ async function markAsSold(env, itemId) {
         branch: 'main'
       })
     });
+
+    // SHA conflict — retry up to 3 times (concurrent webhooks can race)
+    if (putRes.status === 409 && attempt < 3) {
+      console.log(`[markAsSold] SHA conflict for ${itemId}, retry ${attempt + 1}`);
+      await new Promise(r => setTimeout(r, 1000 * (attempt + 1))); // backoff
+      return markAsSold(env, itemId, attempt + 1);
+    }
   } catch {
     // Don't fail the webhook if GitHub update fails
   }

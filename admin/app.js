@@ -671,11 +671,24 @@
       const result = await putFile('inventory.json', json, inventorySha, message || 'Update inventory');
       inventorySha = result.content.sha;
     } catch (e) {
-      // SHA conflict (409) — re-fetch current SHA and retry once
+      // SHA conflict (409) — merge remote changes and retry once
       if (!_retried && e.message && (e.message.includes('does not match') || e.message.includes('409'))) {
         try {
           const file = await getFile('inventory.json');
           inventorySha = file.sha;
+          // Merge remote changes into local items (webhook may have marked items sold/hold)
+          const remoteItems = JSON.parse(decodeURIComponent(escape(atob(file.content.replace(/\n/g, '')))));
+          for (const ri of remoteItems) {
+            const li = items.find(i => i.id === ri.id);
+            if (!li) continue;
+            // If remote marked sold/hold and local didn't, adopt remote state
+            if (ri.isSold && !li.isSold) { li.isSold = true; li.isNew = false; li.isHold = false; }
+            if (ri.isHold && !li.isHold) li.isHold = true;
+            // Adopt any new fields from remote that local doesn't have
+            for (const k of Object.keys(ri)) {
+              if (!(k in li)) li[k] = ri[k];
+            }
+          }
           return saveInventory(message, true);
         } catch (retryErr) {
           toast('Save failed: ' + retryErr.message);

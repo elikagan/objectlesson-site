@@ -79,9 +79,9 @@
     "maker": "Los Castillos",
     "condition": "Good, visible tarnish and minor surface wear to metal.",
     "dealerCode": "14EK",
-    "isNew": true,
+    "isNew": false,
     "isHold": false,
-    "isSold": false,
+    "isSold": true,
     "images": [
       "images/products/000050/los_castillos_malachite_and_mixed_metal_dish_1.jpg",
       "images/products/000050/los_castillos_malachite_and_mixed_metal_dish_2.jpg",
@@ -357,9 +357,9 @@
     "maker": "",
     "condition": "Good, visible surface wear and scuffs consistent with age.",
     "dealerCode": "14EK",
-    "isNew": true,
+    "isNew": false,
     "isHold": false,
-    "isSold": false,
+    "isSold": true,
     "images": [
       "images/products/000038/metallic_deco_vase_1.jpg",
       "images/products/000038/metallic_deco_vase_2.jpg",
