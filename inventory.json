@@ -355,11 +355,13 @@
     "size": "",
     "category": "object",
     "maker": "",
-    "condition": "Good, visible surface wear and scuffs consistent with age.",
+    "condition": "",
     "dealerCode": "14EK",
-    "isNew": true,
+    "isNew": false,
     "isHold": false,
-    "isSold": false,
+    "isSold": true,
+    "marketplace": false,
+    "lpListingId": null,
     "images": [
       "images/products/000038/metallic_deco_vase_1.jpg",
       "images/products/000038/metallic_deco_vase_2.jpg",
@@ -368,8 +370,7 @@
     ],
     "heroImage": "images/products/000038/metallic_deco_vase_1.jpg",
     "order": 17,
-    "createdAt": "2026-03-04T01:19:45.183Z",
-    "marketplace": false
+    "createdAt": "2026-03-04T01:19:45.183Z"
   },
   {
     "id": "000037",
