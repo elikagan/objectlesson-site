@@ -1006,8 +1006,8 @@
     "condition": "",
     "dealerCode": "14EK",
     "isNew": false,
-    "isHold": true,
-    "isSold": false,
+    "isHold": false,
+    "isSold": true,
     "marketplace": false,
     "lpListingId": null,
     "images": [
