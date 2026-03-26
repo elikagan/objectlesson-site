@@ -3,9 +3,45 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://objectlesson.la/</loc>
-    <lastmod>2026-03-24</lastmod>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://objectlesson.la/item/000055/</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000055/cicely_de_beers_1.jpg</image:loc>
+      <image:title>Cicely De Beers</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000055/cicely_de_beers_2.jpg</image:loc>
+      <image:title>Cicely De Beers</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000055/cicely_de_beers_3.jpg</image:loc>
+      <image:title>Cicely De Beers</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://objectlesson.la/item/000054/</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000054/cicely_de_beers_1.jpg</image:loc>
+      <image:title>Cicely De Beers</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000054/cicely_de_beers_2.jpg</image:loc>
+      <image:title>Cicely De Beers</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000054/cicely_de_beers_3.jpg</image:loc>
+      <image:title>Cicely De Beers</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://objectlesson.la/item/000053/</loc>
