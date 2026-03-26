@@ -62,6 +62,11 @@ export default {
       return handleSalesBackfillNames(request, env);
     }
 
+    // Image CDN proxy — cache images at Cloudflare edge with long TTL
+    if (url.pathname.startsWith('/img/') && request.method === 'GET') {
+      return handleImageProxy(request, url);
+    }
+
     return new Response('Not found', { status: 404 });
   }
 };
@@ -1436,4 +1441,44 @@ async function handleSalesBackfillNames(request, env) {
   } catch (e) {
     return jsonResponse({ error: e.message }, 500, request);
   }
+}
+
+async function handleImageProxy(request, url) {
+  // Strip /img/ prefix to get the image path
+  const imagePath = url.pathname.slice(5); // remove "/img/"
+  if (!imagePath || imagePath.includes('..')) {
+    return new Response('Bad request', { status: 400 });
+  }
+
+  // Only allow image paths from our products directory
+  if (!imagePath.startsWith('images/products/')) {
+    return new Response('Forbidden', { status: 403 });
+  }
+
+  // Check Cloudflare cache first
+  const cacheKey = new Request(url.toString(), request);
+  const cache = caches.default;
+  let response = await cache.match(cacheKey);
+  if (response) return response;
+
+  // Fetch from GitHub Pages origin
+  const originUrl = `https://objectlesson.la/${imagePath}`;
+  const originResp = await fetch(originUrl);
+  if (!originResp.ok) {
+    return new Response('Not found', { status: 404 });
+  }
+
+  // Build response with aggressive caching
+  response = new Response(originResp.body, {
+    status: 200,
+    headers: {
+      'Content-Type': originResp.headers.get('Content-Type') || 'image/jpeg',
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      'Access-Control-Allow-Origin': '*',
+    }
+  });
+
+  // Store in Cloudflare edge cache
+  await cache.put(cacheKey, response.clone());
+  return response;
 }

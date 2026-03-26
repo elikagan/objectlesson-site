@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Object Lesson — Mosaic Preview</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --black: #1a1a1a;
+      --gray: #888;
+      --light: #ccc;
+      --border: #e8e8e8;
+      --bg: #fff;
+      --font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      color: var(--black);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* --- Header (matches real site) --- */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 24px;
+    }
+    .logo { width: 160px; height: auto; display: block; }
+
+    /* --- Mosaic --- */
+    .mosaic {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 32px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 3px;
+    }
+
+    .mosaic-cell {
+      aspect-ratio: 1;
+      perspective: 800px;
+      cursor: pointer;
+      display: block;
+      overflow: hidden;
+    }
+
+    .mosaic-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .mosaic-inner.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .mosaic-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      overflow: hidden;
+    }
+
+    .mosaic-back {
+      transform: rotateY(180deg);
+    }
+
+    .mosaic-face img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Tablet: 4 cols, hide cells beyond 12 */
+    @media (max-width: 959px) {
+      .mosaic { grid-template-columns: repeat(4, 1fr); }
+      .mosaic-cell:nth-child(n+13) { display: none; }
+    }
+
+    /* Mobile: 3 cols, hide cells beyond 9 */
+    @media (max-width: 559px) {
+      header { padding: 24px 16px 16px; }
+      .logo { width: 120px; }
+      .mosaic {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2px;
+        padding: 0 0 24px;
+      }
+      .mosaic-cell:nth-child(n+10) { display: none; }
+    }
+
+    /* Placeholder for product grid */
+    .placeholder {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .placeholder-card {
+      aspect-ratio: 1;
+      background: #f8f8f8;
+      border-radius: 4px;
+    }
+    .placeholder-text {
+      height: 12px;
+      background: #eee;
+      border-radius: 4px;
+      margin-top: 10px;
+      width: 70%;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 13px;
+      color: var(--light);
+    }
+
+    @media (max-width: 559px) {
+      .placeholder { grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="OL_logo.svg" alt="Object Lesson" class="logo">
+  </header>
+
+  <div class="mosaic" id="mosaic">
+    <div class="loading">Loading inventory...</div>
+  </div>
+
+  <!-- Fake product grid to give context -->
+  <div class="placeholder" id="placeholder"></div>
+
+<script>
+(function () {
+  const RAW = 'https://raw.githubusercontent.com/elikagan/objectlesson-site/main/';
+  const CELL_COUNT = 18;
+  const INTERVAL = 1000;     // 1s
+  const FLIP_SPEED = 700;    // 0.7s
+  const DESKTOP_FLIPS = 4;   // 4-5
+  const MOBILE_FLIPS = 2;    // 2-3
+
+  let items = [];       // items with images
+  let cells = [];
+  let timer = null;
+
+  function imgUrl(path) {
+    if (!path || path.startsWith('http')) return path;
+    return RAW + path;
+  }
+
+  function isMobile() {
+    return window.innerWidth <= 559;
+  }
+
+  function isTablet() {
+    return window.innerWidth > 559 && window.innerWidth <= 959;
+  }
+
+  function visibleCellCount() {
+    if (isMobile()) return 9;
+    if (isTablet()) return 12;
+    return 18;
+  }
+
+  function flipBaseCount() {
+    return isMobile() ? MOBILE_FLIPS : DESKTOP_FLIPS;
+  }
+
+  async function loadInventory() {
+    try {
+      const res = await fetch(RAW + 'inventory.json?t=' + Date.now());
+      const data = await res.json();
+      // Only keep items with images
+      items = data.filter(i => i.heroImage || (i.images && i.images.length > 0));
+      items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    } catch (e) {
+      items = [];
+    }
+
+    if (items.length < 4) {
+      document.getElementById('mosaic').innerHTML = '';
+      return;
+    }
+
+    initMosaic();
+    buildPlaceholderGrid();
+  }
+
+  function randomItem(exclude) {
+    if (items.length <= 1) return items[0];
+    let item;
+    let attempts = 0;
+    do {
+      item = items[Math.floor(Math.random() * items.length)];
+      attempts++;
+    } while (item.id === exclude && attempts < 20);
+    return item;
+  }
+
+  function getHeroSrc(item) {
+    return imgUrl(item.heroImage || (item.images && item.images[0]) || '');
+  }
+
+  function initMosaic() {
+    const mosaic = document.getElementById('mosaic');
+    mosaic.innerHTML = '';
+    cells = [];
+
+    // Shuffle for initial fill
+    const shuffled = [...items].sort(() => Math.random() - 0.5);
+
+    for (let i = 0; i < CELL_COUNT; i++) {
+      const item = shuffled[i % shuffled.length];
+      const nextItem = shuffled[(i + 1) % shuffled.length];
+
+      const cell = document.createElement('a');
+      cell.className = 'mosaic-cell';
+      cell.href = '#' + item.id;
+
+      cell.innerHTML = `
+        <div class="mosaic-inner">
+          <div class="mosaic-face mosaic-front">
+            <img src="${getHeroSrc(item)}" alt="" loading="lazy">
+          </div>
+          <div class="mosaic-face mosaic-back">
+            <img src="${getHeroSrc(nextItem)}" alt="" loading="lazy">
+          </div>
+        </div>
+      `;
+
+      mosaic.appendChild(cell);
+      cells.push({
+        el: cell,
+        flipped: false,
+        currentItem: item,
+        animating: false
+      });
+    }
+
+    startTimer();
+  }
+
+  function startTimer() {
+    if (timer) clearInterval(timer);
+    timer = setInterval(flipRandom, INTERVAL);
+  }
+
+  function flipRandom() {
+    if (items.length < 2) return;
+
+    const visible = visibleCellCount();
+    const available = cells.filter((c, i) => i < visible && !c.animating);
+    if (available.length < 2) return;
+
+    const base = flipBaseCount();
+    const count = Math.min(
+      Math.random() < 0.5 ? base : base + 1,
+      available.length
+    );
+
+    // Shuffle and pick
+    const shuffled = [...available].sort(() => Math.random() - 0.5);
+    const toFlip = shuffled.slice(0, count);
+
+    toFlip.forEach(cell => {
+      const newItem = randomItem(cell.currentItem.id);
+      const inner = cell.el.querySelector('.mosaic-inner');
+
+      // Set the hidden face's image
+      const hiddenFace = cell.flipped
+        ? inner.querySelector('.mosaic-front img')
+        : inner.querySelector('.mosaic-back img');
+      hiddenFace.src = getHeroSrc(newItem);
+
+      // Flip
+      cell.animating = true;
+      cell.flipped = !cell.flipped;
+      inner.classList.toggle('flipped');
+
+      // Update link and state after animation
+      setTimeout(() => {
+        cell.el.href = '#' + newItem.id;
+        cell.currentItem = newItem;
+        cell.animating = false;
+      }, FLIP_SPEED + 50);
+    });
+  }
+
+  // Pause when tab is hidden
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (timer) { clearInterval(timer); timer = null; }
+    } else {
+      startTimer();
+    }
+  });
+
+  // Placeholder grid below mosaic for context
+  function buildPlaceholderGrid() {
+    const el = document.getElementById('placeholder');
+    el.innerHTML = items.slice(0, 6).map(item => `
+      <div>
+        <div class="placeholder-card" style="background:url(${getHeroSrc(item)}) center/cover"></div>
+        <div class="placeholder-text"></div>
+      </div>
+    `).join('');
+  }
+
+  loadInventory();
+})();
+</script>
+</body>
+</html>

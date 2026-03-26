@@ -163,7 +163,7 @@
       const isSold = !!item.isSold;
       if (isSold) card.classList.add('card--sold');
 
-      const imgSrc = imgUrl(item.heroImage || (item.images && item.images[0]) || '');
+      const imgSrc = thumbUrl(item.heroImage || (item.images && item.images[0]) || '');
       const imgHtml = imgSrc
         ? `<img src="${imgSrc}" alt="${esc(item.title)}" loading="lazy">`
         : '';
@@ -616,10 +616,19 @@
 
   // --- Helpers ---
 
-  // Serve images from GitHub Pages CDN (not raw.githubusercontent.com which 503s under load)
+  // Serve images through Cloudflare CDN (edge-cached, 1-year TTL)
+  const CDN_BASE = 'https://ol-checkout.objectlesson.workers.dev/img/';
   function imgUrl(path) {
     if (!path || path.startsWith('http')) return path;
-    return '/' + path;
+    return CDN_BASE + path;
+  }
+
+  // Thumbnail URL for grid/mosaic (400px, ~30-50KB vs full ~300KB)
+  function thumbUrl(path) {
+    if (!path) return '';
+    // Convert "images/products/id/file.jpg" → "images/products/id/thumb_file.jpg"
+    const thumbPath = path.replace(/([^/]+)$/, 'thumb_$1');
+    return imgUrl(thumbPath);
   }
 
   function formatId(id) {
@@ -674,10 +683,10 @@
       cell.innerHTML = `
         <div class="mosaic-inner">
           <div class="mosaic-face mosaic-front">
-            <img src="${imgUrl(item.heroImage || item.images[0])}" alt="" loading="lazy">
+            <img src="${thumbUrl(item.heroImage || item.images[0])}" alt="" loading="lazy">
           </div>
           <div class="mosaic-face mosaic-back">
-            <img src="${imgUrl(item.heroImage || item.images[0])}" alt="" loading="lazy">
+            <img src="${thumbUrl(item.heroImage || item.images[0])}" alt="" loading="lazy">
           </div>
         </div>
       `;
@@ -731,7 +740,7 @@
       const hiddenImg = cell.flipped
         ? inner.querySelector('.mosaic-front img')
         : inner.querySelector('.mosaic-back img');
-      hiddenImg.src = imgUrl(newItem.heroImage || newItem.images[0]);
+      hiddenImg.src = thumbUrl(newItem.heroImage || newItem.images[0]);
 
       // Flip
       cell.animating = true;

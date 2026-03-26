@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v51';
+  const APP_VERSION = 'v52';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -1147,7 +1147,7 @@
   }
 
   // Resize image to max dimension for lighter API calls
-  function resizeImage(dataUrl, maxDim) {
+  function resizeImage(dataUrl, maxDim, quality = 0.82) {
     return new Promise(resolve => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -1157,7 +1157,7 @@
         c.width = Math.round(img.width * scale);
         c.height = Math.round(img.height * scale);
         c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-        resolve(c.toDataURL('image/jpeg', 0.7));
+        resolve(c.toDataURL('image/jpeg', quality));
       };
       img.src = dataUrl;
     });
@@ -1930,12 +1930,28 @@
           continue;
         }
 
-        const path = `${imgDir}/${slug}_${i + 1}.jpg`;
-        const base64 = dataUrlToBase64(p.dataUrl);
-        // Get existing file SHA if overwriting
+        const fname = `${slug}_${i + 1}.jpg`;
+        const path = `${imgDir}/${fname}`;
+        const thumbPath = `${imgDir}/thumb_${fname}`;
+
+        // Optimize: resize to 1200px max, JPEG quality 82
+        const optimized = await resizeImage(p.dataUrl, 1200, 0.82);
+        const base64 = dataUrlToBase64(optimized);
+
+        // Generate 400px thumbnail for grid view
+        const thumb = await resizeImage(p.dataUrl, 400, 0.75);
+        const thumbBase64 = dataUrlToBase64(thumb);
+
+        // Upload full image
         let sha = null;
         try { sha = (await getFile(path)).sha; } catch (_) {}
         await putFileBinary(path, base64, sha, 'Add product image');
+
+        // Upload thumbnail
+        let thumbSha = null;
+        try { thumbSha = (await getFile(thumbPath)).sha; } catch (_) {}
+        await putFileBinary(thumbPath, thumbBase64, thumbSha, 'Add thumbnail');
+
         uploadedImages.push(path);
       }
 
