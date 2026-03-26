@@ -63,7 +63,7 @@ export default {
     }
 
     // Image CDN proxy — cache images at Cloudflare edge with long TTL
-    if (url.pathname.startsWith('/img/') && request.method === 'GET') {
+    if (url.pathname.startsWith('/img/') && (request.method === 'GET' || request.method === 'HEAD')) {
       return handleImageProxy(request, url);
     }
 
@@ -1455,8 +1455,8 @@ async function handleImageProxy(request, url) {
     return new Response('Forbidden', { status: 403 });
   }
 
-  // Check Cloudflare cache first
-  const cacheKey = new Request(url.toString(), request);
+  // Check Cloudflare cache first (always use GET for cache key)
+  const cacheKey = new Request(url.toString(), { method: 'GET' });
   const cache = caches.default;
   let response = await cache.match(cacheKey);
   if (response) return response;
