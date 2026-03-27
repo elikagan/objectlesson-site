@@ -947,8 +947,14 @@
     "price": 175,
     "size": "",
     "category": "sculpture",
+    "maker": "",
+    "condition": "",
     "dealerCode": "14EK",
-    "isNew": true,
+    "isNew": false,
+    "isHold": false,
+    "isSold": true,
+    "marketplace": false,
+    "lpListingId": null,
     "images": [
       "images/products/000010/joel_stearns_ziggurat_box_1.jpg",
       "images/products/000010/joel_stearns_ziggurat_box_2.jpg",
@@ -957,8 +963,7 @@
     ],
     "heroImage": "images/products/000010/joel_stearns_ziggurat_box_1.jpg",
     "order": 48,
-    "createdAt": "2026-02-27T01:01:43.530Z",
-    "marketplace": false
+    "createdAt": "2026-02-27T01:01:43.530Z"
   },
   {
     "id": "000006",
