@@ -110,6 +110,13 @@
 
   // --- Load inventory ---
 
+  // Render preloaded items instantly (above-the-fold), then swap in full data
+  if (window.__PRELOAD && window.__PRELOAD.length) {
+    items = window.__PRELOAD;
+    loadingEl.classList.add('hidden');
+    renderGrid();
+  }
+
   async function load() {
     try {
       // Fetch from GitHub raw (updates instantly) with Pages fallback
@@ -119,7 +126,7 @@
       items = await res.json();
       items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     } catch (e) {
-      items = [];
+      if (!items.length) items = [];
     }
     loadingEl.classList.add('hidden');
     initMosaic();
