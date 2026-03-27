@@ -110,13 +110,6 @@
 
   // --- Load inventory ---
 
-  // Render preloaded items instantly (above-the-fold), then swap in full data
-  if (window.__PRELOAD && window.__PRELOAD.length) {
-    items = window.__PRELOAD;
-    loadingEl.classList.add('hidden');
-    renderGrid();
-  }
-
   async function load() {
     try {
       // Fetch from GitHub raw (updates instantly) with Pages fallback
@@ -935,5 +928,11 @@
   });
 
   // --- Init ---
+  // Render preloaded items instantly (above-the-fold), then load full inventory async
+  if (window.__PRELOAD && window.__PRELOAD.length) {
+    items = window.__PRELOAD;
+    loadingEl.classList.add('hidden');
+    renderGrid();
+  }
   load();
 })();
