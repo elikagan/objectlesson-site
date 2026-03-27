@@ -1888,14 +1888,19 @@
 
   // --- Save item ---
 
+  let saveInProgress = false;
   document.getElementById('btn-save').addEventListener('click', saveItem);
 
   async function saveItem() {
+    // Prevent double-tap race condition
+    if (saveInProgress) return;
+    saveInProgress = true;
+
     const title = document.getElementById('field-title').value.trim();
     const description = document.getElementById('field-desc').value.trim();
     const priceVal = document.getElementById('field-price').value.trim();
     const price = priceVal === '' ? 0 : parseFloat(priceVal);
-    if (isNaN(price) || price < 0) { toast('Enter a valid price'); return; }
+    if (isNaN(price) || price < 0) { toast('Enter a valid price'); saveInProgress = false; return; }
     const size = document.getElementById('field-size').value.trim();
     const category = document.getElementById('field-category').value;
     const maker = document.getElementById('field-maker').value.trim();
@@ -1906,12 +1911,12 @@
     const isSold = document.getElementById('field-sold').checked;
     const marketplace = document.getElementById('field-marketplace').checked;
 
-    if (!title) { toast('Title is required'); return; }
-    if (!category) { toast('Category is required'); return; }
+    if (!title) { toast('Title is required'); saveInProgress = false; return; }
+    if (!category) { toast('Category is required'); saveInProgress = false; return; }
 
     const btn = document.getElementById('btn-save');
     btn.disabled = true;
-    btn.textContent = 'Saving...';
+    btn.innerHTML = '<span class="spinner"></span> Saving...';
 
     try {
       const id = editingId || nextId();
@@ -1922,6 +1927,7 @@
       const slug = title.toLowerCase().replace(/['']/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 
       // Upload photos (first = hero)
+      const newPhotos = photos.filter(p => !p.remotePath);
       for (let i = 0; i < photos.length; i++) {
         const p = photos[i];
 
@@ -1929,6 +1935,9 @@
           uploadedImages.push(p.remotePath);
           continue;
         }
+
+        const photoNum = newPhotos.indexOf(p) + 1;
+        btn.innerHTML = `<span class="spinner"></span> Uploading photo ${photoNum}/${newPhotos.length}...`;
 
         const fname = `${slug}_${i + 1}.jpg`;
         const path = `${imgDir}/${fname}`;
@@ -2033,7 +2042,8 @@
     }
 
     btn.disabled = false;
-    btn.textContent = 'Save';
+    btn.innerHTML = 'Save';
+    saveInProgress = false;
   }
 
   // --- Analytics ---
