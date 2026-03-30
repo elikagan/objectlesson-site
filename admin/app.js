@@ -2,11 +2,11 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v54';
+  const APP_VERSION = 'v55';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
-  const API = 'https://api.github.com';
+  // GitHub API calls routed through worker (no client-side token)
   const PIN_HASH = '7f6257b880b51353e620ab9224907e72348e8d2c3c1f6e0ba9866661acbc05e9';
 
   // --- IndexedDB persistent storage ---
@@ -45,11 +45,9 @@
   }
 
   // --- State ---
-  let ghToken = '';
-  let geminiKey = '';
-  let removeBgKey = '';
-  let supaUrl = 'https://gjlwoibtdgxlhtfswdkk.supabase.co';
-  let supaKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqbHdvaWJ0ZGd4bGh0ZnN3ZGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNTYzODgsImV4cCI6MjA4NzczMjM4OH0.4QSS1BBMBuqbMtLjo_Tr0_WVTS48YYNsNYvtEMTf33U';
+  // All API keys are server-side in Cloudflare Worker secrets
+  const supaUrl = 'https://gjlwoibtdgxlhtfswdkk.supabase.co';
+  const supaKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqbHdvaWJ0ZGd4bGh0ZnN3ZGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNTYzODgsImV4cCI6MjA4NzczMjM4OH0.4QSS1BBMBuqbMtLjo_Tr0_WVTS48YYNsNYvtEMTf33U';
   let currentPin = null;
   let items = [];
   let inventorySha = '';
@@ -94,28 +92,7 @@
     return JSON.parse(new TextDecoder().decode(dec));
   }
 
-  async function backupConfig(pin) {
-    if (!ghToken || !geminiKey) return;
-    const encrypted = await encryptConfig(pin, { g: ghToken, m: geminiKey, s: supaUrl, k: supaKey });
-    const path = 'admin/config.enc';
-    let sha;
-    try {
-      const r = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}`, {
-        headers: { 'Authorization': `Bearer ${ghToken}` }
-      });
-      if (r.ok) sha = (await r.json()).sha;
-    } catch {}
-    await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${ghToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: 'Update config',
-        content: btoa(encrypted),
-        branch: BRANCH,
-        ...(sha ? { sha } : {})
-      })
-    });
-  }
+  // Config backup removed — all keys are server-side worker secrets now
 
   // --- DOM refs ---
   const viewLock = document.getElementById('view-lock');
@@ -193,84 +170,25 @@
     document.cookie = k + '=;path=/admin;max-age=0';
   });
 
-  // Boot: load stored state, fall back to encrypted config in repo
+  // Boot: PIN unlocks admin, all API keys are server-side
   async function boot(pin) {
     if (pin) currentPin = pin;
-
-    ghToken = await load('ol_gh_token');
-    geminiKey = await load('ol_gemini_key');
-    removeBgKey = await load('ol_removebg_key') || '';
-    supaUrl = await load('ol_supa_url');
-    supaKey = await load('ol_supa_key');
     const unlocked = await load('ol_unlocked');
 
-    // Not unlocked and no PIN entered — show lock screen
     if (!unlocked && !currentPin) {
       showView('lock');
       return;
     }
 
-    // Keys in IndexedDB — go straight to inventory
-    if (ghToken && geminiKey) {
-      if (currentPin) backupConfig(currentPin).catch(() => {});
-      loadInventory();
-      // Restore view from hash (e.g. #analytics)
-      const hash = location.hash.slice(1);
-      if (hash === 'analytics') {
-        showView('analytics');
-        loadAnalytics();
-      } else if (hash === 'giftcerts') {
-        showView('giftcerts');
-        loadGiftCertificates();
-      } else if (hash === 'marketing') {
-        showView('marketing');
-        loadMarketing();
-      } else if (hash === 'marketplace') {
-        showView('marketplace');
-        loadMarketplace();
-      } else if (hash === 'sales') {
-        showView('sales');
-        loadSales();
-      } else {
-        showView('list');
-      }
-      return;
-    }
-
-    // Keys missing — try to restore from encrypted config in repo
-    if (currentPin) {
-      try {
-        const resp = await fetch('config.enc?t=' + Date.now());
-        if (resp.ok) {
-          const blob = await resp.text();
-          const config = await decryptConfig(currentPin, blob.trim());
-          ghToken = config.g;
-          geminiKey = config.m;
-          supaUrl = config.s || '';
-          supaKey = config.k || '';
-          await store('ol_gh_token', ghToken);
-          await store('ol_gemini_key', geminiKey);
-          if (supaUrl) await store('ol_supa_url', supaUrl);
-          if (supaKey) await store('ol_supa_key', supaKey);
-          showView('list');
-          loadInventory();
-          return;
-        }
-      } catch (e) { /* config.enc missing or decrypt failed */ }
-    }
-
-    // No PIN available — re-show lock to get it
-    if (!currentPin) {
-      await store('ol_unlocked', '');
-      showView('lock');
-      return;
-    }
-
-    // Have PIN but no config.enc — first time setup
-    document.getElementById('setup-topbar').style.display = 'none';
-    document.getElementById('setup-logo').style.display = '';
-    document.getElementById('setup-text').style.display = '';
-    showView('setup');
+    // Go straight to inventory — no key setup needed
+    loadInventory();
+    const hash = location.hash.slice(1);
+    if (hash === 'analytics') { showView('analytics'); loadAnalytics(); }
+    else if (hash === 'giftcerts') { showView('giftcerts'); loadGiftCertificates(); }
+    else if (hash === 'marketing') { showView('marketing'); loadMarketing(); }
+    else if (hash === 'marketplace') { showView('marketplace'); loadMarketplace(); }
+    else if (hash === 'sales') { showView('sales'); loadSales(); }
+    else { showView('list'); }
   }
 
   boot();
@@ -278,19 +196,6 @@
   // --- Setup ---
 
   document.getElementById('btn-save-setup').addEventListener('click', async () => {
-    ghToken = document.getElementById('input-gh-token').value.trim();
-    geminiKey = document.getElementById('input-gemini-key').value.trim();
-    removeBgKey = document.getElementById('input-removebg-key').value.trim();
-    supaUrl = document.getElementById('input-supa-url').value.trim().replace(/\/+$/, '');
-    supaKey = document.getElementById('input-supa-key').value.trim();
-    if (!ghToken || !geminiKey) { toast('GitHub + Gemini keys are required'); return; }
-    await store('ol_gh_token', ghToken);
-    await store('ol_gemini_key', geminiKey);
-    if (removeBgKey) await store('ol_removebg_key', removeBgKey);
-    if (supaUrl) await store('ol_supa_url', supaUrl);
-    if (supaKey) await store('ol_supa_key', supaKey);
-    // Backup encrypted config to repo so phone never needs key entry
-    if (currentPin) backupConfig(currentPin).catch(() => {});
     showView('list');
     loadInventory();
   });
@@ -309,11 +214,6 @@
 
   document.getElementById('menu-settings').addEventListener('click', () => {
     menuDropdown.classList.add('hidden');
-    document.getElementById('input-gh-token').value = ghToken;
-    document.getElementById('input-gemini-key').value = geminiKey;
-    document.getElementById('input-removebg-key').value = removeBgKey;
-    document.getElementById('input-supa-url').value = supaUrl;
-    document.getElementById('input-supa-key').value = supaKey;
     document.getElementById('setup-topbar').style.display = '';
     document.getElementById('setup-logo').style.display = 'none';
     document.getElementById('setup-text').style.display = 'none';
@@ -403,42 +303,34 @@
 
   // --- GitHub API helpers ---
 
-  async function ghFetch(path, opts = {}) {
-    const res = await fetch(API + path, {
-      ...opts,
-      headers: {
-        'Authorization': 'Bearer ' + ghToken,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
-        ...(opts.headers || {})
-      }
+  // All GitHub API calls go through worker (token stays server-side)
+  async function ghProxy(action, path, opts = {}) {
+    const res = await fetch(WORKER_URL + '/admin/github', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, path: `${OWNER}/${REPO}/contents/${opts.filePath || path}`, ...opts })
     });
-    if (!res.ok) {
-      const msg = (await res.json().catch(() => ({}))).message || res.statusText;
-      throw new Error(msg);
-    }
-    return res.json();
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    return data;
   }
 
   async function getFile(path) {
-    return ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`);
+    return ghProxy('get', path, { filePath: path + '?ref=' + BRANCH });
   }
 
   async function putFile(path, content, sha, message) {
-    const body = { message, content: btoa(unescape(encodeURIComponent(content))), branch: BRANCH };
-    if (sha) body.sha = sha;
-    return ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`, {
-      method: 'PUT',
-      body: JSON.stringify(body)
+    return ghProxy('put', path, {
+      filePath: path,
+      content: btoa(unescape(encodeURIComponent(content))),
+      sha, message, branch: BRANCH
     });
   }
 
   async function putFileBinary(path, base64, sha, message) {
-    const body = { message, content: base64, branch: BRANCH };
-    if (sha) body.sha = sha;
-    return ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`, {
-      method: 'PUT',
-      body: JSON.stringify(body)
+    return ghProxy('put', path, {
+      filePath: path,
+      content: base64, sha, message, branch: BRANCH
     });
   }
 
@@ -459,10 +351,7 @@
   }
 
   async function deleteFile(path, sha, message) {
-    return ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`, {
-      method: 'DELETE',
-      body: JSON.stringify({ message, sha, branch: BRANCH })
-    });
+    return ghProxy('delete', path, { filePath: path, sha, message, branch: BRANCH });
   }
 
   // --- Load inventory ---
@@ -1141,15 +1030,14 @@
   // --- Gemini API ---
 
   async function geminiCall(model, contents, config = {}) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
-    const res = await fetch(url, {
+    const res = await fetch(WORKER_URL + '/admin/gemini', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents, generationConfig: config })
+      body: JSON.stringify({ model, contents, generationConfig: config })
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || res.statusText);
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || res.statusText);
     }
     return res.json();
   }

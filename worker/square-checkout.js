@@ -67,6 +67,15 @@ export default {
       return handleImageProxy(request, url);
     }
 
+    // Admin API proxies — keys stay server-side
+    if (url.pathname.startsWith('/admin/github') && request.method === 'POST') {
+      return handleAdminGitHub(request, env);
+    }
+
+    if (url.pathname === '/admin/gemini' && request.method === 'POST') {
+      return handleAdminGemini(request, env);
+    }
+
     return new Response('Not found', { status: 404 });
   }
 };
@@ -1481,4 +1490,71 @@ async function handleImageProxy(request, url) {
   // Store in Cloudflare edge cache
   await cache.put(cacheKey, response.clone());
   return response;
+}
+
+// --- Admin GitHub proxy: keeps GITHUB_TOKEN server-side ---
+async function handleAdminGitHub(request, env) {
+  if (!env.GITHUB_TOKEN) return jsonResponse({ error: 'GitHub token not configured' }, 500, request);
+  const { action, path, content, sha, message, branch } = await request.json();
+  const ghBase = 'https://api.github.com';
+  const headers = {
+    'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
+    'Accept': 'application/vnd.github.v3+json',
+    'User-Agent': 'ObjectLesson-Admin',
+    'Content-Type': 'application/json'
+  };
+
+  try {
+    if (action === 'get') {
+      const res = await fetch(`${ghBase}/repos/${path}`, { headers });
+      if (!res.ok) return jsonResponse({ error: `GitHub ${res.status}` }, res.status, request);
+      const data = await res.json();
+      return jsonResponse(data, 200, request);
+    }
+    if (action === 'put') {
+      const body = { message: message || 'Update', content, branch: branch || 'main' };
+      if (sha) body.sha = sha;
+      const res = await fetch(`${ghBase}/repos/${path}`, { method: 'PUT', headers, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const err = await res.text();
+        return jsonResponse({ error: err }, res.status, request);
+      }
+      return jsonResponse(await res.json(), 200, request);
+    }
+    if (action === 'delete') {
+      const body = { message: message || 'Delete', sha, branch: branch || 'main' };
+      const res = await fetch(`${ghBase}/repos/${path}`, { method: 'DELETE', headers, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const err = await res.text();
+        return jsonResponse({ error: err }, res.status, request);
+      }
+      return jsonResponse(await res.json(), 200, request);
+    }
+    return jsonResponse({ error: 'Invalid action' }, 400, request);
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, request);
+  }
+}
+
+// --- Admin Gemini proxy: keeps GEMINI_KEY server-side ---
+async function handleAdminGemini(request, env) {
+  if (!env.GEMINI_KEY) return jsonResponse({ error: 'Gemini key not configured' }, 500, request);
+  const { model, contents, generationConfig } = await request.json();
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents, generationConfig })
+      }
+    );
+    if (!res.ok) {
+      const err = await res.text();
+      return jsonResponse({ error: err }, res.status, request);
+    }
+    return jsonResponse(await res.json(), 200, request);
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500, request);
+  }
 }
