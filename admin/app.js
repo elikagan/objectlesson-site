@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v53';
+  const APP_VERSION = 'v54';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -48,8 +48,8 @@
   let ghToken = '';
   let geminiKey = '';
   let removeBgKey = '';
-  let supaUrl = '';
-  let supaKey = '';
+  let supaUrl = 'https://gjlwoibtdgxlhtfswdkk.supabase.co';
+  let supaKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqbHdvaWJ0ZGd4bGh0ZnN3ZGtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNTYzODgsImV4cCI6MjA4NzczMjM4OH0.4QSS1BBMBuqbMtLjo_Tr0_WVTS48YYNsNYvtEMTf33U';
   let currentPin = null;
   let items = [];
   let inventorySha = '';
