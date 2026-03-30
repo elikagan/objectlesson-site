@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v52';
+  const APP_VERSION = 'v53';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -440,6 +440,22 @@
       method: 'PUT',
       body: JSON.stringify(body)
     });
+  }
+
+  async function uploadWithRetry(path, base64, message) {
+    let sha = null;
+    try { sha = (await getFile(path)).sha; } catch (_) {}
+    try {
+      await putFileBinary(path, base64, sha, message);
+    } catch (e) {
+      if (e.message && (e.message.includes('does not match') || e.message.includes('409'))) {
+        // SHA conflict — re-fetch SHA and retry once
+        try { sha = (await getFile(path)).sha; } catch (_) {}
+        await putFileBinary(path, base64, sha, message);
+      } else {
+        throw e;
+      }
+    }
   }
 
   async function deleteFile(path, sha, message) {
@@ -1951,15 +1967,11 @@
         const thumb = await resizeImage(p.dataUrl, 400, 0.75);
         const thumbBase64 = dataUrlToBase64(thumb);
 
-        // Upload full image
-        let sha = null;
-        try { sha = (await getFile(path)).sha; } catch (_) {}
-        await putFileBinary(path, base64, sha, 'Add product image');
+        // Upload full image (with SHA conflict retry)
+        await uploadWithRetry(path, base64, 'Add product image');
 
         // Upload thumbnail
-        let thumbSha = null;
-        try { thumbSha = (await getFile(thumbPath)).sha; } catch (_) {}
-        await putFileBinary(thumbPath, thumbBase64, thumbSha, 'Add thumbnail');
+        await uploadWithRetry(thumbPath, thumbBase64, 'Add thumbnail');
 
         uploadedImages.push(path);
       }
