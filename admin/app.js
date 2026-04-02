@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v55';
+  const APP_VERSION = 'v56';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -869,7 +869,7 @@
 
   async function processWithAI() {
     if (photos.length === 0) { toast('Add photos first'); return; }
-    if (!geminiKey) { toast('Gemini API key required'); return; }
+    // Gemini key is now a worker secret — no local check needed
 
     const btn = document.getElementById('btn-process');
     btn.disabled = true;
@@ -975,7 +975,7 @@
 
   async function reprocessImage(idx, mode) {
     const photo = photos[idx];
-    if (!photo || !geminiKey) return;
+    if (!photo) return;
 
     const prompt = reprocessPrompts[mode];
     if (!prompt) return;
@@ -1153,54 +1153,7 @@
     return null;
   }
 
-  // --- remove.bg background removal (proxied through Cloudflare Worker) ---
-
   const WORKER_URL = 'https://ol-checkout.objectlesson.workers.dev';
-
-  async function removeBgProcess(dataUrl) {
-    if (!removeBgKey) throw new Error('remove.bg API key not set');
-    const resized = await resizeImage(dataUrl, 1536);
-    const base64 = dataUrlToBase64(resized);
-
-    const res = await fetch(`${WORKER_URL}/removebg`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageBase64: base64, apiKey: removeBgKey })
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`remove.bg proxy error ${res.status}: ${err}`);
-    }
-
-    const data = await res.json();
-    return `data:image/png;base64,${data.imageBase64}`;
-  }
-
-  // Composite transparent PNG onto white bg with shadow using Canvas
-  function compositeOnWhite(transparentDataUrl) {
-    return new Promise(resolve => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        const c = document.createElement('canvas');
-        c.width = img.width;
-        c.height = img.height;
-        const ctx = c.getContext('2d');
-        // White background
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, c.width, c.height);
-        // Soft shadow
-        ctx.shadowColor = 'rgba(0,0,0,0.15)';
-        ctx.shadowBlur = 20;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 8;
-        ctx.drawImage(img, 0, 0);
-        resolve(c.toDataURL('image/jpeg', 0.92));
-      };
-      img.src = transparentDataUrl;
-    });
-  }
 
   // Gemini lighting enhancement on already-cutout image
   async function geminiEnhanceLighting(dataUrl) {
