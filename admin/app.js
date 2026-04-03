@@ -694,7 +694,7 @@
       document.getElementById('field-new').checked = true;
       document.getElementById('field-hold').checked = false;
       document.getElementById('field-sold').checked = false;
-      document.getElementById('field-marketplace').checked = true;
+      document.getElementById('field-marketplace').checked = false;
     }
 
     renderPhotos();
