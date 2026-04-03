@@ -13,7 +13,7 @@
     "isNew": true,
     "isHold": false,
     "isSold": false,
-    "marketplace": true,
+    "marketplace": false,
     "lpListingId": "9Zq07uiVZkTP7M2llCid",
     "images": [
       "images/products/000063/pedestal_bowl_1.jpg",
