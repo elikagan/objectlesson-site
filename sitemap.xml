@@ -8,6 +8,24 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://objectlesson.la/item/000063/</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000063/pedestal_bowl_1.jpg</image:loc>
+      <image:title>Pedestal Bowl</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000063/pedestal_bowl_2.jpg</image:loc>
+      <image:title>Pedestal Bowl</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000063/pedestal_bowl_3.jpg</image:loc>
+      <image:title>Pedestal Bowl</image:title>
+    </image:image>
+  </url>
+  <url>
     <loc>https://objectlesson.la/item/000062/</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>weekly</changefreq>
