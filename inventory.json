@@ -1,5 +1,30 @@
 [
   {
+    "id": "000063",
+    "title": "Pedestal Bowl",
+    "description": "Off-white ceramic pedestal bowl with black striped glaze, mid-century modern style.",
+    "price": 125,
+    "size": "5.5”",
+    "category": "ceramic",
+    "maker": "Unknown",
+    "condition": "",
+    "dealerCode": "14EK",
+    "postedBy": "LL",
+    "isNew": true,
+    "isHold": false,
+    "isSold": false,
+    "marketplace": true,
+    "lpListingId": null,
+    "images": [
+      "images/products/000063/pedestal_bowl_1.jpg",
+      "images/products/000063/pedestal_bowl_2.jpg",
+      "images/products/000063/pedestal_bowl_3.jpg"
+    ],
+    "heroImage": "images/products/000063/pedestal_bowl_1.jpg",
+    "order": 0,
+    "createdAt": "2026-04-03T19:52:59.767Z"
+  },
+  {
     "id": "000062",
     "title": "Abstract Tapestry",
     "description": "Abstract woven textile wall art in pink, beige, and purple yarn featuring a stylized face, mounted on a wooden dowel.",
@@ -20,7 +45,7 @@
       "images/products/000062/abstract_tapestry_2.jpg"
     ],
     "heroImage": "images/products/000062/abstract_tapestry_1.jpg",
-    "order": 0,
+    "order": 1,
     "createdAt": "2026-04-03T19:43:36.038Z"
   },
   {
@@ -46,7 +71,7 @@
       "images/products/000061/studio_abstract_4.jpg"
     ],
     "heroImage": "images/products/000061/studio_abstract_1.jpg",
-    "order": 1,
+    "order": 2,
     "createdAt": "2026-04-03T19:35:26.051Z"
   },
   {
@@ -71,7 +96,7 @@
       "images/products/000060/french_bouillon_kub_tin_3.jpg"
     ],
     "heroImage": "images/products/000060/french_bouillon_kub_tin_1.jpg",
-    "order": 2,
+    "order": 3,
     "createdAt": "2026-04-03T19:26:53.633Z"
   },
   {
@@ -97,7 +122,7 @@
       "images/products/000059/speckled_blue_vase_4.jpg"
     ],
     "heroImage": "images/products/000059/speckled_blue_vase_1.jpg",
-    "order": 3,
+    "order": 4,
     "createdAt": "2026-04-03T19:17:43.843Z"
   },
   {
@@ -122,7 +147,7 @@
       "images/products/000058/italian_bowl_4.jpg"
     ],
     "heroImage": "images/products/000058/italian_bowl_1.jpg",
-    "order": 4,
+    "order": 5,
     "createdAt": "2026-04-03T19:10:19.084Z"
   },
   {
@@ -147,7 +172,7 @@
       "images/products/000057/mid_century_studio_vase_4.jpg"
     ],
     "heroImage": "images/products/000057/mid_century_studio_vase_1.jpg",
-    "order": 5,
+    "order": 6,
     "createdAt": "2026-04-03T18:53:51.057Z"
   },
   {
@@ -171,7 +196,7 @@
       "images/products/000056/rouault_print_from_vollard_collection_3.jpg"
     ],
     "heroImage": "images/products/000056/rouault_print_from_vollard_collection_1.jpg",
-    "order": 6,
+    "order": 7,
     "createdAt": "2026-04-02T21:32:33.595Z"
   },
   {
@@ -195,7 +220,7 @@
       "images/products/000055/cicely_de_beers_3.jpg"
     ],
     "heroImage": "images/products/000055/cicely_de_beers_1.jpg",
-    "order": 7,
+    "order": 8,
     "createdAt": "2026-03-26T21:51:23.616Z"
   },
   {
@@ -218,7 +243,7 @@
       "images/products/000053/pitcher_deco_vase_french_4.jpg"
     ],
     "heroImage": "images/products/000053/pitcher_deco_vase_french_1.jpg",
-    "order": 9,
+    "order": 10,
     "createdAt": "2026-03-16T22:47:45.510Z",
     "marketplace": false
   },
@@ -242,7 +267,7 @@
       "images/products/000052/ceramic_foot_sculpture_4.jpg"
     ],
     "heroImage": "images/products/000052/ceramic_foot_sculpture_1.jpg",
-    "order": 10,
+    "order": 11,
     "createdAt": "2026-03-15T01:57:23.881Z",
     "marketplace": false
   },
@@ -264,7 +289,7 @@
       "images/products/000051/joel_stearns_exclamation_art_lamp_2.jpg"
     ],
     "heroImage": "images/products/000051/joel_stearns_exclamation_art_lamp_1.jpg",
-    "order": 12,
+    "order": 13,
     "createdAt": "2026-03-12T20:42:13.785Z",
     "marketplace": false
   },
@@ -287,7 +312,7 @@
       "images/products/000050/los_castillos_malachite_and_mixed_metal_dish_3.jpg"
     ],
     "heroImage": "images/products/000050/los_castillos_malachite_and_mixed_metal_dish_1.jpg",
-    "order": 13,
+    "order": 14,
     "createdAt": "2026-03-08T22:44:45.847Z",
     "marketplace": false
   },
@@ -311,7 +336,7 @@
       "images/products/000049/copper_urn_4.jpg"
     ],
     "heroImage": "images/products/000049/copper_urn_1.jpg",
-    "order": 15,
+    "order": 16,
     "createdAt": "2026-03-06T19:31:05.459Z",
     "marketplace": false
   },
@@ -334,7 +359,7 @@
       "images/products/000048/joel_stearns_red_black_box_3.jpg"
     ],
     "heroImage": "images/products/000048/joel_stearns_red_black_box_1.jpg",
-    "order": 16,
+    "order": 17,
     "createdAt": "2026-03-06T19:29:29.677Z",
     "marketplace": false
   },
@@ -357,7 +382,7 @@
       "images/products/000047/folk_art_crab_vase_hollow_form_3.jpg"
     ],
     "heroImage": "images/products/000047/folk_art_crab_vase_hollow_form_1.jpg",
-    "order": 17,
+    "order": 18,
     "createdAt": "2026-03-06T19:27:55.734Z",
     "marketplace": false
   },
@@ -381,7 +406,7 @@
       "images/products/000046/dave_fox_vase_4.jpg"
     ],
     "heroImage": "images/products/000046/dave_fox_vase_1.jpg",
-    "order": 18,
+    "order": 19,
     "createdAt": "2026-03-06T19:25:50.173Z",
     "marketplace": false
   },
@@ -404,7 +429,7 @@
       "images/products/000045/metallic_vase_3.jpg"
     ],
     "heroImage": "images/products/000045/metallic_vase_1.jpg",
-    "order": 19,
+    "order": 20,
     "createdAt": "2026-03-06T19:21:43.037Z",
     "marketplace": false
   },
@@ -429,7 +454,7 @@
       "images/products/000044/marble_bowl_3.jpg"
     ],
     "heroImage": "images/products/000044/marble_bowl_1.jpg",
-    "order": 20,
+    "order": 21,
     "createdAt": "2026-03-06T19:17:04.581Z"
   },
   {
@@ -451,7 +476,7 @@
       "images/products/000043/green_acrylic_sculpture_3.jpg"
     ],
     "heroImage": "images/products/000043/green_acrylic_sculpture_1.jpg",
-    "order": 21,
+    "order": 22,
     "createdAt": "2026-03-06T19:13:36.557Z",
     "marketplace": false
   },
@@ -475,7 +500,7 @@
       "images/products/000042/playing_card_gourd_4.jpg"
     ],
     "heroImage": "images/products/000042/playing_card_gourd_1.jpg",
-    "order": 22,
+    "order": 23,
     "createdAt": "2026-03-06T19:11:47.562Z",
     "marketplace": false
   },
@@ -497,7 +522,7 @@
       "images/products/000041/cicely_debeers_painting_2.jpg"
     ],
     "heroImage": "images/products/000041/cicely_debeers_painting_1.jpg",
-    "order": 23,
+    "order": 24,
     "createdAt": "2026-03-06T03:21:02.484Z",
     "marketplace": false
   },
@@ -519,7 +544,7 @@
       "images/products/000040/cicely_debeers_2.jpg"
     ],
     "heroImage": "images/products/000040/cicely_debeers_1.jpg",
-    "order": 24,
+    "order": 25,
     "createdAt": "2026-03-06T03:19:45.272Z",
     "marketplace": false
   },
@@ -542,7 +567,7 @@
       "images/products/000039/sciolari_lamp_3.jpg"
     ],
     "heroImage": "images/products/000039/sciolari_lamp_1.jpg",
-    "order": 25,
+    "order": 26,
     "createdAt": "2026-03-06T03:16:55.282Z",
     "marketplace": false
   },
@@ -566,7 +591,7 @@
       "images/products/000038/metallic_deco_vase_4.jpg"
     ],
     "heroImage": "images/products/000038/metallic_deco_vase_1.jpg",
-    "order": 26,
+    "order": 27,
     "createdAt": "2026-03-04T01:19:45.183Z",
     "marketplace": false
   },
@@ -589,7 +614,7 @@
       "images/products/000037/michael_gustavson_wall_ceramic_3.jpg"
     ],
     "heroImage": "images/products/000037/michael_gustavson_wall_ceramic_1.jpg",
-    "order": 27,
+    "order": 28,
     "createdAt": "2026-03-03T22:37:22.009Z",
     "marketplace": false
   },
@@ -612,7 +637,7 @@
       "images/products/000036/leopoldo_aguero_print_3.jpg"
     ],
     "heroImage": "images/products/000036/leopoldo_aguero_print_1.jpg",
-    "order": 28,
+    "order": 29,
     "createdAt": "2026-03-03T22:34:21.474Z",
     "marketplace": false
   },
@@ -635,7 +660,7 @@
       "images/products/000035/dewine_shooting_gallery_3.jpg"
     ],
     "heroImage": "images/products/000035/dewine_shooting_gallery_1.jpg",
-    "order": 29,
+    "order": 30,
     "createdAt": "2026-03-03T22:31:29.039Z",
     "marketplace": false
   },
@@ -658,7 +683,7 @@
       "images/products/000033/triangular_mixed_metal_art_3.jpg"
     ],
     "heroImage": "images/products/000033/triangular_mixed_metal_art_1.jpg",
-    "order": 31,
+    "order": 32,
     "createdAt": "2026-03-03T22:25:15.779Z",
     "marketplace": false
   },
@@ -680,7 +705,7 @@
       "images/products/000032/large_painting_by_mario_mazzella_1959_2.jpg"
     ],
     "heroImage": "images/products/000032/large_painting_by_mario_mazzella_1959_1.jpg",
-    "order": 32,
+    "order": 33,
     "createdAt": "2026-03-03T22:21:41.799Z",
     "marketplace": false
   },
@@ -704,7 +729,7 @@
       "images/products/000031/painting_signed_c_jacobson_1968_4.jpg"
     ],
     "heroImage": "images/products/000031/painting_signed_c_jacobson_1968_1.jpg",
-    "order": 33,
+    "order": 34,
     "createdAt": "2026-03-03T22:20:39.829Z",
     "marketplace": false
   },
@@ -726,7 +751,7 @@
       "images/products/000029/aluminum_abstract_sculpture_2.jpg"
     ],
     "heroImage": "images/products/000029/aluminum_abstract_sculpture_1.jpg",
-    "order": 35,
+    "order": 36,
     "createdAt": "2026-03-03T05:08:23.033Z",
     "marketplace": false
   },
@@ -749,7 +774,7 @@
       "images/products/000028/signed_studio_pot_3.jpg"
     ],
     "heroImage": "images/products/000028/signed_studio_pot_1.jpg",
-    "order": 36,
+    "order": 37,
     "createdAt": "2026-03-03T05:06:09.646Z",
     "marketplace": false
   },
@@ -772,7 +797,7 @@
       "images/products/000026/wood_egg_3.jpg"
     ],
     "heroImage": "images/products/000026/wood_egg_1.jpg",
-    "order": 37,
+    "order": 38,
     "createdAt": "2026-03-01T21:08:56.978Z",
     "marketplace": false
   },
@@ -798,7 +823,7 @@
       "images/products/000025/oversized_foot_4.jpg"
     ],
     "heroImage": "images/products/000025/oversized_foot_1.jpg",
-    "order": 38,
+    "order": 39,
     "createdAt": "2026-03-01T20:30:41.307Z"
   },
   {
@@ -824,7 +849,7 @@
       "images/products/000024/olive_wood_bowl_5.jpg"
     ],
     "heroImage": "images/products/000024/olive_wood_bowl_1.jpg",
-    "order": 39,
+    "order": 40,
     "createdAt": "2026-03-01T20:26:32.744Z"
   },
   {
@@ -845,7 +870,7 @@
       "images/products/000023/charming_small_19th_century_dutch_tavern_interior_painting_2.jpg"
     ],
     "heroImage": "images/products/000023/charming_small_19th_century_dutch_tavern_interior_painting_1.jpg",
-    "order": 40,
+    "order": 41,
     "createdAt": "2026-03-01T20:11:14.415Z",
     "marketplace": false
   },
@@ -868,7 +893,7 @@
       "images/products/000022/memphis_style_vase_3.jpg"
     ],
     "heroImage": "images/products/000022/memphis_style_vase_1.jpg",
-    "order": 41,
+    "order": 42,
     "createdAt": "2026-03-01T19:37:12.609Z",
     "marketplace": false
   },
@@ -890,7 +915,7 @@
       "images/products/000021/studio_wood_vase_2.jpg"
     ],
     "heroImage": "images/products/000021/studio_wood_vase_1.jpg",
-    "order": 42,
+    "order": 43,
     "createdAt": "2026-03-01T18:28:59.833Z",
     "marketplace": false
   },
@@ -912,7 +937,7 @@
       "images/products/000027/stainless_steel_spiral_sculpture_2.jpg"
     ],
     "heroImage": "images/products/000027/stainless_steel_spiral_sculpture_1.jpg",
-    "order": 43,
+    "order": 44,
     "createdAt": "2026-03-02T05:00:28.281Z",
     "marketplace": false
   },
@@ -933,7 +958,7 @@
       "images/products/000020/giacometti_candle_sticks_2_moma_edition_3.jpg"
     ],
     "heroImage": "images/products/000020/giacometti_candle_sticks_2_moma_edition_1.jpg",
-    "order": 44,
+    "order": 45,
     "createdAt": "2026-02-28T02:29:23.383Z",
     "marketplace": false
   },
@@ -954,7 +979,7 @@
       "images/products/000019/brutalist_two_light_candle_holder_german_c_1970s_3.jpg"
     ],
     "heroImage": "images/products/000019/brutalist_two_light_candle_holder_german_c_1970s_1.jpg",
-    "order": 45,
+    "order": 46,
     "createdAt": "2026-02-28T02:26:58.680Z",
     "marketplace": false
   },
@@ -976,7 +1001,7 @@
       "images/products/000018/signed_studio_vase_4.jpg"
     ],
     "heroImage": "images/products/000018/signed_studio_vase_1.jpg",
-    "order": 46,
+    "order": 47,
     "createdAt": "2026-02-28T02:24:40.333Z",
     "marketplace": false
   },
@@ -998,7 +1023,7 @@
       "images/products/000017/concrete_sculpture_4.jpg"
     ],
     "heroImage": "images/products/000017/concrete_sculpture_1.jpg",
-    "order": 47,
+    "order": 48,
     "createdAt": "2026-02-28T02:22:29.874Z",
     "marketplace": false
   },
@@ -1018,7 +1043,7 @@
       "images/products/000016/wood_spiral_sculpture_2.jpg"
     ],
     "heroImage": "images/products/000016/wood_spiral_sculpture_1.jpg",
-    "order": 48,
+    "order": 49,
     "createdAt": "2026-02-28T02:19:08.958Z",
     "marketplace": false
   },
@@ -1037,7 +1062,7 @@
       "images/products/000015/vollard_litho_2.jpg"
     ],
     "heroImage": "images/products/000015/vollard_litho_1.jpg",
-    "order": 50,
+    "order": 51,
     "createdAt": "2026-02-27T01:29:34.448Z",
     "marketplace": false
   },
@@ -1056,7 +1081,7 @@
       "images/products/000014/cusco_painting_of_st_christopher_3.jpg"
     ],
     "heroImage": "images/products/000014/cusco_painting_of_st_christopher_1.jpg",
-    "order": 51,
+    "order": 52,
     "createdAt": "2026-02-27T01:26:53.714Z",
     "marketplace": false
   },
@@ -1074,7 +1099,7 @@
       "images/products/000013/marcelo_bonevardi_wall_art_2.jpg"
     ],
     "heroImage": "images/products/000013/marcelo_bonevardi_wall_art_1.jpg",
-    "order": 52,
+    "order": 53,
     "createdAt": "2026-02-27T01:08:13.231Z",
     "marketplace": false
   },
@@ -1091,7 +1116,7 @@
       "images/products/000012/lurelle_guild_bowl_1.jpg"
     ],
     "heroImage": "images/products/000012/lurelle_guild_bowl_1.jpg",
-    "order": 53,
+    "order": 54,
     "createdAt": "2026-02-27T01:06:16.740Z",
     "marketplace": false
   },
@@ -1111,7 +1136,7 @@
       "images/products/000011/ceramic_french_vase_4.jpg"
     ],
     "heroImage": "images/products/000011/ceramic_french_vase_1.jpg",
-    "order": 54,
+    "order": 55,
     "createdAt": "2026-02-27T01:04:11.804Z",
     "marketplace": false
   },
@@ -1137,7 +1162,7 @@
       "images/products/000010/joel_stearns_ziggurat_box_4.jpg"
     ],
     "heroImage": "images/products/000010/joel_stearns_ziggurat_box_1.jpg",
-    "order": 55,
+    "order": 56,
     "createdAt": "2026-02-27T01:01:43.530Z"
   },
   {
@@ -1156,7 +1181,7 @@
       "images/products/000006/joel_stearns_painting_4.jpg"
     ],
     "heroImage": "images/products/000006/joel_stearns_painting_1.jpg",
-    "order": 56,
+    "order": 57,
     "createdAt": "2026-02-27T00:27:43.671Z",
     "marketplace": false
   },
@@ -1177,7 +1202,7 @@
       "images/products/000005/burlwood_box_4.jpg"
     ],
     "heroImage": "images/products/000005/burlwood_box_1.jpg",
-    "order": 57,
+    "order": 58,
     "createdAt": "2026-02-27T00:23:14.346Z",
     "marketplace": false
   },
@@ -1197,7 +1222,7 @@
       "images/products/000004/minoru_ohira_wood_wall_sculpture_4.jpg"
     ],
     "heroImage": "images/products/000004/minoru_ohira_wood_wall_sculpture_1.jpg",
-    "order": 58,
+    "order": 59,
     "createdAt": "2026-02-26T23:14:42.025Z",
     "marketplace": false
   },
@@ -1224,7 +1249,7 @@
       "images/products/mm3pl1ta/ceramic_studio_vase_5.jpg"
     ],
     "heroImage": "images/products/mm3pl1ta/ceramic_studio_vase_1.jpg",
-    "order": 59,
+    "order": 60,
     "createdAt": "2026-02-26T17:00:13.166Z"
   },
   {
@@ -1244,7 +1269,7 @@
       "images/products/000001/calder_print_4.jpg"
     ],
     "heroImage": "images/products/000001/calder_print_1.jpg",
-    "order": 60,
+    "order": 61,
     "createdAt": "2026-02-26T18:23:47.895Z",
     "marketplace": false
   },
@@ -1263,7 +1288,7 @@
       "images/products/000002/cicely_debeers_abstract_4.jpg"
     ],
     "heroImage": "images/products/000002/cicely_debeers_abstract_1.jpg",
-    "order": 61,
+    "order": 62,
     "createdAt": "2026-02-26T22:10:31.688Z",
     "marketplace": false
   },
@@ -1282,7 +1307,7 @@
       "images/products/000003/studio_pot_4.jpg"
     ],
     "heroImage": "images/products/000003/studio_pot_1.jpg",
-    "order": 62,
+    "order": 63,
     "createdAt": "2026-02-26T22:19:26.952Z",
     "marketplace": false
   },
@@ -1301,7 +1326,7 @@
       "images/products/000007/minoru_ohira_sculpture_3.jpg"
     ],
     "heroImage": "images/products/000007/minoru_ohira_sculpture_1.jpg",
-    "order": 63,
+    "order": 64,
     "createdAt": "2026-02-27T00:30:26.796Z",
     "marketplace": false
   },
@@ -1325,7 +1350,7 @@
       "images/products/000008/inlaid_wood_platter_4.jpg"
     ],
     "heroImage": "images/products/000008/inlaid_wood_platter_1.jpg",
-    "order": 64,
+    "order": 65,
     "createdAt": "2026-02-27T00:38:05.143Z",
     "marketplace": false
   }
