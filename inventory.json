@@ -38,7 +38,7 @@
     "isNew": true,
     "isHold": false,
     "isSold": false,
-    "marketplace": true,
+    "marketplace": false,
     "lpListingId": "Reu2S8pDuxwgWUOPoke6",
     "images": [
       "images/products/000062/abstract_tapestry_1.jpg",
