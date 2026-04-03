@@ -8,6 +8,24 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://objectlesson.la/item/000060/</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000060/french_bouillon_kub_tin_1.jpg</image:loc>
+      <image:title>French Bouillon Kub Tin</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000060/french_bouillon_kub_tin_2.jpg</image:loc>
+      <image:title>French Bouillon Kub Tin</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000060/french_bouillon_kub_tin_3.jpg</image:loc>
+      <image:title>French Bouillon Kub Tin</image:title>
+    </image:image>
+  </url>
+  <url>
     <loc>https://objectlesson.la/item/000059/</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>weekly</changefreq>
