@@ -571,6 +571,18 @@ async function handleWebhook(request, env) {
               const addr = payment.shipping_address;
               if (addr.first_name || addr.last_name) cardholderName = `${addr.first_name || ''} ${addr.last_name || ''}`.trim();
             }
+            // Look up postedBy from inventory for commission tracking
+            let postedBy = null;
+            if (itemId && !isGiftCert) {
+              try {
+                const invRes = await fetch(`https://raw.githubusercontent.com/elikagan/objectlesson-site/main/inventory.json?t=${Date.now()}`);
+                if (invRes.ok) {
+                  const inv = await invRes.json();
+                  const found = inv.find(i => i.id === itemId);
+                  if (found?.postedBy) postedBy = found.postedBy;
+                }
+              } catch (_) {}
+            }
             const saleRecord = {
               type: isGiftCert ? 'gift_certificate' : 'item',
               amount,
@@ -579,6 +591,7 @@ async function handleWebhook(request, env) {
               item_id: itemId || null,
               item_title: isGiftCert ? `Gift Certificate - $${amount}` : (itemInfo || null),
               gift_code: isGiftCert ? itemId : null,
+              posted_by: postedBy,
               square_payment_id: payment.id || null,
               note: note || null
             };

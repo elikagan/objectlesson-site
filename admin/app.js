@@ -448,7 +448,7 @@
               <div class="item-name">${esc(item.title || 'Untitled')}</div>
               <div class="item-meta"><span class="item-id">${formatId(item.id)}</span> · $${Number(item.price || 0).toLocaleString()}</div>
             </div>
-            ${badge}${mpBadge}
+            ${badge}${mpBadge}${item.postedBy ? `<span class="item-poster">${esc(item.postedBy)}</span>` : ''}
             <span class="item-category">${esc(item.category || '')}</span>
           </div>
         </div>
@@ -663,6 +663,7 @@
       document.getElementById('field-maker').value = item.maker || '';
       document.getElementById('field-condition').value = item.condition || '';
       document.getElementById('field-dealer').value = item.dealerCode || '';
+      document.getElementById('field-posted-by').value = item.postedBy || '';
       document.getElementById('field-new').checked = !!item.isNew;
       document.getElementById('field-hold').checked = !!item.isHold;
       document.getElementById('field-sold').checked = !!item.isSold;
@@ -689,6 +690,7 @@
       document.getElementById('field-maker').value = '';
       document.getElementById('field-condition').value = '';
       document.getElementById('field-dealer').value = '';
+      document.getElementById('field-posted-by').value = localStorage.getItem('ol_posted_by') || '';
       document.getElementById('field-new').checked = true;
       document.getElementById('field-hold').checked = false;
       document.getElementById('field-sold').checked = false;
@@ -1763,6 +1765,8 @@
     const maker = document.getElementById('field-maker').value.trim();
     const condition = document.getElementById('field-condition').value;
     const dc = document.getElementById('field-dealer').value.trim();
+    const postedBy = document.getElementById('field-posted-by').value.trim();
+    if (postedBy) localStorage.setItem('ol_posted_by', postedBy);
     const isNew = document.getElementById('field-new').checked;
     const isHold = document.getElementById('field-hold').checked;
     const isSold = document.getElementById('field-sold').checked;
@@ -1829,6 +1833,7 @@
         maker,
         condition,
         dealerCode: dc,
+        postedBy: postedBy || (prevItem?.postedBy || ''),
         isNew: isSold ? false : isNew,
         isHold: isSold ? false : isHold,
         isSold,
@@ -2723,7 +2728,7 @@
                 <div class="sale-info">
                   <div class="sale-title">${title}</div>
                   ${customerName ? `<div class="sale-customer">${customerName}</div>` : ''}
-                  <div class="sale-detail">${dateStr} ${timeStr}${customer ? ' &middot; ' + customer : ''}${giftCode ? ' &middot; ' + giftCode : ''}${discount ? ' &middot; ' + discount : ''}</div>
+                  <div class="sale-detail">${dateStr} ${timeStr}${customer ? ' &middot; ' + customer : ''}${sale.posted_by ? ' &middot; Posted by ' + sale.posted_by : ''}${giftCode ? ' &middot; ' + giftCode : ''}${discount ? ' &middot; ' + discount : ''}</div>
                 </div>
               </div>
               <div class="sale-amount">$${amount}</div>

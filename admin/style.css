@@ -1259,6 +1259,17 @@ select.field:has(option[value=""]:checked) { color: var(--light); }
 .item-mp-pending {
   background: var(--light);
 }
+.item-poster {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: #6366f1;
+  color: #fff;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
 
 /* --- Marketplace panel --- */
 
