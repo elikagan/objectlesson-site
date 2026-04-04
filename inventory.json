@@ -1,31 +1,5 @@
 [
   {
-    "id": "000064",
-    "title": "George Roualt Etching",
-    "description": "Signed black and white figural etching on paper with a natural wood frame.",
-    "price": 425,
-    "size": "24\" H",
-    "category": "wall-art",
-    "maker": "",
-    "condition": "",
-    "dealerCode": "14EK",
-    "postedBy": "",
-    "isNew": true,
-    "isHold": false,
-    "isSold": false,
-    "marketplace": false,
-    "lpListingId": null,
-    "images": [
-      "images/products/000064/george_roualt_etching_1.jpg",
-      "images/products/000064/george_roualt_etching_2.jpg",
-      "images/products/000064/george_roualt_etching_3.jpg",
-      "images/products/000064/george_roualt_etching_4.jpg"
-    ],
-    "heroImage": "images/products/000064/george_roualt_etching_1.jpg",
-    "order": 0,
-    "createdAt": "2026-04-04T04:42:47.762Z"
-  },
-  {
     "id": "000063",
     "title": "Pedestal Bowl",
     "description": "Off-white ceramic pedestal bowl with black striped glaze, mid-century modern style.",
