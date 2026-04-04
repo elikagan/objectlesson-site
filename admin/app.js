@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v56';
+  const APP_VERSION = 'v57';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -102,7 +102,6 @@
   const viewAnalytics = document.getElementById('view-analytics');
   const viewMarketing = document.getElementById('view-marketing');
   const viewGiftcerts = document.getElementById('view-giftcerts');
-  const viewMarketplace = document.getElementById('view-marketplace');
   const viewSales = document.getElementById('view-sales');
   const itemList = document.getElementById('item-list');
   const photoGrid = document.getElementById('photo-grid');
@@ -186,7 +185,6 @@
     if (hash === 'analytics') { showView('analytics'); loadAnalytics(); }
     else if (hash === 'giftcerts') { showView('giftcerts'); loadGiftCertificates(); }
     else if (hash === 'marketing') { showView('marketing'); loadMarketing(); }
-    else if (hash === 'marketplace') { showView('marketplace'); loadMarketplace(); }
     else if (hash === 'sales') { showView('sales'); loadSales(); }
     else { showView('list'); }
   }
@@ -248,13 +246,6 @@
     loadMarketing();
   });
 
-  document.getElementById('menu-marketplace').addEventListener('click', () => {
-    menuDropdown.classList.add('hidden');
-    location.hash = 'marketplace';
-    showView('marketplace');
-    loadMarketplace();
-  });
-
   document.getElementById('btn-analytics-back').addEventListener('click', () => {
     history.replaceState(null, '', location.pathname);
     showView('list');
@@ -296,8 +287,8 @@
   // --- Navigation ---
 
   function showView(name) {
-    [viewLock, viewSetup, viewList, viewEditor, viewAnalytics, viewMarketing, viewGiftcerts, viewMarketplace, viewSales].forEach(v => v.classList.add('hidden'));
-    const v = { lock: viewLock, setup: viewSetup, list: viewList, editor: viewEditor, analytics: viewAnalytics, marketing: viewMarketing, giftcerts: viewGiftcerts, marketplace: viewMarketplace, sales: viewSales }[name];
+    [viewLock, viewSetup, viewList, viewEditor, viewAnalytics, viewMarketing, viewGiftcerts, viewSales].forEach(v => v.classList.add('hidden'));
+    const v = { lock: viewLock, setup: viewSetup, list: viewList, editor: viewEditor, analytics: viewAnalytics, marketing: viewMarketing, giftcerts: viewGiftcerts, sales: viewSales }[name];
     if (v) v.classList.remove('hidden');
   }
 
@@ -375,8 +366,6 @@
     renderList();
     // Reconcile sales — catch any items the webhook failed to mark sold
     reconcileSales();
-    // Init marketplace health check + retry queue (non-blocking)
-    initMarketplace();
   }
 
   async function reconcileSales() {
@@ -425,13 +414,6 @@
       if (item.isSold) badge = '<span class="item-sold">Sold</span>';
       else if (item.isHold) badge = '<span class="item-hold">Hold</span>';
       else if (item.isNew) badge = '<span class="item-new">New</span>';
-      // Marketplace badge: green=synced, gray=pending
-      let mpBadge = '';
-      if (!item.isSold && !item.isHold && item.marketplace !== false) {
-        mpBadge = item.lpListingId
-          ? '<span class="item-mp">FB</span>'
-          : '<span class="item-mp item-mp-pending">FB</span>';
-      }
       return `
         <div class="swipe-wrap" data-id="${item.id}">
           <div class="swipe-behind">
@@ -448,7 +430,7 @@
               <div class="item-name">${esc(item.title || 'Untitled')}</div>
               <div class="item-meta"><span class="item-id">${formatId(item.id)}</span> · $${Number(item.price || 0).toLocaleString()}</div>
             </div>
-            ${badge}${mpBadge}${item.postedBy ? `<span class="item-poster">${esc(item.postedBy)}</span>` : ''}
+            ${badge}${item.postedBy ? `<span class="item-poster">${esc(item.postedBy)}</span>` : ''}
             <span class="item-category">${esc(item.category || '')}</span>
           </div>
         </div>
@@ -505,10 +487,6 @@
         const item = items.find(i => i.id === id);
         if (!item) return;
         confirm('Delete ' + (item.title || 'this item') + '?', async () => {
-          // Delete LP listing if exists
-          if (item.lpListingId) {
-            deleteFromMarketplace(item.lpListingId, item.id, item.title).catch(() => {});
-          }
           const imagesToDelete = [...(item.images || [])];
           items = items.filter(i => i.id !== id);
           await saveInventory('Delete ' + (item.title || 'item'));
@@ -667,7 +645,6 @@
       document.getElementById('field-new').checked = !!item.isNew;
       document.getElementById('field-hold').checked = !!item.isHold;
       document.getElementById('field-sold').checked = !!item.isSold;
-      document.getElementById('field-marketplace').checked = item.marketplace !== false;
 
       // Load existing images — hero is first, so put it first
       if (item.images) {
@@ -694,7 +671,6 @@
       document.getElementById('field-new').checked = true;
       document.getElementById('field-hold').checked = false;
       document.getElementById('field-sold').checked = false;
-      document.getElementById('field-marketplace').checked = false;
     }
 
     renderPhotos();
@@ -702,32 +678,12 @@
     showView('editor');
   }
 
-  // --- Marketplace toggle feedback ---
-  document.getElementById('field-marketplace').addEventListener('change', (e) => {
-    if (e.target.checked) {
-      toast('Item will be posted to FB Marketplace on save');
-    } else {
-      const item = editingId ? items.find(i => i.id === editingId) : null;
-      if (item?.lpListingId) {
-        toast('Item will be removed from FB Marketplace on save');
-      } else {
-        toast('Item will not be posted to FB Marketplace');
-      }
-    }
-  });
-
   // --- Delete item ---
 
   document.getElementById('btn-delete-item').addEventListener('click', () => {
     confirm('Delete this item?', async () => {
       const item = items.find(i => i.id === editingId);
       if (!item) return;
-
-      // Delete LP listing if exists
-      if (item.lpListingId) {
-        deleteFromMarketplace(item.lpListingId, item.id, item.title).catch(() => {});
-        toast('Removing from Marketplace...');
-      }
 
       // Remove from inventory immediately for instant feedback
       const imagesToDelete = [...(item.images || [])];
@@ -1360,391 +1316,6 @@
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════
-  // FB MARKETPLACE SYNC VIA LAZY POSTER
-  //
-  // Architecture:
-  //   Admin → Worker → Lazy Poster API → LP Desktop App → FB Marketplace
-  //
-  // Sync rules:
-  //   - Item saved (eligible): create or edit LP listing
-  //   - Item marked sold/hold/deleted/marketplace OFF: delete LP listing
-  //   - Item taken off hold: re-create LP listing (new lpListingId)
-  //   - Eligible = !isSold && !isHold && price > 0 && marketplace !== false
-  //
-  // Data stored per item:
-  //   - marketplace: boolean (default true) — opt in/out per item
-  //   - lpListingId: string|null — LP's internal ID for edit/delete
-  //
-  // Error handling:
-  //   - Failed syncs queued in localStorage for retry on next load
-  //   - Auth/subscription issues shown as persistent banners
-  //   - Per-operation toasts for immediate feedback
-  //   - Full audit log in localStorage (last 200 entries)
-  //
-  // Worker endpoints used:
-  //   POST /lazyposter-sync       Create or update listing
-  //   POST /marketplace-delete    Delete listing by LP ID
-  //   POST /marketplace-health    Auth + subscription check
-  //   POST /marketplace-test      Full CRUD integration test
-  //   POST /marketplace-listings  Get all LP listings
-  // ═══════════════════════════════════════════════════════════════════
-
-  // --- Category/condition maps for LP API ---
-  const LP_CATEGORY_MAP = {
-    'wall-art': 'Home & Garden',
-    'object': 'Home & Garden',
-    'ceramic': 'Home & Garden',
-    'furniture': 'Furniture',
-    'light': 'Home & Garden',
-    'sculpture': 'Home & Garden',
-    'misc': 'Miscellaneous'
-  };
-
-  // Maps admin condition values → LP condition numbers
-  // LP: 0=New, 1=Used Like New, 2=Used Good, 3=Used Fair
-  const LP_CONDITION_MAP = {
-    'New': 0,
-    'Like New': 1,
-    'Good': 2,
-    'Fair': 3,
-    // Legacy free-text values (backwards compat)
-    'excellent': 1,
-    'good': 2,
-    'fair': 3,
-    '': 2
-  };
-
-  // --- Sync audit log (localStorage, capped at 200) ---
-  const MP_LOG_KEY = 'ol_mp_sync_log';
-  const MP_LOG_MAX = 200;
-
-  function mpLog(action, itemId, itemTitle, status, detail) {
-    try {
-      const log = JSON.parse(localStorage.getItem(MP_LOG_KEY) || '[]');
-      log.unshift({
-        ts: new Date().toISOString(),
-        action,
-        itemId: itemId || null,
-        title: itemTitle || null,
-        status, // 'ok', 'error', 'warn'
-        detail: detail || null
-      });
-      if (log.length > MP_LOG_MAX) log.length = MP_LOG_MAX;
-      localStorage.setItem(MP_LOG_KEY, JSON.stringify(log));
-    } catch {}
-  }
-
-  // --- Retry queue (localStorage) ---
-  // Failed marketplace operations queued for retry on next admin load
-  const MP_RETRY_KEY = 'ol_mp_retry_queue';
-  const MP_RETRY_MAX_ATTEMPTS = 5;
-
-  function getRetryQueue() {
-    try { return JSON.parse(localStorage.getItem(MP_RETRY_KEY) || '[]'); } catch { return []; }
-  }
-
-  function setRetryQueue(queue) {
-    try { localStorage.setItem(MP_RETRY_KEY, JSON.stringify(queue)); } catch {}
-  }
-
-  function addToRetryQueue(entry) {
-    const queue = getRetryQueue();
-    // Don't duplicate same item+action
-    const existing = queue.findIndex(q => q.itemId === entry.itemId && q.action === entry.action);
-    if (existing >= 0) {
-      queue[existing].attempts = (queue[existing].attempts || 0) + 1;
-      queue[existing].lastAttempt = new Date().toISOString();
-    } else {
-      queue.push({ ...entry, attempts: 1, lastAttempt: new Date().toISOString() });
-    }
-    setRetryQueue(queue);
-  }
-
-  // --- Validation: check item data before LP sync ---
-  function validateForMarketplace(item) {
-    const errors = [];
-    if (!item.title || item.title.trim() === '') errors.push('Title is required');
-    if (item.title && item.title.length > 150) errors.push('Title must be ≤ 150 characters');
-    if (!item.price || item.price <= 0) errors.push('Price must be > 0');
-    if (!item.images || item.images.length === 0) errors.push('At least 1 image required');
-    if (item.images && item.images.length > 10) errors.push('Maximum 10 images');
-    if (!item.category) errors.push('Category is required');
-    return errors;
-  }
-
-  // --- Core sync function: create or update LP listing ---
-  // Called after saveItem when item is eligible
-  // Returns: { ok, lpId, action, error }
-  async function syncToMarketplace(item) {
-    // Validate before calling API
-    const validationErrors = validateForMarketplace(item);
-    if (validationErrors.length > 0) {
-      const msg = `Validation failed: ${validationErrors.join(', ')}`;
-      mpLog('sync', item.id, item.title, 'error', msg);
-      console.warn('[Marketplace]', msg);
-      return { ok: false, error: msg };
-    }
-
-    try {
-      const imageUrls = (item.images || []).map(img =>
-        img.startsWith('http') ? img : `${RAW_URL}/${img}`
-      );
-
-      const lpItem = {
-        id: item.id,
-        title: item.title,
-        price: item.price,
-        description: item.description || '',
-        category: LP_CATEGORY_MAP[item.category] || 'Home & Garden',
-        condition: LP_CONDITION_MAP[item.condition] ?? 2,
-        imageUrls,
-        lpListingId: item.lpListingId || null
-      };
-
-      const resp = await fetch(`${WORKER_URL}/lazyposter-sync`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: [lpItem] })
-      });
-
-      if (!resp.ok) {
-        const errText = await resp.text();
-        // Check for auth errors
-        if (resp.status === 500 && errText.includes('not configured')) {
-          mpLog('sync', item.id, item.title, 'error', 'LP token not configured');
-          return { ok: false, error: 'Lazy Poster not configured' };
-        }
-        mpLog('sync', item.id, item.title, 'error', `Worker error (${resp.status}): ${errText}`);
-        addToRetryQueue({ action: 'sync', itemId: item.id });
-        return { ok: false, error: errText };
-      }
-
-      const data = await resp.json();
-      const result = data.results?.[0];
-
-      if (result?.status === 'ok') {
-        const lpId = result.lpId || item.lpListingId;
-        mpLog(result.action || 'sync', item.id, item.title, 'ok',
-          `LP ID: ${lpId}, ${result.images || 0} images`);
-        console.log('[Marketplace] Synced:', item.title, '→', lpId);
-        return { ok: true, lpId, action: result.action };
-      } else {
-        const errMsg = result?.error || 'Unknown error';
-        mpLog('sync', item.id, item.title, 'error', errMsg);
-        addToRetryQueue({ action: 'sync', itemId: item.id });
-        console.warn('[Marketplace] Sync failed:', errMsg);
-        return { ok: false, error: errMsg };
-      }
-    } catch (e) {
-      mpLog('sync', item.id, item.title, 'error', e.message);
-      addToRetryQueue({ action: 'sync', itemId: item.id });
-      console.warn('[Marketplace] Sync error:', e.message);
-      return { ok: false, error: e.message };
-    }
-  }
-
-  // --- Delete LP listing (when item sold/hold/deleted/marketplace off) ---
-  async function deleteFromMarketplace(lpListingId, itemId, itemTitle) {
-    if (!lpListingId) return { ok: true };
-
-    try {
-      const resp = await fetch(`${WORKER_URL}/marketplace-delete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lpListingIds: [lpListingId] })
-      });
-
-      if (!resp.ok) {
-        const errText = await resp.text();
-        mpLog('delete', itemId, itemTitle, 'error', `Worker error: ${errText}`);
-        addToRetryQueue({ action: 'delete', itemId, lpListingId });
-        return { ok: false, error: errText };
-      }
-
-      const data = await resp.json();
-      const result = data.results?.[0];
-
-      if (result?.status === 'ok') {
-        mpLog('delete', itemId, itemTitle, 'ok', `Removed LP listing ${lpListingId}`);
-        console.log('[Marketplace] Deleted:', itemTitle, '→', lpListingId);
-        return { ok: true };
-      } else {
-        mpLog('delete', itemId, itemTitle, 'error', result?.error || 'Delete failed');
-        addToRetryQueue({ action: 'delete', itemId, lpListingId });
-        return { ok: false, error: result?.error };
-      }
-    } catch (e) {
-      mpLog('delete', itemId, itemTitle, 'error', e.message);
-      addToRetryQueue({ action: 'delete', itemId, lpListingId });
-      return { ok: false, error: e.message };
-    }
-  }
-
-  // --- Health check (called on admin load, silent unless issues found) ---
-  async function checkMarketplaceHealth(showUI) {
-    try {
-      const resp = await fetch(`${WORKER_URL}/marketplace-health`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}'
-      });
-
-      if (!resp.ok) {
-        if (showUI) toast('Marketplace health check failed');
-        return null;
-      }
-
-      const health = await resp.json();
-
-      // Show persistent banners for critical issues
-      if (!showUI) {
-        const banner = document.getElementById('mp-banner');
-        if (banner) banner.remove(); // Clear old banner
-
-        if (health.errors && health.errors.length > 0) {
-          const isAuthError = health.errors.some(e =>
-            e.includes('expired') || e.includes('not configured'));
-          showMarketplaceBanner(
-            health.errors.join('. '),
-            isAuthError ? 'red' : 'yellow'
-          );
-        }
-
-        // Check for stale queue
-        if (health.queueCount > 0) {
-          // Compare with items that have lpListingId — if queue has listings
-          // but they've been there a while, warn about desktop app
-          mpLog('health', null, null, health.errors.length ? 'warn' : 'ok',
-            `Auth: ${health.auth}, Sub: ${health.subscription?.active}, Queue: ${health.queueCount}`);
-        }
-      }
-
-      return health;
-    } catch (e) {
-      console.warn('[Marketplace] Health check failed:', e.message);
-      return null;
-    }
-  }
-
-  function showMarketplaceBanner(message, type) {
-    // Remove existing banner
-    const old = document.getElementById('mp-banner');
-    if (old) old.remove();
-
-    const banner = document.createElement('div');
-    banner.id = 'mp-banner';
-    banner.className = `mp-banner mp-banner-${type}`;
-    banner.innerHTML = `<span>${message}</span>
-      <button class="mp-banner-dismiss" onclick="this.parentElement.remove()">×</button>`;
-
-    // Insert after topbar in list view
-    const listView = document.getElementById('view-list');
-    const topbar = listView.querySelector('.topbar');
-    topbar.after(banner);
-  }
-
-  // --- Process retry queue (called on admin load) ---
-  async function processRetryQueue() {
-    const queue = getRetryQueue();
-    if (queue.length === 0) return;
-
-    const remaining = [];
-    for (const entry of queue) {
-      if (entry.attempts >= MP_RETRY_MAX_ATTEMPTS) {
-        mpLog('retry_abandoned', entry.itemId, null, 'error',
-          `Abandoned after ${entry.attempts} attempts: ${entry.action}`);
-        continue; // Drop it
-      }
-
-      if (entry.action === 'delete' && entry.lpListingId) {
-        const result = await deleteFromMarketplace(entry.lpListingId, entry.itemId, null);
-        if (!result.ok) {
-          entry.attempts++;
-          entry.lastAttempt = new Date().toISOString();
-          remaining.push(entry);
-        }
-      } else if (entry.action === 'sync' && entry.itemId) {
-        const item = items.find(i => i.id === entry.itemId);
-        if (item && !item.isSold && !item.isHold && item.price > 0 && item.marketplace !== false) {
-          const result = await syncToMarketplace(item);
-          if (result.ok && result.lpId) {
-            item.lpListingId = result.lpId;
-            await saveInventory('Retry marketplace sync for ' + item.title);
-          } else if (!result.ok) {
-            entry.attempts++;
-            entry.lastAttempt = new Date().toISOString();
-            remaining.push(entry);
-          }
-        }
-        // If item no longer eligible, just drop the retry
-      }
-    }
-    setRetryQueue(remaining);
-  }
-
-  // --- Bulk sync: push all eligible items to marketplace ---
-  async function bulkSyncMarketplace(dryRun) {
-    const eligible = items.filter(i =>
-      !i.isSold && !i.isHold && i.price > 0 &&
-      i.marketplace !== false && !i.lpListingId
-    );
-
-    if (dryRun) {
-      // Dry run: validate all items without calling API
-      const results = { ready: [], errors: [], excluded: 0, alreadySynced: 0 };
-
-      // Count already-synced
-      results.alreadySynced = items.filter(i =>
-        !i.isSold && !i.isHold && i.price > 0 &&
-        i.marketplace !== false && i.lpListingId
-      ).length;
-
-      // Count excluded
-      results.excluded = items.filter(i =>
-        i.isSold || i.isHold || i.price <= 0 || i.marketplace === false
-      ).length;
-
-      for (const item of eligible) {
-        const errs = validateForMarketplace(item);
-        if (errs.length > 0) {
-          results.errors.push({ id: item.id, title: item.title, errors: errs });
-        } else {
-          results.ready.push({ id: item.id, title: item.title });
-        }
-      }
-      return results;
-    }
-
-    // Real sync
-    if (eligible.length === 0) {
-      toast('All eligible items already synced');
-      return { synced: 0, failed: 0 };
-    }
-
-    toast(`Syncing ${eligible.length} items...`);
-    let synced = 0, failed = 0;
-
-    for (const item of eligible) {
-      const result = await syncToMarketplace(item);
-      if (result.ok && result.lpId) {
-        const idx = items.findIndex(i => i.id === item.id);
-        if (idx >= 0) items[idx].lpListingId = result.lpId;
-        synced++;
-      } else {
-        failed++;
-      }
-    }
-
-    if (synced > 0) {
-      await saveInventory(`Bulk marketplace sync: ${synced} items`);
-    }
-
-    toast(`Synced ${synced}/${synced + failed} items${failed ? ` (${failed} failed)` : ''}`);
-    renderList();
-    return { synced, failed };
-  }
-
   // --- Save item ---
 
   let saveInProgress = false;
@@ -1770,7 +1341,6 @@
     const isNew = document.getElementById('field-new').checked;
     const isHold = document.getElementById('field-hold').checked;
     const isSold = document.getElementById('field-sold').checked;
-    const marketplace = document.getElementById('field-marketplace').checked;
 
     if (!title) { toast('Title is required'); saveInProgress = false; return; }
     if (!category) { toast('Category is required'); saveInProgress = false; return; }
@@ -1837,8 +1407,6 @@
         isNew: isSold ? false : isNew,
         isHold: isSold ? false : isHold,
         isSold,
-        marketplace,
-        lpListingId: prevItem?.lpListingId || null,
         images: uploadedImages,
         heroImage: uploadedImages[0] || '',
         order: editingId ? (prevItem?.order ?? 0) : 0,
@@ -1860,37 +1428,6 @@
 
       // Update SEO files (item page + sitemap + ping search engines) — fire and forget
       updateSEO(itemData).catch(() => {});
-
-      // --- Marketplace sync logic ---
-      const wasActive = prevItem && !prevItem.isSold && !prevItem.isHold;
-      const isNowActive = !isSold && !isHold;
-      const isEligible = isNowActive && price > 0 && marketplace;
-      const wasEligible = prevItem && wasActive && prevItem.price > 0 && prevItem.marketplace !== false;
-
-      if (isEligible) {
-        // Eligible: create or update LP listing
-        syncToMarketplace(itemData).then(result => {
-          if (result.ok && result.lpId && result.lpId !== itemData.lpListingId) {
-            // Store new LP listing ID back to inventory
-            const idx = items.findIndex(i => i.id === id);
-            if (idx >= 0) {
-              items[idx].lpListingId = result.lpId;
-              saveInventory('Store marketplace ID for ' + title).catch(() => {});
-            }
-          }
-        }).catch(() => {});
-      } else if (wasEligible && !isEligible && prevItem?.lpListingId) {
-        // Was eligible, now not — delete LP listing
-        const reason = isSold ? 'sold' : isHold ? 'hold' : !marketplace ? 'marketplace off' : 'price 0';
-        deleteFromMarketplace(prevItem.lpListingId, id, title).then(() => {
-          const idx = items.findIndex(i => i.id === id);
-          if (idx >= 0) {
-            items[idx].lpListingId = null;
-            saveInventory('Clear marketplace ID for ' + title + ' (' + reason + ')').catch(() => {});
-          }
-        }).catch(() => {});
-        toast(`Removing "${title}" from Marketplace (${reason})`);
-      }
 
       toast('Saved');
       showView('list');
@@ -2628,15 +2165,6 @@
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   }
 
-  // ═══════════════════════════════════════════════════════════════════
-  // MARKETPLACE VIEW — Diagnostics, Health, Sync, Log
-  // ═══════════════════════════════════════════════════════════════════
-
-  document.getElementById('btn-marketplace-back').addEventListener('click', () => {
-    history.replaceState(null, '', location.pathname);
-    showView('list');
-  });
-
   // ─── Sales View ─────────────────────────────────────────────────
 
   async function loadSales() {
@@ -2744,165 +2272,4 @@
     }
   }
 
-  function loadMarketplace() {
-    renderSyncLog();
-    // Auto-run health check when view opens
-    runHealthCheck();
-  }
-
-  // --- Health check UI ---
-  async function runHealthCheck() {
-    const el = document.getElementById('mp-health-results');
-    el.innerHTML = '<div style="color:var(--text);font-size:13px;padding:10px 0">Checking...</div>';
-
-    const health = await checkMarketplaceHealth(true);
-    if (!health) {
-      el.innerHTML = '<div class="mp-health-row"><span class="mp-health-label">Status</span><span class="mp-health-val mp-health-fail">Failed to reach worker</span></div>';
-      return;
-    }
-
-    // Count inventory stats
-    const synced = items.filter(i => !i.isSold && !i.isHold && i.lpListingId).length;
-    const eligible = items.filter(i => !i.isSold && !i.isHold && i.price > 0 && i.marketplace !== false && !i.lpListingId).length;
-
-    let html = '';
-    html += healthRow('LP Auth', health.auth ? 'Valid' : 'Failed', health.auth ? 'pass' : 'fail');
-    html += healthRow('Subscription', health.subscription?.active ? 'Active' : 'Inactive',
-      health.subscription?.active ? 'pass' : 'fail');
-    if (health.subscription?.expires) {
-      const exp = new Date(health.subscription.expires);
-      const days = Math.ceil((exp - Date.now()) / (1000*60*60*24));
-      html += healthRow('Sub Expires', health.subscription.expires,
-        days > 30 ? 'pass' : days > 7 ? 'warn' : 'fail');
-    }
-    html += healthRow('LP Queue', `${health.queueCount} listings`, health.queueCount > 20 ? 'warn' : 'pass');
-    html += healthRow('Synced Items', `${synced} items`, 'pass');
-    html += healthRow('Unsynced', `${eligible} items`, eligible > 0 ? 'warn' : 'pass');
-    html += healthRow('Retry Queue', `${getRetryQueue().length} pending`,
-      getRetryQueue().length > 0 ? 'warn' : 'pass');
-
-    if (health.errors?.length > 0) {
-      html += `<div style="margin-top:12px;font-size:12px;color:#ef4444;line-height:1.6">`;
-      health.errors.forEach(e => { html += `⚠ ${esc(e)}<br>`; });
-      html += '</div>';
-    }
-
-    el.innerHTML = html;
-  }
-
-  function healthRow(label, value, status) {
-    return `<div class="mp-health-row">
-      <span class="mp-health-label">${esc(label)}</span>
-      <span class="mp-health-val mp-health-${status}">${esc(value)}</span>
-    </div>`;
-  }
-
-  document.getElementById('btn-mp-health').addEventListener('click', runHealthCheck);
-
-  // --- Integration test UI ---
-  document.getElementById('btn-mp-test').addEventListener('click', async () => {
-    const el = document.getElementById('mp-action-results');
-    el.innerHTML = '<div style="color:var(--text);font-size:13px;padding:10px 0">Running 9 tests...</div>';
-
-    try {
-      const resp = await fetch(`${WORKER_URL}/marketplace-test`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}'
-      });
-      const data = await resp.json();
-
-      let html = `<div style="margin-bottom:8px;font-size:14px;font-weight:500">
-        ${data.passed}/${data.total} passed</div>`;
-      for (const r of data.results) {
-        const icon = r.status === 'pass' ? '✓' : '✗';
-        const cls = r.status === 'pass' ? 'mp-health-pass' : 'mp-health-fail';
-        html += `<div class="mp-test-row">
-          <span class="mp-test-name"><span class="${cls}">${icon}</span> ${esc(r.test)}</span>
-          <span class="mp-test-ms">${r.ms}ms</span>
-        </div>`;
-      }
-      el.innerHTML = html;
-      mpLog('test', null, null, data.failed === 0 ? 'ok' : 'error',
-        `${data.passed}/${data.total} passed`);
-    } catch (e) {
-      el.innerHTML = `<div class="mp-health-fail">Test failed: ${esc(e.message)}</div>`;
-    }
-  });
-
-  // --- Dry run UI ---
-  document.getElementById('btn-mp-dry-run').addEventListener('click', async () => {
-    const el = document.getElementById('mp-action-results');
-    const results = await bulkSyncMarketplace(true);
-
-    let html = '<div class="mp-dry-run">';
-    html += `<div class="mp-dry-ok">✓ ${results.ready.length} items ready to sync</div>`;
-    html += `<div>${results.alreadySynced} items already synced</div>`;
-    html += `<div class="mp-dry-skip">⊘ ${results.excluded} items excluded (sold/hold/marketplace off/no price)</div>`;
-
-    if (results.errors.length > 0) {
-      html += `<div class="mp-dry-err" style="margin-top:8px">✗ ${results.errors.length} items with issues:</div>`;
-      for (const e of results.errors) {
-        html += `<div class="mp-dry-err" style="padding-left:12px">${esc(e.title || e.id)}: ${esc(e.errors.join(', '))}</div>`;
-      }
-    }
-    html += '</div>';
-    el.innerHTML = html;
-  });
-
-  // --- Bulk sync UI ---
-  document.getElementById('btn-mp-bulk-sync').addEventListener('click', async () => {
-    const el = document.getElementById('mp-action-results');
-    el.innerHTML = '<div style="color:var(--text);font-size:13px;padding:10px 0">Syncing...</div>';
-
-    const result = await bulkSyncMarketplace(false);
-    el.innerHTML = `<div style="font-size:14px;padding:10px 0">
-      Synced: ${result.synced} | Failed: ${result.failed}
-    </div>`;
-    renderSyncLog();
-  });
-
-  // --- Sync log UI ---
-  function renderSyncLog() {
-    const el = document.getElementById('mp-sync-log');
-    if (!el) return;
-
-    const log = JSON.parse(localStorage.getItem(MP_LOG_KEY) || '[]');
-    if (log.length === 0) {
-      el.innerHTML = '<div class="mp-log-empty">No sync activity yet</div>';
-      return;
-    }
-
-    let html = '';
-    for (const entry of log.slice(0, 50)) {
-      const time = new Date(entry.ts).toLocaleString('en-US', {
-        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-      });
-      const cls = entry.status === 'ok' ? 'mp-log-ok' : entry.status === 'warn' ? 'mp-log-warn' : 'mp-log-err';
-      const icon = entry.status === 'ok' ? '✓' : entry.status === 'warn' ? '⚠' : '✗';
-      const title = entry.title ? ` "${esc(entry.title)}"` : '';
-      const detail = entry.detail ? ` — ${esc(entry.detail)}` : '';
-      html += `<div class="mp-log-entry">
-        <span class="mp-log-time">${time}</span>
-        <span class="${cls}">${icon}</span>
-        ${esc(entry.action)}${title}${detail}
-      </div>`;
-    }
-    el.innerHTML = html;
-  }
-
-  document.getElementById('btn-mp-clear-log').addEventListener('click', () => {
-    localStorage.removeItem(MP_LOG_KEY);
-    renderSyncLog();
-    toast('Log cleared');
-  });
-
-  // --- Run health check + process retry queue on boot ---
-  // Called after inventory loads, non-blocking
-  function initMarketplace() {
-    // Silent health check — only shows banner if issues
-    checkMarketplaceHealth(false).catch(() => {});
-    // Process any pending retries
-    processRetryQueue().catch(() => {});
-  }
 })();
