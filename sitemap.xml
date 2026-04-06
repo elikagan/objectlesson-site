@@ -8,6 +8,24 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://objectlesson.la/item/000068/</loc>
+    <lastmod>2026-04-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000068/howard_smith_print_1.jpg</image:loc>
+      <image:title>Howard Smith Print</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000068/howard_smith_print_2.jpg</image:loc>
+      <image:title>Howard Smith Print</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000068/howard_smith_print_3.jpg</image:loc>
+      <image:title>Howard Smith Print</image:title>
+    </image:image>
+  </url>
+  <url>
     <loc>https://objectlesson.la/item/000067/</loc>
     <lastmod>2026-04-06</lastmod>
     <changefreq>weekly</changefreq>
