@@ -8,6 +8,20 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://objectlesson.la/item/000072/</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000072/iron_cat_menorah_by_larry_kagan_1.jpg</image:loc>
+      <image:title>Iron &quot;Cat&quot; Menorah By Larry Kagan</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000072/iron_cat_menorah_by_larry_kagan_2.jpg</image:loc>
+      <image:title>Iron &quot;Cat&quot; Menorah By Larry Kagan</image:title>
+    </image:image>
+  </url>
+  <url>
     <loc>https://objectlesson.la/item/000071/</loc>
     <lastmod>2026-04-12</lastmod>
     <changefreq>weekly</changefreq>
