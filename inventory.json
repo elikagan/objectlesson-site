@@ -1262,10 +1262,13 @@
     "price": 240,
     "size": "",
     "category": "sculpture",
+    "maker": "",
+    "condition": "",
     "dealerCode": "14EK",
-    "isNew": true,
+    "postedBy": "",
+    "isNew": false,
     "isHold": false,
-    "isSold": false,
+    "isSold": true,
     "images": [
       "images/products/000016/wood_spiral_sculpture_1.jpg",
       "images/products/000016/wood_spiral_sculpture_2.jpg"
