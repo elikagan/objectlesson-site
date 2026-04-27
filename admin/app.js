@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v57';
+  const APP_VERSION = 'v58';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -1409,7 +1409,7 @@
         isSold,
         images: uploadedImages,
         heroImage: uploadedImages[0] || '',
-        order: editingId ? (prevItem?.order ?? 0) : 0,
+        order: editingId ? (prevItem?.order ?? 0) : (Math.min(0, ...items.map(i => i.order ?? 0)) - 1),
         createdAt: editingId ? prevItem?.createdAt : new Date().toISOString()
       };
 
