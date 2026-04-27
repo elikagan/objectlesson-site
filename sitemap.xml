@@ -13,16 +13,8 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000078/studio_pot_1.jpg</image:loc>
-      <image:title>Studio Pot</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000078/studio_pot_2.jpg</image:loc>
-      <image:title>Studio Pot</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000078/studio_pot_3.jpg</image:loc>
-      <image:title>Studio Pot</image:title>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000078/elizabeth_bain_1.jpg</image:loc>
+      <image:title>Elizabeth Bain</image:title>
     </image:image>
   </url>
   <url>
