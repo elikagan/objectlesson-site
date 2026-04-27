@@ -1,28 +1,5 @@
 [
   {
-    "id": "000078",
-    "title": "Studio Pot",
-    "description": "Textured blue and purple glazed ceramic vessel with abstract form and stopper.",
-    "price": 295,
-    "size": "5”",
-    "category": "ceramic",
-    "maker": "Krysia St. Clair",
-    "condition": "",
-    "dealerCode": "14EK",
-    "postedBy": "LL",
-    "isNew": true,
-    "isHold": false,
-    "isSold": false,
-    "images": [
-      "images/products/000078/studio_pot_1.jpg",
-      "images/products/000078/studio_pot_2.jpg",
-      "images/products/000078/studio_pot_3.jpg"
-    ],
-    "heroImage": "images/products/000078/studio_pot_1.jpg",
-    "order": 0,
-    "createdAt": "2026-04-27T17:39:09.244Z"
-  },
-  {
     "id": "000077",
     "title": "Gordon Bryan Discs Vase",
     "description": "Hand-built off-white textured ceramic art pottery vase with a distinct bumpy surface and unglazed terracotta base.",
