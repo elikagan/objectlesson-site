@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v58';
+  const APP_VERSION = 'v59';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -398,6 +398,14 @@
 
   // --- Render list ---
 
+  // Auto-expire "New" badge after 7 days based on createdAt (matches public site logic)
+  const NEW_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+  function isItemNew(item) {
+    if (!item.isNew) return false;
+    if (!item.createdAt) return false; // no date = treat as expired (admin is source of truth, never trust unset)
+    return (Date.now() - new Date(item.createdAt).getTime()) < NEW_DURATION_MS;
+  }
+
   function renderList() {
     if (items.length === 0) {
       itemList.innerHTML = '<div class="list-empty">No items yet. Tap + to add one.</div>';
@@ -413,7 +421,7 @@
       let badge = '';
       if (item.isSold) badge = '<span class="item-sold">Sold</span>';
       else if (item.isHold) badge = '<span class="item-hold">Hold</span>';
-      else if (item.isNew) badge = '<span class="item-new">New</span>';
+      else if (isItemNew(item)) badge = '<span class="item-new">New</span>';
       return `
         <div class="swipe-wrap" data-id="${item.id}">
           <div class="swipe-behind">
@@ -578,7 +586,24 @@
 
   // --- Save inventory ---
 
+  // Strip isNew from any item whose 7-day window has expired (in-place mutation)
+  function expireStaleNewFlags() {
+    let changed = 0;
+    for (const it of items) {
+      if (it.isNew && it.createdAt) {
+        const age = Date.now() - new Date(it.createdAt).getTime();
+        if (age >= NEW_DURATION_MS) { it.isNew = false; changed++; }
+      } else if (it.isNew && !it.createdAt) {
+        // No createdAt = ambiguous, but we can't trust the flag. Strip it.
+        it.isNew = false; changed++;
+      }
+    }
+    return changed;
+  }
+
   async function saveInventory(message, _retried) {
+    // Always run cleanup pre-save so stale flags never persist
+    expireStaleNewFlags();
     try {
       const json = JSON.stringify(items, null, 2);
       const result = await putFile('inventory.json', json, inventorySha, message || 'Update inventory');
@@ -1279,6 +1304,50 @@
     return xml;
   }
 
+  // Regenerate the __PRELOAD block in index.html so first-paint data matches
+  // current inventory (correct isNew states, latest items at top, etc.)
+  async function regenerateIndexPreload() {
+    // Pick top 8 active items in current order — first ones the user sees
+    const top = items
+      .filter(i => !i.isSold && i.images && i.images.length)
+      .slice(0, 8)
+      .map(i => ({
+        id: i.id,
+        title: i.title,
+        price: i.price,
+        heroImage: i.heroImage || i.images[0],
+        images: [i.heroImage || i.images[0]],
+        category: i.category || '',
+        isNew: !!i.isNew,
+        isHold: !!i.isHold,
+        isSold: false,
+        createdAt: i.createdAt || null
+      }));
+    const preloadJson = JSON.stringify(top);
+
+    // Build matching <link rel="preload"> hints for the top 6 thumbnails
+    const linkTags = top.slice(0, 6).map(t => {
+      const thumb = (t.heroImage || '').replace(/([^/]+)$/, 'thumb_$1');
+      return `  <link rel="preload" as="image" href="https://ol-checkout.objectlesson.workers.dev/img/${thumb}">`;
+    }).join('\n');
+
+    // Fetch current index.html, swap the __PRELOAD assignment + link hints, write it back
+    const file = await getFile('index.html');
+    const html = decodeURIComponent(escape(atob(file.content.replace(/\n/g, ''))));
+    const preRe = /window\.__PRELOAD\s*=\s*\[[\s\S]*?\];/;
+    const linkRe = /(<!-- Preload above-fold thumbnails for instant grid render -->\n)(?:  <link rel="preload"[^>]*>\n)+/;
+    if (!preRe.test(html)) {
+      console.warn('[SEO] __PRELOAD marker not found in index.html — skipping');
+      return;
+    }
+    let newHtml = html.replace(preRe, `window.__PRELOAD=${preloadJson};`);
+    if (linkRe.test(newHtml)) {
+      newHtml = newHtml.replace(linkRe, `$1${linkTags}\n`);
+    }
+    if (newHtml === html) return; // no change
+    await putFile('index.html', newHtml, file.sha, 'Update homepage preload');
+  }
+
   async function updateSEO(savedItem) {
     try {
       // 1. Push/update the item's static HTML page
@@ -1293,6 +1362,9 @@
       let smSha = null;
       try { smSha = (await getFile('sitemap.xml')).sha; } catch (_) {}
       await putFile('sitemap.xml', sitemapXml, smSha, 'Update sitemap');
+
+      // 2b. Regenerate index.html preload (top 8 active items) so first paint matches reality
+      try { await regenerateIndexPreload(); } catch (e) { console.warn('[SEO] preload regen failed:', e.message); }
 
       // 3. Notify IndexNow (Bing, Yandex) — fire and forget
       const itemUrl = `${SITE_URL}/item/${savedItem.id}/`;

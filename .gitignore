@@ -4,3 +4,4 @@
 node_modules/
 optimize-images.mjs
 supabase/.temp/
+.gstack/
