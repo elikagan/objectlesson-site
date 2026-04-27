@@ -8,6 +8,24 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://objectlesson.la/item/000078/</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000078/studio_pot_1.jpg</image:loc>
+      <image:title>Studio Pot</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000078/studio_pot_2.jpg</image:loc>
+      <image:title>Studio Pot</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000078/studio_pot_3.jpg</image:loc>
+      <image:title>Studio Pot</image:title>
+    </image:image>
+  </url>
+  <url>
     <loc>https://objectlesson.la/item/000077/</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>weekly</changefreq>
