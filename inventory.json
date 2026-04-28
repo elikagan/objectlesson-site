@@ -56,9 +56,9 @@
     "condition": "",
     "dealerCode": "",
     "postedBy": "LL",
-    "isNew": true,
+    "isNew": false,
     "isHold": false,
-    "isSold": false,
+    "isSold": true,
     "images": [
       "images/products/000077/gordon_bryan_discs_vase_1.jpg",
       "images/products/000077/gordon_bryan_discs_vase_2.jpg",
