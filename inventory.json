@@ -1,11 +1,11 @@
 [
   {
     "id": "000080",
-    "title": "Candle Holder",
-    "description": "Black metal candlestick with silver-tone reflective backplate.",
-    "price": 375,
-    "size": "19.5” H x 11 3/4” W",
-    "category": "object",
+    "title": "Minden Ohira Slate Bust",
+    "description": "Abstract black slate mosaic head sculpture with geometric facets.",
+    "price": 5100,
+    "size": "17” H x 8” W",
+    "category": "sculpture",
     "maker": "",
     "condition": "",
     "dealerCode": "14EK",
@@ -14,13 +14,14 @@
     "isHold": false,
     "isSold": false,
     "images": [
-      "images/products/000080/candle_holder_1.jpg",
-      "images/products/000080/candle_holder_2.jpg",
-      "images/products/000080/candle_holder_3.jpg"
+      "images/products/000080/minden_ohira_slate_bust_1.jpg",
+      "images/products/000080/minden_ohira_slate_bust_2.jpg",
+      "images/products/000080/minden_ohira_slate_bust_3.jpg",
+      "images/products/000080/minden_ohira_slate_bust_4.jpg"
     ],
-    "heroImage": "images/products/000080/candle_holder_1.jpg",
+    "heroImage": "images/products/000080/minden_ohira_slate_bust_1.jpg",
     "order": -2,
-    "createdAt": "2026-04-28T23:28:03.998Z"
+    "createdAt": "2026-04-28T23:34:57.691Z"
   },
   {
     "id": "000079",
