@@ -8,6 +8,24 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://objectlesson.la/item/000081/</loc>
+    <lastmod>2026-04-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000081/candle_holder_1.jpg</image:loc>
+      <image:title>Candle Holder</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000081/candle_holder_2.jpg</image:loc>
+      <image:title>Candle Holder</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000081/candle_holder_3.jpg</image:loc>
+      <image:title>Candle Holder</image:title>
+    </image:image>
+  </url>
+  <url>
     <loc>https://objectlesson.la/item/000080/</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>weekly</changefreq>
