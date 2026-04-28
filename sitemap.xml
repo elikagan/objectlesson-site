@@ -8,6 +8,28 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://objectlesson.la/item/000080/</loc>
+    <lastmod>2026-04-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000080/minden_ohira_slate_bust_1.jpg</image:loc>
+      <image:title>Minden Ohira Slate Bust</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000080/minden_ohira_slate_bust_2.jpg</image:loc>
+      <image:title>Minden Ohira Slate Bust</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000080/minden_ohira_slate_bust_3.jpg</image:loc>
+      <image:title>Minden Ohira Slate Bust</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://raw.githubusercontent.com/elikagan/objectlesson-site/main/images/products/000080/minden_ohira_slate_bust_4.jpg</image:loc>
+      <image:title>Minden Ohira Slate Bust</image:title>
+    </image:image>
+  </url>
+  <url>
     <loc>https://objectlesson.la/item/000079/</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>weekly</changefreq>
