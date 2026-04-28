@@ -1353,9 +1353,13 @@
     "price": 1800,
     "size": "",
     "category": "wall-art",
+    "maker": "",
+    "condition": "",
     "dealerCode": "14EK",
+    "postedBy": "",
     "isNew": false,
-    "isSold": false,
+    "isHold": false,
+    "isSold": true,
     "images": [
       "images/products/000015/vollard_litho_1.jpg",
       "images/products/000015/vollard_litho_2.jpg"
