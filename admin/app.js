@@ -2,7 +2,7 @@
   'use strict';
 
   // --- Config ---
-  const APP_VERSION = 'v59';
+  const APP_VERSION = 'v60';
   const REPO = 'objectlesson-site';
   const OWNER = 'elikagan';
   const BRANCH = 'main';
@@ -1503,7 +1503,9 @@
 
       toast('Saved');
       showView('list');
-      renderList();
+      // Re-fetch from GitHub to guarantee the list reflects what's actually saved
+      // (avoids any in-memory staleness from SHA-conflict retries, photo upload races, etc)
+      await loadInventory();
     } catch (e) {
       toast('Error: ' + e.message);
     }
