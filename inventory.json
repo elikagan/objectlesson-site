@@ -23,31 +23,6 @@
     "createdAt": "2026-04-29T00:14:55.912Z"
   },
   {
-    "id": "000083",
-    "title": "Funky Vase",
-    "description": "Two-tone yellow and black ceramic abstract torso vase, modern style.",
-    "price": 200,
-    "size": "8.5” H x 5.5” W",
-    "category": "ceramic",
-    "maker": "",
-    "condition": "",
-    "dealerCode": "14EK",
-    "postedBy": "LL",
-    "isNew": true,
-    "isHold": false,
-    "isSold": false,
-    "images": [
-      "images/products/000083/funky_vase_1.jpg",
-      "images/products/000083/funky_vase_2.jpg",
-      "images/products/000083/funky_vase_3.jpg",
-      "images/products/000083/funky_vase_4.jpg",
-      "images/products/000083/funky_vase_5.jpg"
-    ],
-    "heroImage": "images/products/000083/funky_vase_1.jpg",
-    "order": -4,
-    "createdAt": "2026-04-29T00:09:43.037Z"
-  },
-  {
     "id": "000082",
     "title": "Mixed Metal Vase",
     "description": "Dark patinated metal vase with geometric copper-toned accent.",
