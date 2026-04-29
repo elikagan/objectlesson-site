@@ -1,28 +1,5 @@
 [
   {
-    "id": "000084",
-    "title": "Bronze Woman",
-    "description": "Dark bronze modernist abstract kneeling figure sculpture.",
-    "price": 525,
-    "size": "8.5” W x 6” H",
-    "category": "sculpture",
-    "maker": "",
-    "condition": "",
-    "dealerCode": "14EK",
-    "postedBy": "LL",
-    "isNew": true,
-    "isHold": false,
-    "isSold": false,
-    "images": [
-      "images/products/000084/bronze_woman_1.jpg",
-      "images/products/000084/bronze_woman_2.jpg",
-      "images/products/000084/bronze_woman_3.jpg"
-    ],
-    "heroImage": "images/products/000084/bronze_woman_1.jpg",
-    "order": -6,
-    "createdAt": "2026-04-29T00:14:55.912Z"
-  },
-  {
     "id": "000082",
     "title": "Mixed Metal Vase",
     "description": "Dark patinated metal vase with geometric copper-toned accent.",
