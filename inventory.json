@@ -14,13 +14,13 @@
     "isHold": false,
     "isSold": false,
     "images": [
-      "images/products/000083/funky_vase_1.jpg",
-      "images/products/000083/funky_vase_2.jpg",
       "images/products/000083/funky_vase_3.jpg",
       "images/products/000083/funky_vase_4.jpg",
-      "images/products/000083/funky_vase_5.jpg"
+      "images/products/000083/funky_vase_5.jpg",
+      "images/products/000083/funky_vase_1.jpg",
+      "images/products/000083/funky_vase_2.jpg"
     ],
-    "heroImage": "images/products/000083/funky_vase_1.jpg",
+    "heroImage": "images/products/000083/funky_vase_3.jpg",
     "order": -5,
     "createdAt": "2026-04-29T00:09:43.037Z"
   },
